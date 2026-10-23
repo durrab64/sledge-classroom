@@ -1,17 +1,22 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Sledge Classroom — A free, open learning management system for university students. Access course materials, past papers, lab resources, and stay on top of assignments.">
+    <meta name="description"
+        content="Sledge Classroom — A free, open learning management system for university students. Access course materials, past papers, lab resources, and stay on top of assignments.">
     <meta name="keywords" content="LMS, classroom, university, courses, past papers, assignments, study materials">
     <title>Sledge Classroom — Your Learning Hub</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="styles.css?v=5">
 </head>
+
 <body>
     <!-- ===== NAVBAR ===== -->
     <nav class="navbar" id="navbar">
@@ -88,7 +93,8 @@
                         <span class="gradient-text">Simplified.</span>
                     </h1>
                     <p class="hero-subtitle">
-                        Access lecture slides, past papers, lab resources, and stay on top of your schedule — all in one place. No login required to view or download.
+                        Access lecture slides, past papers, lab resources, and stay on top of your schedule — all in one
+                        place. No login required to view or download.
                     </p>
                     <div class="hero-actions">
                         <button class="btn btn-primary btn-lg" id="hero-explore-btn">
@@ -123,7 +129,8 @@
                     <h2 class="section-title">
                         <i class="fas fa-th-large"></i> Coursework & Labs
                     </h2>
-                    <p class="section-subtitle">Access theory lecture slides, past papers, and practical lab resources</p>
+                    <p class="section-subtitle">Access theory lecture slides, past papers, and practical lab resources
+                    </p>
                 </div>
                 <!-- Filter Pills on Home -->
                 <div class="course-filter-bar" id="home-filter-bar">
@@ -350,11 +357,16 @@
                 <!-- Populated by JS -->
             </div>
             <div class="calendar-legend">
-                <div class="legend-item"><span class="legend-dot" style="background: var(--event-quiz)"></span> Quiz</div>
-                <div class="legend-item"><span class="legend-dot" style="background: var(--event-assignment)"></span> Assignment</div>
-                <div class="legend-item"><span class="legend-dot" style="background: var(--event-presentation)"></span> Presentation</div>
-                <div class="legend-item"><span class="legend-dot" style="background: var(--event-exam)"></span> Exam</div>
-                <div class="legend-item"><span class="legend-dot" style="background: var(--event-other)"></span> Other</div>
+                <div class="legend-item"><span class="legend-dot" style="background: var(--event-quiz)"></span> Quiz
+                </div>
+                <div class="legend-item"><span class="legend-dot" style="background: var(--event-assignment)"></span>
+                    Assignment</div>
+                <div class="legend-item"><span class="legend-dot" style="background: var(--event-presentation)"></span>
+                    Presentation</div>
+                <div class="legend-item"><span class="legend-dot" style="background: var(--event-exam)"></span> Exam
+                </div>
+                <div class="legend-item"><span class="legend-dot" style="background: var(--event-other)"></span> Other
+                </div>
             </div>
             <!-- Events for selected day -->
             <div class="day-events-panel hidden" id="day-events-panel">
@@ -377,7 +389,8 @@
                 </button>
             </div>
             <div class="modal-body">
-                <p class="login-info">Only the admin can upload, update, and delete content. Students can view and download freely.</p>
+                <p class="login-info">Only the admin can upload, update, and delete content. Students can view and
+                    download freely.</p>
                 <div class="form-group">
                     <label for="admin-email">Email</label>
                     <input type="email" id="admin-email" class="form-input" placeholder="admin@example.com">
@@ -429,14 +442,18 @@
             <div class="modal-body">
                 <div class="form-group">
                     <label for="resource-title">Resource Title *</label>
-                    <input type="text" id="resource-title" class="form-input" placeholder="e.g., Lecture 04: Pipelining & Hazards" required>
+                    <input type="text" id="resource-title" class="form-input"
+                        placeholder="e.g., Lecture 04: Pipelining & Hazards" required>
                 </div>
                 <div class="form-group">
                     <label for="resource-url">Document / Share Link (Google Drive, OneDrive, etc.) *</label>
-                    <input type="url" id="resource-url" class="form-input" placeholder="https://drive.google.com/file/d/..." required>
+                    <input type="url" id="resource-url" class="form-input"
+                        placeholder="https://drive.google.com/file/d/..." required>
                     <p class="form-hint" style="margin-top: 6px; font-size: 0.82rem; color: var(--text-tertiary);">
-                        <i class="fab fa-google-drive" style="color: #34a853;"></i> Google Drive, OneDrive, Dropbox, or any PDF/web link.
-                        <br><em>Tip: For Google Drive, ensure link sharing is set to "Anyone with the link can view".</em>
+                        <i class="fab fa-google-drive" style="color: #34a853;"></i> Google Drive, OneDrive, Dropbox, or
+                        any PDF/web link.
+                        <br><em>Tip: For Google Drive, ensure link sharing is set to "Anyone with the link can
+                            view".</em>
                     </p>
                 </div>
                 <div class="form-row">
@@ -455,7 +472,8 @@
                 </div>
                 <div class="form-group">
                     <label for="resource-description">Description / Notes (Optional)</label>
-                    <input type="text" id="resource-description" class="form-input" placeholder="e.g., Midterm prep, includes solved numericals">
+                    <input type="text" id="resource-description" class="form-input"
+                        placeholder="e.g., Midterm prep, includes solved numericals">
                 </div>
             </div>
             <div class="modal-footer">
@@ -509,11 +527,13 @@
                 </div>
                 <div class="form-group">
                     <label for="event-description">Description</label>
-                    <textarea id="event-description" class="form-input form-textarea" placeholder="Add details, group names, instructions..."></textarea>
+                    <textarea id="event-description" class="form-input form-textarea"
+                        placeholder="Add details, group names, instructions..."></textarea>
                 </div>
                 <div class="form-group">
                     <label for="event-groups">Groups / Names (comma separated)</label>
-                    <input type="text" id="event-groups" class="form-input" placeholder="e.g., Group A - Ali, Ahmed, Sara">
+                    <input type="text" id="event-groups" class="form-input"
+                        placeholder="e.g., Group A - Ali, Ahmed, Sara">
                 </div>
             </div>
             <div class="modal-footer">
@@ -561,7 +581,10 @@
             </div>
         </div>
         <div class="footer-bottom">
-            <p>Made with <i class="fas fa-heart" style="color: #ef4444;"></i> by <strong>Muhammad Durrab</strong> aka <strong>Sledge</strong></p>
+            <p>Made by <a href="https://github.com/durrab64" class="author-link"><strong>Muhammad Durrab</strong></a>
+                aka
+                <strong>Sledge</strong>
+            </p>
             <p>&copy; 2026 SledgeClassroom. All rights reserved.</p>
         </div>
     </footer>
@@ -578,4 +601,5 @@
     <script src="firebase-config.js?v=5"></script>
     <script src="app.js?v=5"></script>
 </body>
+
 </html>
