@@ -340,29 +340,44 @@ async function getFilesFromDB(courseId, category) {
 }
 
 // Get file counts for a course (for card display)
-async function getFileCounts(courseId) {
+async function getFileCounts(courseId, mode = 'theory') {
     try {
-        const [lectures, papers, related] = await Promise.all([
-            db.collection('courses').doc(courseId).collection('lectures').get(),
-            db.collection('courses').doc(courseId).collection('papers').get(),
-            db.collection('courses').doc(courseId).collection('related').get(),
-        ]);
-        return {
-            lectures: lectures.size,
-            papers: papers.size,
-            related: related.size,
-        };
+        if (mode === 'lab') {
+            const [lab, labPapers, labTasks] = await Promise.all([
+                db.collection('courses').doc(courseId).collection('lab').get(),
+                db.collection('courses').doc(courseId).collection('lab_papers').get(),
+                db.collection('courses').doc(courseId).collection('lab_tasks').get(),
+            ]);
+            return {
+                primary: lab.size,
+                papers: labPapers.size,
+                tertiary: labTasks.size,
+                total: lab.size + labPapers.size + labTasks.size,
+            };
+        } else {
+            const [lectures, papers, related] = await Promise.all([
+                db.collection('courses').doc(courseId).collection('lectures').get(),
+                db.collection('courses').doc(courseId).collection('papers').get(),
+                db.collection('courses').doc(courseId).collection('related').get(),
+            ]);
+            return {
+                primary: lectures.size,
+                papers: papers.size,
+                tertiary: related.size,
+                total: lectures.size + papers.size + related.size,
+            };
+        }
     } catch (error) {
         console.error('Error getting file counts:', error);
-        return { lectures: 0, papers: 0, related: 0 };
+        return { primary: 0, papers: 0, tertiary: 0, total: 0 };
     }
 }
 
 // Get lab file count
 async function getLabFileCount(courseId) {
     try {
-        const snapshot = await db.collection('courses').doc(courseId).collection('lab').get();
-        return snapshot.size;
+        const counts = await getFileCounts(courseId, 'lab');
+        return counts.total;
     } catch (error) {
         return 0;
     }
@@ -389,8 +404,47 @@ async function getEventCount(courseId) {
     }
 }
 
+// ===== FILTER PILLS =====
+function initFilters() {
+    ['home-filter-bar', 'courses-filter-bar'].forEach(barId => {
+        const bar = document.getElementById(barId);
+        if (!bar) return;
+        bar.querySelectorAll('.filter-pill').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const filter = btn.dataset.filter;
+                currentFilter = filter;
+                document.querySelectorAll('.filter-pill').forEach(p => {
+                    p.classList.toggle('active', p.dataset.filter === filter);
+                });
+                renderCourseCards('home-courses-grid');
+                renderCourseCards('courses-grid-full');
+            });
+        });
+    });
+}
+
+function updateFilterCounters() {
+    const theoryCount = COURSES.length; // 6
+    const labCount = LAB_COURSES.length; // 3
+    const allCount = theoryCount + labCount; // 9
+
+    const setEl = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+    };
+
+    setEl('count-all', allCount);
+    setEl('count-theory', theoryCount);
+    setEl('count-lab', labCount);
+
+    setEl('home-count-all', allCount);
+    setEl('home-count-theory', theoryCount);
+    setEl('home-count-lab', labCount);
+}
+
 // ===== COURSE CARDS =====
 async function loadAllCourseCards() {
+    updateFilterCounters();
     await renderCourseCards('home-courses-grid');
     await renderCourseCards('courses-grid-full');
     await renderLabCards();
@@ -398,46 +452,121 @@ async function loadAllCourseCards() {
 
 async function renderCourseCards(containerId) {
     const container = document.getElementById(containerId);
-    container.innerHTML = '<div class="empty-state"><div class="spinner" style="margin:0 auto;"></div><p style="margin-top:16px;">Loading courses...</p></div>';
+    if (!container) return;
+    container.innerHTML = '<div class="empty-state"><div class="spinner" style="margin:0 auto;"></div><p style="margin-top:16px;">Loading courses & labs...</p></div>';
 
-    // Fetch counts for all courses in parallel
-    const countsPromises = COURSES.map(async (course) => {
+    // Fetch counts for Theory courses
+    const theoryPromises = COURSES.map(async (course) => {
         const [counts, eventCount] = await Promise.all([
-            getFileCounts(course.id),
+            getFileCounts(course.id, 'theory'),
             getEventCount(course.id),
         ]);
         return { course, counts, eventCount };
     });
 
-    const allData = await Promise.all(countsPromises);
+    // Fetch counts for Lab sections
+    const labPromises = LAB_COURSES.map(async (course) => {
+        const [counts, eventCount] = await Promise.all([
+            getFileCounts(course.id, 'lab'),
+            getEventCount(course.id),
+        ]);
+        return { course, counts, eventCount };
+    });
+
+    const [theoryData, labData] = await Promise.all([
+        Promise.all(theoryPromises),
+        Promise.all(labPromises),
+    ]);
+
     container.innerHTML = '';
 
-    allData.forEach(({ course, counts, eventCount }, index) => {
-        const card = document.createElement('div');
-        card.className = 'course-card';
-        card.style.setProperty('--card-accent', course.color);
-        card.style.animationDelay = `${index * 0.05}s`;
-        card.innerHTML = `
-            ${course.hasLab ? '<div class="lab-badge"><i class="fas fa-flask"></i> Lab</div>' : ''}
-            <div class="card-icon" style="background: ${course.gradient}">
-                <i class="${course.icon}"></i>
-            </div>
-            <div class="card-title">${course.name}</div>
-            <div class="card-subtitle">${course.code}</div>
-            <div class="card-meta">
-                <div class="card-meta-item"><i class="fas fa-chalkboard"></i> ${counts.lectures} Slides</div>
-                <div class="card-meta-item"><i class="fas fa-scroll"></i> ${counts.papers} Papers</div>
-                <div class="card-meta-item"><i class="fas fa-paperclip"></i> ${counts.related} Materials</div>
-                <div class="card-meta-item"><i class="fas fa-calendar-day"></i> ${eventCount} Events</div>
-            </div>
-        `;
-        card.addEventListener('click', () => openCourseDetail(course.id));
-        container.appendChild(card);
-    });
+    const showTheory = currentFilter === 'all' || currentFilter === 'theory';
+    const showLab = currentFilter === 'all' || currentFilter === 'lab';
+
+    // 1. THEORY COURSES SECTION
+    if (showTheory) {
+        if (currentFilter === 'all') {
+            const header = document.createElement('div');
+            header.className = 'courses-group-header';
+            header.style.gridColumn = '1 / -1';
+            header.innerHTML = `
+                <div class="courses-group-title">
+                    <i class="fas fa-book-reader" style="color: var(--blue-500);"></i> Theory Courses
+                </div>
+                <span class="courses-group-badge theory">6 Courses</span>
+            `;
+            container.appendChild(header);
+        }
+
+        theoryData.forEach(({ course, counts, eventCount }, index) => {
+            const card = document.createElement('div');
+            card.className = 'course-card';
+            card.style.setProperty('--card-accent', course.color);
+            card.style.animationDelay = `${index * 0.04}s`;
+            card.innerHTML = `
+                <span class="course-type-badge theory"><i class="fas fa-book-reader"></i> Theory</span>
+                <div class="card-icon" style="background: ${course.gradient}">
+                    <i class="${course.icon}"></i>
+                </div>
+                <div class="card-title">${course.name}${course.hasLab ? ' — Theory' : ''}</div>
+                <div class="card-subtitle">${course.code} · Theory Coursework</div>
+                <div class="card-meta">
+                    <div class="card-meta-item"><i class="fas fa-chalkboard"></i> ${counts.primary} Slides</div>
+                    <div class="card-meta-item"><i class="fas fa-scroll"></i> ${counts.papers} Papers</div>
+                    <div class="card-meta-item"><i class="fas fa-paperclip"></i> ${counts.tertiary} Materials</div>
+                    <div class="card-meta-item"><i class="fas fa-calendar-day"></i> ${eventCount} Events</div>
+                </div>
+            `;
+            card.addEventListener('click', () => openCourseDetail(course.id, 'theory', currentPage));
+            container.appendChild(card);
+        });
+    }
+
+    // 2. LAB SECTIONS
+    if (showLab) {
+        if (currentFilter === 'all') {
+            const header = document.createElement('div');
+            header.className = 'courses-group-header';
+            header.style.gridColumn = '1 / -1';
+            header.innerHTML = `
+                <div class="courses-group-title">
+                    <i class="fas fa-flask" style="color: #10b981;"></i> Lab Sections
+                </div>
+                <span class="courses-group-badge lab">3 Labs</span>
+            `;
+            container.appendChild(header);
+        }
+
+        labData.forEach(({ course, counts, eventCount }, index) => {
+            const card = document.createElement('div');
+            card.className = 'course-card';
+            card.style.setProperty('--card-accent', '#10b981');
+            card.style.animationDelay = `${index * 0.04}s`;
+            card.innerHTML = `
+                <span class="course-type-badge lab"><i class="fas fa-flask"></i> Practical Lab</span>
+                <div class="card-icon" style="background: linear-gradient(135deg, #10b981, #059669)">
+                    <i class="fas fa-flask"></i>
+                </div>
+                <div class="card-title">${course.name} — Lab</div>
+                <div class="card-subtitle">${course.code} · Hands-on Practical Lab</div>
+                <div class="card-meta">
+                    <div class="card-meta-item"><i class="fas fa-vial"></i> ${counts.primary} Manuals</div>
+                    <div class="card-meta-item"><i class="fas fa-scroll"></i> ${counts.papers} Past Papers</div>
+                    <div class="card-meta-item"><i class="fas fa-laptop-code"></i> ${counts.tertiary} Tasks</div>
+                    <div class="card-meta-item"><i class="fas fa-calendar-day"></i> ${eventCount} Events</div>
+                </div>
+            `;
+            card.addEventListener('click', () => openCourseDetail(course.id, 'lab', currentPage));
+            container.appendChild(card);
+        });
+    }
 }
 
-async function openCourseDetail(courseId) {
+// ===== COURSE DETAIL VIEW (Theory vs Lab Separation) =====
+async function openCourseDetail(courseId, initialMode = 'theory', fromPage = currentPage) {
     currentCourseId = courseId;
+    currentCourseMode = initialMode;
+    originPage = fromPage || 'courses';
     const course = COURSES.find(c => c.id === courseId);
     if (!course) return;
 
@@ -446,47 +575,149 @@ async function openCourseDetail(courseId) {
     document.getElementById('courses-list-view').classList.add('hidden');
     document.getElementById('course-detail-view').classList.remove('hidden');
 
-    // Render header
-    const header = document.getElementById('course-header');
-    header.style.background = course.gradient;
-    header.innerHTML = `
-        <div class="course-header-content">
-            <div class="course-header-icon"><i class="${course.icon}"></i></div>
-            <h1>${course.name}</h1>
-            <p>${course.description}</p>
-        </div>
-    `;
-
-    // Set first tab active
-    switchTab('lectures');
-
-    // Load all tab data
-    await Promise.all([
-        renderFileList('lectures'),
-        renderFileList('papers'),
-        renderFileList('related'),
-        renderCourseEvents(),
-    ]);
-
-    // Upload buttons
-    document.getElementById('upload-lectures-btn').onclick = () => openUploadModal('lectures', courseId);
-    document.getElementById('upload-papers-btn').onclick = () => openUploadModal('papers', courseId);
-    document.getElementById('upload-related-btn').onclick = () => openUploadModal('related', courseId);
-
-    // Add course event button
-    document.getElementById('add-course-event-btn').onclick = () => {
-        eventModalCourseId = courseId;
-        openEventModal();
-    };
+    // Section Mode Switcher setup
+    const modeBar = document.getElementById('course-mode-bar');
+    if (course.hasLab) {
+        modeBar.classList.remove('hidden');
+        document.getElementById('mode-btn-theory').onclick = () => switchCourseMode('theory');
+        document.getElementById('mode-btn-lab').onclick = () => switchCourseMode('lab');
+    } else {
+        modeBar.classList.add('hidden');
+        currentCourseMode = 'theory';
+    }
 
     // Back button
     document.getElementById('course-back-btn').onclick = () => {
         document.getElementById('courses-list-view').classList.remove('hidden');
         document.getElementById('course-detail-view').classList.add('hidden');
+        if (originPage === 'labs') {
+            navigateTo('labs');
+        } else if (originPage === 'home') {
+            navigateTo('home');
+        } else {
+            navigateTo('courses');
+        }
         loadAllCourseCards();
     };
 
+    // Render content for current mode
+    await applyCourseModeView();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function switchCourseMode(mode) {
+    if (currentCourseMode === mode) return;
+    currentCourseMode = mode;
+    await applyCourseModeView();
+}
+
+async function applyCourseModeView() {
+    const course = COURSES.find(c => c.id === currentCourseId);
+    if (!course) return;
+
+    // Update Mode Switcher buttons & status
+    const btnTheory = document.getElementById('mode-btn-theory');
+    const btnLab = document.getElementById('mode-btn-lab');
+    const statusText = document.getElementById('mode-status-text');
+
+    if (btnTheory && btnLab) {
+        btnTheory.classList.toggle('active', currentCourseMode === 'theory');
+        btnLab.classList.toggle('active', currentCourseMode === 'lab');
+    }
+    if (statusText) {
+        statusText.innerHTML = currentCourseMode === 'theory' 
+            ? '<i class="fas fa-book-reader" style="color:var(--blue-500);"></i> Viewing Theory Coursework'
+            : '<i class="fas fa-flask" style="color:#10b981;"></i> Viewing Practical Lab Section';
+    }
+
+    // Update Header
+    const header = document.getElementById('course-header');
+    if (currentCourseMode === 'lab') {
+        header.style.background = 'linear-gradient(135deg, #0d9488, #059669)';
+        header.innerHTML = `
+            <div class="course-header-content">
+                <div class="course-header-icon"><i class="fas fa-flask"></i></div>
+                <h1>${course.name} — Lab Section</h1>
+                <p>Practical lab manuals, experiment sheets, code exercises, and viva past papers.</p>
+            </div>
+        `;
+    } else {
+        header.style.background = course.gradient;
+        header.innerHTML = `
+            <div class="course-header-content">
+                <div class="course-header-icon"><i class="${course.icon}"></i></div>
+                <h1>${course.name}${course.hasLab ? ' — Theory Section' : ''}</h1>
+                <p>${course.description}</p>
+            </div>
+        `;
+    }
+
+    // Update Tab Labels and Toolbars
+    const tabLabel1 = document.getElementById('tab-label-1');
+    const tabLabel2 = document.getElementById('tab-label-2');
+    const tabLabel3 = document.getElementById('tab-label-3');
+    const tabLabel4 = document.getElementById('tab-label-4');
+
+    const tab1Title = document.getElementById('tab-1-title');
+    const tab2Title = document.getElementById('tab-2-title');
+    const tab3Title = document.getElementById('tab-3-title');
+
+    const upload1Btn = document.getElementById('upload-1-btn-text');
+    const upload2Btn = document.getElementById('upload-2-btn-text');
+    const upload3Btn = document.getElementById('upload-3-btn-text');
+
+    const cat1 = currentCourseMode === 'lab' ? 'lab' : 'lectures';
+    const cat2 = currentCourseMode === 'lab' ? 'lab_papers' : 'papers';
+    const cat3 = currentCourseMode === 'lab' ? 'lab_tasks' : 'related';
+
+    if (currentCourseMode === 'lab') {
+        if (tabLabel1) tabLabel1.textContent = 'Lab Manuals';
+        if (tabLabel2) tabLabel2.textContent = 'Lab Past Papers';
+        if (tabLabel3) tabLabel3.textContent = 'Code & Tasks';
+        if (tabLabel4) tabLabel4.textContent = 'Lab Schedule';
+
+        if (tab1Title) tab1Title.innerHTML = '<i class="fas fa-flask"></i> Lab Manuals & Experiments';
+        if (tab2Title) tab2Title.innerHTML = '<i class="fas fa-scroll"></i> Lab Past Papers & Viva';
+        if (tab3Title) tab3Title.innerHTML = '<i class="fas fa-laptop-code"></i> Code & Lab Tasks';
+
+        if (upload1Btn) upload1Btn.textContent = 'Add Lab Manual';
+        if (upload2Btn) upload2Btn.textContent = 'Add Lab Past Paper';
+        if (upload3Btn) upload3Btn.textContent = 'Add Lab Task';
+    } else {
+        if (tabLabel1) tabLabel1.textContent = 'Lecture Slides';
+        if (tabLabel2) tabLabel2.textContent = 'Past Papers';
+        if (tabLabel3) tabLabel3.textContent = 'Related Materials';
+        if (tabLabel4) tabLabel4.textContent = 'Calendar';
+
+        if (tab1Title) tab1Title.innerHTML = '<i class="fas fa-chalkboard"></i> Lecture Slides';
+        if (tab2Title) tab2Title.innerHTML = '<i class="fas fa-scroll"></i> Past Papers';
+        if (tab3Title) tab3Title.innerHTML = '<i class="fas fa-paperclip"></i> Related Materials';
+
+        if (upload1Btn) upload1Btn.textContent = 'Add Slides';
+        if (upload2Btn) upload2Btn.textContent = 'Add Past Paper';
+        if (upload3Btn) upload3Btn.textContent = 'Add Material';
+    }
+
+    // Reset to first tab
+    switchTab('lectures');
+
+    // Bind upload buttons to current active collections
+    document.getElementById('upload-lectures-btn').onclick = () => openUploadModal(cat1, currentCourseId);
+    document.getElementById('upload-papers-btn').onclick = () => openUploadModal(cat2, currentCourseId);
+    document.getElementById('upload-related-btn').onclick = () => openUploadModal(cat3, currentCourseId);
+
+    document.getElementById('add-course-event-btn').onclick = () => {
+        eventModalCourseId = currentCourseId;
+        openEventModal();
+    };
+
+    // Load active category lists
+    await Promise.all([
+        renderFileList(cat1),
+        renderFileList(cat2),
+        renderFileList(cat3),
+        renderCourseEvents(),
+    ]);
 }
 
 // ===== TABS =====
@@ -522,20 +753,24 @@ async function renderFileList(category) {
         lectures: 'lectures-list',
         papers: 'papers-list',
         related: 'related-list',
-        lab: 'lab-files-list',
+        lab: 'lectures-list',        // Tab 1 in Lab mode
+        lab_papers: 'papers-list',   // Tab 2 in Lab mode
+        lab_tasks: 'related-list',   // Tab 3 in Lab mode
     };
 
     const emptyMessages = {
-        lectures: { icon: 'fas fa-chalkboard', title: 'No Lecture Slides Yet', desc: 'Lecture slides and presentations will appear here.' },
-        papers: { icon: 'fas fa-scroll', title: 'No Past Papers Yet', desc: 'Previous exam papers will appear here.' },
-        related: { icon: 'fas fa-paperclip', title: 'No Related Materials Yet', desc: 'Additional resources, references, and notes will appear here.' },
-        lab: { icon: 'fas fa-flask', title: 'No Lab Resources Yet', desc: 'Lab manuals, code files, and experiment sheets will appear here.' },
+        lectures: { icon: 'fas fa-chalkboard', title: 'No Lecture Slides Yet', desc: 'Theory lecture slides and presentations will appear here.' },
+        papers: { icon: 'fas fa-scroll', title: 'No Past Papers Yet', desc: 'Theory exam past papers will appear here.' },
+        related: { icon: 'fas fa-paperclip', title: 'No Related Materials Yet', desc: 'Reference notes, books, and study guides will appear here.' },
+        lab: { icon: 'fas fa-flask', title: 'No Lab Manuals Yet', desc: 'Lab manuals, experiment sheets, and guidelines will appear here.' },
+        lab_papers: { icon: 'fas fa-scroll', title: 'No Lab Past Papers Yet', desc: 'Lab exam past papers, viva questions, and practical solutions will appear here.' },
+        lab_tasks: { icon: 'fas fa-laptop-code', title: 'No Code or Lab Tasks Yet', desc: 'Sample codes, starter projects, and lab assignments will appear here.' },
     };
 
     const listEl = document.getElementById(listIdMap[category]);
     if (!listEl) return;
 
-    const courseId = category === 'lab' ? currentLabId : currentCourseId;
+    const courseId = currentCourseId;
 
     // Show loading
     listEl.innerHTML = '<div class="empty-state"><div class="spinner" style="margin:0 auto;"></div><p style="margin-top:12px;">Loading...</p></div>';
@@ -543,7 +778,7 @@ async function renderFileList(category) {
     const files = await getFilesFromDB(courseId, category);
 
     if (files.length === 0) {
-        const msg = emptyMessages[category];
+        const msg = emptyMessages[category] || { icon: 'fas fa-folder-open', title: 'No Files Yet', desc: 'Uploaded resources will appear here.' };
         listEl.innerHTML = `
             <div class="empty-state">
                 <i class="${msg.icon}"></i>
@@ -636,11 +871,7 @@ async function deleteFileFromDB(file, category) {
 
         showToast('Resource deleted successfully', 'success');
 
-        if (category === 'lab') {
-            await renderFileList('lab');
-        } else {
-            await renderFileList(category);
-        }
+        await renderFileList(category);
         await loadAllCourseCards();
     } catch (error) {
         console.error('Delete error:', error);
@@ -699,7 +930,9 @@ function openUploadModal(category, courseId) {
         lectures: '<i class="fas fa-chalkboard"></i> Add Lecture Slides',
         papers: '<i class="fas fa-scroll"></i> Add Past Paper',
         related: '<i class="fas fa-paperclip"></i> Add Related Material',
-        lab: '<i class="fas fa-flask"></i> Add Lab Resource',
+        lab: '<i class="fas fa-flask"></i> Add Lab Manual / Experiment',
+        lab_papers: '<i class="fas fa-scroll"></i> Add Lab Past Paper / Viva',
+        lab_tasks: '<i class="fas fa-laptop-code"></i> Add Code / Lab Task',
     };
     title.innerHTML = titles[category] || '<i class="fas fa-link"></i> Add Resource';
 
@@ -711,8 +944,9 @@ function openUploadModal(category, courseId) {
     const typeSelect = document.getElementById('resource-type');
     if (typeSelect) {
         if (category === 'lectures') typeSelect.value = 'ppt';
-        else if (category === 'papers') typeSelect.value = 'pdf';
-        else if (category === 'lab') typeSelect.value = 'code';
+        else if (category === 'papers' || category === 'lab_papers') typeSelect.value = 'pdf';
+        else if (category === 'lab_tasks') typeSelect.value = 'code';
+        else if (category === 'lab') typeSelect.value = 'pdf';
         else typeSelect.value = 'pdf';
     }
 
@@ -789,12 +1023,7 @@ async function confirmUpload() {
         showToast('Resource added successfully!', 'success');
         closeUploadModal();
 
-        // Refresh lists and count indicators
-        if (category === 'lab') {
-            await renderFileList('lab');
-        } else {
-            await renderFileList(category);
-        }
+        await renderFileList(category);
         await loadAllCourseCards();
 
     } catch (error) {
@@ -809,65 +1038,43 @@ async function confirmUpload() {
 // ===== LAB CARDS =====
 async function renderLabCards() {
     const container = document.getElementById('labs-grid');
+    if (!container) return;
     container.innerHTML = '<div class="empty-state"><div class="spinner" style="margin:0 auto;"></div><p style="margin-top:12px;">Loading labs...</p></div>';
 
     const promises = LAB_COURSES.map(async (course) => {
-        const count = await getLabFileCount(course.id);
-        return { course, count };
+        const counts = await getFileCounts(course.id, 'lab');
+        const eventCount = await getEventCount(course.id);
+        return { course, counts, eventCount };
     });
 
     const results = await Promise.all(promises);
     container.innerHTML = '';
 
-    results.forEach(({ course, count }) => {
+    results.forEach(({ course, counts, eventCount }) => {
         const card = document.createElement('div');
         card.className = 'course-card';
-        card.style.setProperty('--card-accent', course.color);
+        card.style.setProperty('--card-accent', '#10b981');
         card.innerHTML = `
-            <div class="card-icon" style="background: ${course.gradient}">
+            <span class="course-type-badge lab"><i class="fas fa-flask"></i> Practical Lab</span>
+            <div class="card-icon" style="background: linear-gradient(135deg, #10b981, #059669)">
                 <i class="fas fa-flask"></i>
             </div>
             <div class="card-title">${course.name} — Lab</div>
-            <div class="card-subtitle">${course.code} Lab Section</div>
+            <div class="card-subtitle">${course.code} · Hands-on Practical Lab</div>
             <div class="card-meta">
-                <div class="card-meta-item"><i class="fas fa-vial"></i> ${count} Lab Resources</div>
+                <div class="card-meta-item"><i class="fas fa-vial"></i> ${counts.primary} Manuals</div>
+                <div class="card-meta-item"><i class="fas fa-scroll"></i> ${counts.papers} Past Papers</div>
+                <div class="card-meta-item"><i class="fas fa-laptop-code"></i> ${counts.tertiary} Tasks</div>
+                <div class="card-meta-item"><i class="fas fa-calendar-day"></i> ${eventCount} Events</div>
             </div>
         `;
-        card.addEventListener('click', () => openLabDetail(course.id));
+        card.addEventListener('click', () => openCourseDetail(course.id, 'lab', 'labs'));
         container.appendChild(card);
     });
 }
 
 async function openLabDetail(courseId) {
-    currentLabId = courseId;
-    const course = COURSES.find(c => c.id === courseId);
-    if (!course) return;
-
-    if (currentPage !== 'labs') navigateTo('labs');
-
-    document.getElementById('labs-list-view').classList.add('hidden');
-    document.getElementById('lab-detail-view').classList.remove('hidden');
-
-    const header = document.getElementById('lab-header');
-    header.style.background = course.gradient;
-    header.innerHTML = `
-        <div class="course-header-content">
-            <div class="course-header-icon"><i class="fas fa-flask"></i></div>
-            <h1>${course.name} — Lab</h1>
-            <p>Lab section resources: manuals, code files, experiments, and more.</p>
-        </div>
-    `;
-
-    document.getElementById('upload-lab-btn').onclick = () => openUploadModal('lab', courseId);
-
-    document.getElementById('lab-back-btn').onclick = () => {
-        document.getElementById('labs-list-view').classList.remove('hidden');
-        document.getElementById('lab-detail-view').classList.add('hidden');
-        renderLabCards();
-    };
-
-    await renderFileList('lab');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    await openCourseDetail(courseId, 'lab', 'labs');
 }
 
 // ===== EVENT MODAL =====
