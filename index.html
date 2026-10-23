@@ -121,9 +121,21 @@
             <div class="section">
                 <div class="section-header">
                     <h2 class="section-title">
-                        <i class="fas fa-th-large"></i> Your Courses
+                        <i class="fas fa-th-large"></i> Coursework & Labs
                     </h2>
-                    <p class="section-subtitle">Jump into any course to access lecture slides, past papers, and related materials</p>
+                    <p class="section-subtitle">Access theory lecture slides, past papers, and practical lab resources</p>
+                </div>
+                <!-- Filter Pills on Home -->
+                <div class="course-filter-bar" id="home-filter-bar">
+                    <button class="filter-pill active" data-filter="all">
+                        <i class="fas fa-th-large"></i> All (<span id="home-count-all">9</span>)
+                    </button>
+                    <button class="filter-pill" data-filter="theory">
+                        <i class="fas fa-book-reader"></i> Theory Courses (<span id="home-count-theory">6</span>)
+                    </button>
+                    <button class="filter-pill" data-filter="lab">
+                        <i class="fas fa-flask"></i> Lab Sections (<span id="home-count-lab">3</span>)
+                    </button>
                 </div>
                 <div class="courses-grid" id="home-courses-grid">
                     <!-- Populated by JS -->
@@ -153,8 +165,20 @@
             <!-- Course List View -->
             <div class="courses-list-view" id="courses-list-view">
                 <div class="page-header">
-                    <h1 class="page-title"><i class="fas fa-book-open"></i> All Courses</h1>
-                    <p class="page-subtitle">Select a course to access lecture slides, past papers, and related materials</p>
+                    <h1 class="page-title"><i class="fas fa-book-open"></i> All Courses & Labs</h1>
+                    <p class="page-subtitle">Separate theory coursework and hands-on practical lab sections</p>
+                </div>
+                <!-- Filter Pills on Courses Page -->
+                <div class="course-filter-bar" id="courses-filter-bar">
+                    <button class="filter-pill active" data-filter="all">
+                        <i class="fas fa-th-large"></i> All (<span id="courses-count-all">9</span>)
+                    </button>
+                    <button class="filter-pill" data-filter="theory">
+                        <i class="fas fa-book-reader"></i> Theory Courses (<span id="courses-count-theory">6</span>)
+                    </button>
+                    <button class="filter-pill" data-filter="lab">
+                        <i class="fas fa-flask"></i> Lab Sections (<span id="courses-count-lab">3</span>)
+                    </button>
                 </div>
                 <div class="courses-grid-full" id="courses-grid-full">
                     <!-- Populated by JS -->
@@ -170,69 +194,84 @@
                     <!-- Populated by JS -->
                 </div>
 
+                <!-- Section Mode Switcher (Theory vs Lab) -->
+                <div class="course-mode-bar hidden" id="course-mode-bar">
+                    <div class="mode-toggle-group">
+                        <button class="mode-toggle-btn active" data-mode="theory" id="mode-btn-theory">
+                            <i class="fas fa-book-reader"></i> Theory Section
+                        </button>
+                        <button class="mode-toggle-btn" data-mode="lab" id="mode-btn-lab">
+                            <i class="fas fa-flask"></i> Lab Section
+                        </button>
+                    </div>
+                    <span class="mode-status-text" id="mode-status-text">
+                        <i class="fas fa-info-circle"></i> Viewing Theory Coursework
+                    </span>
+                </div>
+
                 <!-- Tabs: 3 categories + Calendar -->
                 <div class="tabs" id="course-tabs">
                     <button class="tab active" data-tab="lectures" id="tab-lectures">
-                        <i class="fas fa-chalkboard"></i> Lecture Slides
+                        <i class="fas fa-chalkboard"></i> <span id="tab-label-1">Lecture Slides</span>
                     </button>
                     <button class="tab" data-tab="past-papers" id="tab-past-papers">
-                        <i class="fas fa-scroll"></i> Past Papers
+                        <i class="fas fa-scroll"></i> <span id="tab-label-2">Past Papers</span>
                     </button>
                     <button class="tab" data-tab="related" id="tab-related">
-                        <i class="fas fa-paperclip"></i> Related Materials
+                        <i class="fas fa-paperclip"></i> <span id="tab-label-3">Related Materials</span>
                     </button>
                     <button class="tab" data-tab="course-calendar" id="tab-course-calendar">
-                        <i class="fas fa-calendar-day"></i> Calendar
+                        <i class="fas fa-calendar-day"></i> <span id="tab-label-4">Calendar</span>
                     </button>
                 </div>
 
-                <!-- Lecture Slides Tab -->
+                <!-- Tab 1: Lecture Slides (Theory) / Lab Manuals (Lab) -->
                 <div class="tab-content active" id="tab-content-lectures">
                     <div class="tab-toolbar">
-                        <h3><i class="fas fa-chalkboard"></i> Lecture Slides</h3>
+                        <h3 id="tab-1-title"><i class="fas fa-chalkboard"></i> Lecture Slides</h3>
                         <button class="btn btn-primary btn-sm admin-only" id="upload-lectures-btn">
-                            <i class="fas fa-cloud-upload-alt"></i> Upload Slides
+                            <i class="fas fa-cloud-upload-alt"></i> <span id="upload-1-btn-text">Add Slides</span>
                         </button>
                     </div>
                     <div class="files-list" id="lectures-list">
                         <div class="empty-state">
-                            <i class="fas fa-chalkboard"></i>
-                            <h3>No Lecture Slides Yet</h3>
-                            <p>Lecture slides and presentations will appear here.</p>
+                            <i class="fas fa-chalkboard" id="tab-1-empty-icon"></i>
+                            <h3 id="tab-1-empty-title">No Lecture Slides Yet</h3>
+                            <p id="tab-1-empty-desc">Lecture slides and presentations will appear here.</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Past Papers Tab -->
+                <!-- Tab 2: Past Papers (Theory) / Lab Papers & Viva (Lab) -->
                 <div class="tab-content" id="tab-content-past-papers">
                     <div class="tab-toolbar">
-                        <h3><i class="fas fa-scroll"></i> Past Papers</h3>
+                        <h3 id="tab-2-title"><i class="fas fa-scroll"></i> Past Papers</h3>
                         <button class="btn btn-primary btn-sm admin-only" id="upload-papers-btn">
-                            <i class="fas fa-cloud-upload-alt"></i> Upload Past Paper
+                            <i class="fas fa-cloud-upload-alt"></i> <span id="upload-2-btn-text">Add Past Paper</span>
                         </button>
                     </div>
                     <div class="files-list" id="papers-list">
                         <div class="empty-state">
-                            <i class="fas fa-scroll"></i>
-                            <h3>No Past Papers Yet</h3>
-                            <p>Previous exam papers will appear here.</p>
+                            <i class="fas fa-scroll" id="tab-2-empty-icon"></i>
+                            <h3 id="tab-2-empty-title">No Past Papers Yet</h3>
+                            <p id="tab-2-empty-desc">Previous exam papers will appear here.</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Related Materials Tab -->
+                <!-- Tab 3: Related Materials (Theory) / Code & Tasks (Lab) -->
                 <div class="tab-content" id="tab-content-related">
                     <div class="tab-toolbar">
-                        <h3><i class="fas fa-paperclip"></i> Related Materials</h3>
+                        <h3 id="tab-3-title"><i class="fas fa-paperclip"></i> Related Materials</h3>
                         <button class="btn btn-primary btn-sm admin-only" id="upload-related-btn">
-                            <i class="fas fa-cloud-upload-alt"></i> Upload Material
+                            <i class="fas fa-cloud-upload-alt"></i> <span id="upload-3-btn-text">Add Material</span>
                         </button>
                     </div>
                     <div class="files-list" id="related-list">
                         <div class="empty-state">
-                            <i class="fas fa-paperclip"></i>
-                            <h3>No Related Materials Yet</h3>
-                            <p>Additional resources, references, and notes will appear here.</p>
+                            <i class="fas fa-paperclip" id="tab-3-empty-icon"></i>
+                            <h3 id="tab-3-empty-title">No Related Materials Yet</h3>
+                            <p id="tab-3-empty-desc">Additional resources, references, and notes will appear here.</p>
                         </div>
                     </div>
                 </div>

@@ -89,7 +89,10 @@ let currentPage = 'home';
 let currentCourseId = null;
 let currentLabId = null;
 let currentTab = 'lectures';
-let uploadContext = null; // { category: 'lectures'|'papers'|'related'|'lab', courseId: string }
+let currentCourseMode = 'theory'; // 'theory' | 'lab'
+let currentFilter = 'all'; // 'all' | 'theory' | 'lab'
+let originPage = 'courses'; // 'courses' | 'home' | 'labs'
+let uploadContext = null; // { category, courseId }
 let selectedFiles = [];
 let calendarDate = new Date();
 let eventModalCourseId = null;
@@ -103,6 +106,7 @@ const db = window.firebaseDB;
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     initNavigation();
+    initFilters();
     initAuth();
     initUploadModal();
     initEventModal();
