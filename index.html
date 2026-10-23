@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sledge Classroom — A free, open learning management system for university students. Access course materials, past papers, lab resources, and stay on top of assignments.">
+    <meta name="keywords" content="LMS, classroom, university, courses, past papers, assignments, study materials">
+    <title>Sledge Classroom — Your Learning Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- ===== NAVBAR ===== -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#" class="nav-logo" id="nav-logo-link">
+                <div class="logo-icon">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <span class="logo-text">Sledge<span class="logo-accent">Classroom</span></span>
+            </a>
+            <div class="nav-links" id="nav-links">
+                <a href="#" class="nav-link active" data-page="home" id="nav-home">
+                    <i class="fas fa-home"></i> Home
+                </a>
+                <a href="#" class="nav-link" data-page="courses" id="nav-courses">
+                    <i class="fas fa-book-open"></i> Courses
+                </a>
+                <a href="#" class="nav-link" data-page="labs" id="nav-labs">
+                    <i class="fas fa-flask"></i> Labs
+                </a>
+                <a href="#" class="nav-link" data-page="calendar" id="nav-calendar">
+                    <i class="fas fa-calendar-alt"></i> Calendar
+                </a>
+            </div>
+            <div class="nav-actions">
+                <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">
+                    <i class="fas fa-moon" id="theme-icon"></i>
+                </button>
+                <!-- Admin indicator / login button -->
+                <button class="admin-btn" id="admin-btn" title="Admin Login">
+                    <i class="fas fa-user-shield" id="admin-icon"></i>
+                </button>
+                <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ===== MOBILE MENU ===== -->
+    <div class="mobile-menu" id="mobile-menu">
+        <a href="#" class="mobile-link active" data-page="home" id="mobile-nav-home">
+            <i class="fas fa-home"></i> Home
+        </a>
+        <a href="#" class="mobile-link" data-page="courses" id="mobile-nav-courses">
+            <i class="fas fa-book-open"></i> Courses
+        </a>
+        <a href="#" class="mobile-link" data-page="labs" id="mobile-nav-labs">
+            <i class="fas fa-flask"></i> Labs
+        </a>
+        <a href="#" class="mobile-link" data-page="calendar" id="mobile-nav-calendar">
+            <i class="fas fa-calendar-alt"></i> Calendar
+        </a>
+    </div>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="main-content" id="main-content">
+
+        <!-- ===== HOME PAGE ===== -->
+        <section class="page page-home active" id="page-home">
+            <!-- Hero Section -->
+            <div class="hero">
+                <div class="hero-bg-shapes">
+                    <div class="shape shape-1"></div>
+                    <div class="shape shape-2"></div>
+                    <div class="shape shape-3"></div>
+                </div>
+                <div class="hero-content">
+                    <div class="hero-badge">
+                        <i class="fas fa-sparkles"></i> Open & Free for Everyone
+                    </div>
+                    <h1 class="hero-title">
+                        Your Learning,<br>
+                        <span class="gradient-text">Simplified.</span>
+                    </h1>
+                    <p class="hero-subtitle">
+                        Access lecture slides, past papers, lab resources, and stay on top of your schedule — all in one place. No login required to view or download.
+                    </p>
+                    <div class="hero-actions">
+                        <button class="btn btn-primary btn-lg" id="hero-explore-btn">
+                            <i class="fas fa-compass"></i> Explore Courses
+                        </button>
+                        <button class="btn btn-outline btn-lg" id="hero-calendar-btn">
+                            <i class="fas fa-calendar-check"></i> View Calendar
+                        </button>
+                    </div>
+                    <div class="hero-stats">
+                        <div class="stat-item">
+                            <span class="stat-number">6</span>
+                            <span class="stat-label">Courses</span>
+                        </div>
+                        <div class="stat-divider"></div>
+                        <div class="stat-item">
+                            <span class="stat-number">3</span>
+                            <span class="stat-label">Lab Sections</span>
+                        </div>
+                        <div class="stat-divider"></div>
+                        <div class="stat-item">
+                            <span class="stat-number">∞</span>
+                            <span class="stat-label">Resources</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Access Cards -->
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-th-large"></i> Your Courses
+                    </h2>
+                    <p class="section-subtitle">Jump into any course to access lecture slides, past papers, and related materials</p>
+                </div>
+                <div class="courses-grid" id="home-courses-grid">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Upcoming Events Preview -->
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-clock"></i> Upcoming Events
+                    </h2>
+                    <p class="section-subtitle">Stay ahead of your deadlines</p>
+                </div>
+                <div class="events-preview" id="home-events-preview">
+                    <div class="empty-state" id="home-empty-events">
+                        <i class="fas fa-calendar-check"></i>
+                        <h3>No Upcoming Events</h3>
+                        <p>Add events from the Calendar page to see them here.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== COURSES PAGE ===== -->
+        <section class="page page-courses" id="page-courses">
+            <!-- Course List View -->
+            <div class="courses-list-view" id="courses-list-view">
+                <div class="page-header">
+                    <h1 class="page-title"><i class="fas fa-book-open"></i> All Courses</h1>
+                    <p class="page-subtitle">Select a course to access lecture slides, past papers, and related materials</p>
+                </div>
+                <div class="courses-grid-full" id="courses-grid-full">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Single Course Detail View -->
+            <div class="course-detail-view hidden" id="course-detail-view">
+                <button class="btn btn-ghost back-btn" id="course-back-btn">
+                    <i class="fas fa-arrow-left"></i> Back to Courses
+                </button>
+                <div class="course-header" id="course-header">
+                    <!-- Populated by JS -->
+                </div>
+
+                <!-- Tabs: 3 categories + Calendar -->
+                <div class="tabs" id="course-tabs">
+                    <button class="tab active" data-tab="lectures" id="tab-lectures">
+                        <i class="fas fa-chalkboard"></i> Lecture Slides
+                    </button>
+                    <button class="tab" data-tab="past-papers" id="tab-past-papers">
+                        <i class="fas fa-scroll"></i> Past Papers
+                    </button>
+                    <button class="tab" data-tab="related" id="tab-related">
+                        <i class="fas fa-paperclip"></i> Related Materials
+                    </button>
+                    <button class="tab" data-tab="course-calendar" id="tab-course-calendar">
+                        <i class="fas fa-calendar-day"></i> Calendar
+                    </button>
+                </div>
+
+                <!-- Lecture Slides Tab -->
+                <div class="tab-content active" id="tab-content-lectures">
+                    <div class="tab-toolbar">
+                        <h3><i class="fas fa-chalkboard"></i> Lecture Slides</h3>
+                        <button class="btn btn-primary btn-sm admin-only" id="upload-lectures-btn">
+                            <i class="fas fa-cloud-upload-alt"></i> Upload Slides
+                        </button>
+                    </div>
+                    <div class="files-list" id="lectures-list">
+                        <div class="empty-state">
+                            <i class="fas fa-chalkboard"></i>
+                            <h3>No Lecture Slides Yet</h3>
+                            <p>Lecture slides and presentations will appear here.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Past Papers Tab -->
+                <div class="tab-content" id="tab-content-past-papers">
+                    <div class="tab-toolbar">
+                        <h3><i class="fas fa-scroll"></i> Past Papers</h3>
+                        <button class="btn btn-primary btn-sm admin-only" id="upload-papers-btn">
+                            <i class="fas fa-cloud-upload-alt"></i> Upload Past Paper
+                        </button>
+                    </div>
+                    <div class="files-list" id="papers-list">
+                        <div class="empty-state">
+                            <i class="fas fa-scroll"></i>
+                            <h3>No Past Papers Yet</h3>
+                            <p>Previous exam papers will appear here.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Related Materials Tab -->
+                <div class="tab-content" id="tab-content-related">
+                    <div class="tab-toolbar">
+                        <h3><i class="fas fa-paperclip"></i> Related Materials</h3>
+                        <button class="btn btn-primary btn-sm admin-only" id="upload-related-btn">
+                            <i class="fas fa-cloud-upload-alt"></i> Upload Material
+                        </button>
+                    </div>
+                    <div class="files-list" id="related-list">
+                        <div class="empty-state">
+                            <i class="fas fa-paperclip"></i>
+                            <h3>No Related Materials Yet</h3>
+                            <p>Additional resources, references, and notes will appear here.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Course Calendar Tab -->
+                <div class="tab-content" id="tab-content-course-calendar">
+                    <div class="tab-toolbar">
+                        <h3><i class="fas fa-calendar-day"></i> Course Events</h3>
+                        <button class="btn btn-primary btn-sm admin-only" id="add-course-event-btn">
+                            <i class="fas fa-plus"></i> Add Event
+                        </button>
+                    </div>
+                    <div class="course-events-list" id="course-events-list">
+                        <div class="empty-state">
+                            <i class="fas fa-calendar-plus"></i>
+                            <h3>No Events Scheduled</h3>
+                            <p>Quizzes, assignments, and presentations will appear here.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== LABS PAGE ===== -->
+        <section class="page page-labs" id="page-labs">
+            <!-- Labs List View -->
+            <div class="labs-list-view" id="labs-list-view">
+                <div class="page-header">
+                    <h1 class="page-title"><i class="fas fa-flask"></i> Lab Sections</h1>
+                    <p class="page-subtitle">Hands-on lab resources for practical courses</p>
+                </div>
+                <div class="labs-grid" id="labs-grid">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Single Lab Detail View -->
+            <div class="lab-detail-view hidden" id="lab-detail-view">
+                <button class="btn btn-ghost back-btn" id="lab-back-btn">
+                    <i class="fas fa-arrow-left"></i> Back to Labs
+                </button>
+                <div class="course-header" id="lab-header">
+                    <!-- Populated by JS -->
+                </div>
+                <div class="tab-toolbar">
+                    <h3><i class="fas fa-vial"></i> Lab Resources</h3>
+                    <button class="btn btn-primary btn-sm admin-only" id="upload-lab-btn">
+                        <i class="fas fa-cloud-upload-alt"></i> Upload Lab Resource
+                    </button>
+                </div>
+                <div class="files-list" id="lab-files-list">
+                    <div class="empty-state">
+                        <i class="fas fa-flask"></i>
+                        <h3>No Lab Resources Yet</h3>
+                        <p>Lab manuals, code files, and experiment sheets will appear here.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== CALENDAR PAGE ===== -->
+        <section class="page page-calendar" id="page-calendar">
+            <div class="page-header">
+                <h1 class="page-title"><i class="fas fa-calendar-alt"></i> Master Calendar</h1>
+                <p class="page-subtitle">All your events across every course in one view</p>
+            </div>
+            <div class="calendar-controls">
+                <button class="btn btn-ghost" id="cal-prev"><i class="fas fa-chevron-left"></i></button>
+                <h2 class="calendar-month-title" id="calendar-month-title">October 2026</h2>
+                <button class="btn btn-ghost" id="cal-next"><i class="fas fa-chevron-right"></i></button>
+                <button class="btn btn-primary btn-sm admin-only" id="add-global-event-btn" style="margin-left: auto;">
+                    <i class="fas fa-plus"></i> Add Event
+                </button>
+            </div>
+            <div class="calendar-grid" id="calendar-grid">
+                <!-- Populated by JS -->
+            </div>
+            <div class="calendar-legend">
+                <div class="legend-item"><span class="legend-dot" style="background: var(--event-quiz)"></span> Quiz</div>
+                <div class="legend-item"><span class="legend-dot" style="background: var(--event-assignment)"></span> Assignment</div>
+                <div class="legend-item"><span class="legend-dot" style="background: var(--event-presentation)"></span> Presentation</div>
+                <div class="legend-item"><span class="legend-dot" style="background: var(--event-exam)"></span> Exam</div>
+                <div class="legend-item"><span class="legend-dot" style="background: var(--event-other)"></span> Other</div>
+            </div>
+            <!-- Events for selected day -->
+            <div class="day-events-panel hidden" id="day-events-panel">
+                <div class="day-events-header">
+                    <h3 id="day-events-title">Events for October 22, 2026</h3>
+                    <button class="btn btn-ghost btn-sm" id="close-day-panel"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="day-events-list" id="day-events-list"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ===== ADMIN LOGIN MODAL ===== -->
+    <div class="modal-overlay hidden" id="login-modal">
+        <div class="modal modal-sm">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-shield"></i> Admin Login</h2>
+                <button class="btn btn-ghost btn-sm modal-close" id="login-modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="login-info">Only the admin can upload, update, and delete content. Students can view and download freely.</p>
+                <div class="form-group">
+                    <label for="admin-email">Email</label>
+                    <input type="email" id="admin-email" class="form-input" placeholder="admin@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="admin-password">Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="admin-password" class="form-input" placeholder="••••••••">
+                        <button class="password-toggle" id="password-toggle-btn" type="button">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="login-error" class="login-error hidden"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" id="login-cancel-btn">Cancel</button>
+                <button class="btn btn-primary" id="login-confirm-btn">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ADMIN PANEL DROPDOWN ===== -->
+    <div class="admin-dropdown hidden" id="admin-dropdown">
+        <div class="admin-dropdown-header">
+            <i class="fas fa-user-shield"></i>
+            <div>
+                <div class="admin-dropdown-name">Admin Mode</div>
+                <div class="admin-dropdown-email" id="admin-email-display"></div>
+            </div>
+        </div>
+        <div class="admin-dropdown-divider"></div>
+        <button class="admin-dropdown-item" id="admin-logout-btn">
+            <i class="fas fa-sign-out-alt"></i> Sign Out
+        </button>
+    </div>
+
+    <!-- ===== ADD RESOURCE MODAL (Google Drive / Link Support) ===== -->
+    <div class="modal-overlay hidden" id="upload-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="upload-modal-title"><i class="fas fa-link"></i> Add Resource</h2>
+                <button class="btn btn-ghost btn-sm modal-close" id="upload-modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="resource-title">Resource Title *</label>
+                    <input type="text" id="resource-title" class="form-input" placeholder="e.g., Lecture 04: Pipelining & Hazards" required>
+                </div>
+                <div class="form-group">
+                    <label for="resource-url">Document / Share Link (Google Drive, OneDrive, etc.) *</label>
+                    <input type="url" id="resource-url" class="form-input" placeholder="https://drive.google.com/file/d/..." required>
+                    <p class="form-hint" style="margin-top: 6px; font-size: 0.82rem; color: var(--text-tertiary);">
+                        <i class="fab fa-google-drive" style="color: #34a853;"></i> Google Drive, OneDrive, Dropbox, or any PDF/web link.
+                        <br><em>Tip: For Google Drive, ensure link sharing is set to "Anyone with the link can view".</em>
+                    </p>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="resource-type">Resource Format *</label>
+                        <select id="resource-type" class="form-input">
+                            <option value="pdf">📄 PDF Document</option>
+                            <option value="ppt">📊 Presentation (PPT / Slides)</option>
+                            <option value="doc">📝 Word Document (DOC / DOCX)</option>
+                            <option value="sheet">📈 Spreadsheet (Excel / Sheet)</option>
+                            <option value="code">💻 Code / Lab Exercise</option>
+                            <option value="zip">📦 ZIP / Archive</option>
+                            <option value="link">🔗 Web Link / External</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="resource-description">Description / Notes (Optional)</label>
+                    <input type="text" id="resource-description" class="form-input" placeholder="e.g., Midterm prep, includes solved numericals">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" id="upload-cancel-btn">Cancel</button>
+                <button class="btn btn-primary" id="upload-confirm-btn">
+                    <i class="fas fa-plus-circle"></i> Save Resource
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== EVENT MODAL ===== -->
+    <div class="modal-overlay hidden" id="event-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-calendar-plus"></i> Add Event</h2>
+                <button class="btn btn-ghost btn-sm modal-close" id="event-modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="event-title">Event Title *</label>
+                    <input type="text" id="event-title" class="form-input" placeholder="e.g., Quiz 2, Assignment 3 Due">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="event-date">Date *</label>
+                        <input type="date" id="event-date" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="event-time">Time</label>
+                        <input type="time" id="event-time" class="form-input">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="event-type">Event Type *</label>
+                    <select id="event-type" class="form-input">
+                        <option value="quiz">Quiz</option>
+                        <option value="assignment">Assignment</option>
+                        <option value="presentation">Presentation</option>
+                        <option value="exam">Exam</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="event-course">Course *</label>
+                    <select id="event-course" class="form-input">
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="event-description">Description</label>
+                    <textarea id="event-description" class="form-input form-textarea" placeholder="Add details, group names, instructions..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="event-groups">Groups / Names (comma separated)</label>
+                    <input type="text" id="event-groups" class="form-input" placeholder="e.g., Group A - Ali, Ahmed, Sara">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" id="event-cancel-btn">Cancel</button>
+                <button class="btn btn-primary" id="event-confirm-btn">
+                    <i class="fas fa-check"></i> Save Event
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== LOADING OVERLAY ===== -->
+    <div class="loading-overlay hidden" id="loading-overlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p id="loading-text">Loading...</p>
+        </div>
+    </div>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="footer" id="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <div class="footer-logo">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>Sledge<span class="logo-accent">Classroom</span></span>
+                </div>
+                <p class="footer-tagline">Making education accessible for everyone.</p>
+            </div>
+            <div class="footer-links-section">
+                <h4>Quick Links</h4>
+                <a href="#" data-page="home">Home</a>
+                <a href="#" data-page="courses">Courses</a>
+                <a href="#" data-page="labs">Labs</a>
+                <a href="#" data-page="calendar">Calendar</a>
+            </div>
+            <div class="footer-links-section">
+                <h4>Courses</h4>
+                <a href="#" data-course="stats">Statistics & Probability</a>
+                <a href="#" data-course="automata">Theory of Automata</a>
+                <a href="#" data-course="calculus">Multivariable Calculus</a>
+                <a href="#" data-course="os">Operating Systems</a>
+                <a href="#" data-course="web">Web Engineering</a>
+                <a href="#" data-course="arch">Computer Architecture</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>Made with <i class="fas fa-heart" style="color: #ef4444;"></i> by <strong>Muhammad Durrab</strong> aka <strong>Sledge</strong></p>
+            <p>&copy; 2026 SledgeClassroom. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- ===== TOAST NOTIFICATIONS ===== -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- ===== FIREBASE SDK (v9 compat) ===== -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+    <!-- App Scripts -->
+    <script src="firebase-config.js?v=4"></script>
+    <script src="app.js?v=4"></script>
+</body>
+</html>
