@@ -113,6 +113,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initCalendar();
     populateEventCourseSelect();
     initFooterLinks();
+    initZanpakutoThemes();
+    initBleachGateModal();
 
     // Load initial data from Firestore
     loadAllCourseCards();
@@ -564,6 +566,14 @@ async function renderCourseCards(containerId) {
 
 // ===== COURSE DETAIL VIEW (Theory vs Lab Separation) =====
 async function openCourseDetail(courseId, initialMode = 'theory', fromPage = currentPage) {
+    // BLEACH SHINIGAMI GATE (MVC Easter Egg)
+    if (courseId === 'calculus' && !sessionStorage.getItem('bleachGateUnlocked')) {
+        promptBleachGate(() => {
+            openCourseDetail(courseId, initialMode, fromPage);
+        });
+        return;
+    }
+
     currentCourseId = courseId;
     currentCourseMode = initialMode;
     originPage = fromPage || 'courses';
@@ -1509,3 +1519,261 @@ function showLoading(text = 'Loading...') {
 function hideLoading() {
     document.getElementById('loading-overlay').classList.add('hidden');
 }
+
+// ===== BLEACH SHINIGAMI GATE (MVC EASTER EGG) =====
+let bleachUnlockCallback = null;
+
+function initBleachGateModal() {
+    const modal = document.getElementById('bleach-gate-modal');
+    const closeBtn = document.getElementById('bleach-gate-close');
+    const yesBtn = document.getElementById('bleach-gate-yes');
+    const noBtn = document.getElementById('bleach-gate-no');
+    const rejMsg = document.getElementById('bleach-rejection-msg');
+    const succMsg = document.getElementById('bleach-success-msg');
+    const actionsRow = document.getElementById('bleach-actions-row');
+
+    if (!modal) return;
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            modal.classList.add('hidden');
+            bleachUnlockCallback = null;
+        });
+    }
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.add('hidden');
+            bleachUnlockCallback = null;
+        }
+    });
+
+    if (noBtn) {
+        noBtn.addEventListener('click', () => {
+            if (succMsg) succMsg.classList.add('hidden');
+            if (rejMsg) {
+                rejMsg.classList.remove('hidden');
+                // Re-trigger shake animation
+                rejMsg.style.animation = 'none';
+                void rejMsg.offsetWidth; // trigger reflow
+                rejMsg.style.animation = 'bleachShake 0.45s ease-in-out';
+            }
+        });
+    }
+
+    if (yesBtn) {
+        yesBtn.addEventListener('click', () => {
+            if (rejMsg) rejMsg.classList.add('hidden');
+            if (succMsg) succMsg.classList.remove('hidden');
+            if (actionsRow) actionsRow.style.pointerEvents = 'none';
+            sessionStorage.setItem('bleachGateUnlocked', 'true');
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                if (actionsRow) actionsRow.style.pointerEvents = '';
+                if (succMsg) succMsg.classList.add('hidden');
+                if (typeof bleachUnlockCallback === 'function') {
+                    const cb = bleachUnlockCallback;
+                    bleachUnlockCallback = null;
+                    cb();
+                }
+            }, 1000);
+        });
+    }
+}
+
+function promptBleachGate(onSuccess) {
+    bleachUnlockCallback = onSuccess;
+    const modal = document.getElementById('bleach-gate-modal');
+    const rejMsg = document.getElementById('bleach-rejection-msg');
+    const succMsg = document.getElementById('bleach-success-msg');
+
+    if (!modal) {
+        if (onSuccess) onSuccess();
+        return;
+    }
+
+    if (rejMsg) rejMsg.classList.add('hidden');
+    if (succMsg) succMsg.classList.add('hidden');
+    modal.classList.remove('hidden');
+}
+
+// ===== ZANPAKUTO THEMES & SAKURA EFFECT =====
+let sakuraAnimationId = null;
+
+function initZanpakutoThemes() {
+    const triggerBtn = document.getElementById('zanpakuto-floating-btn');
+    const drawer = document.getElementById('zanpakuto-drawer');
+    const backdrop = document.getElementById('zanpakuto-backdrop');
+    const closeBtn = document.getElementById('zanpakuto-close-btn');
+    const resetBtn = document.getElementById('zanpakuto-reset-btn');
+    const cards = document.querySelectorAll('.zanpakuto-card');
+
+    if (!triggerBtn || !drawer) return;
+
+    // Open Drawer
+    triggerBtn.addEventListener('click', () => {
+        drawer.classList.add('open');
+        backdrop.classList.remove('hidden');
+    });
+
+    // Close Drawer
+    const closeDrawer = () => {
+        drawer.classList.remove('open');
+        backdrop.classList.add('hidden');
+    };
+
+    if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+    if (backdrop) backdrop.addEventListener('click', closeDrawer);
+
+    // Apply saved theme on reload
+    const savedTheme = localStorage.getItem('zanpakuto_theme');
+    if (savedTheme) {
+        applyZanpakutoTheme(savedTheme, false);
+    }
+
+    // Card Selection
+    cards.forEach(card => {
+        card.addEventListener('click', () => {
+            const theme = card.dataset.zanpakuto;
+            applyZanpakutoTheme(theme, true);
+        });
+    });
+
+    // Reset button
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            document.documentElement.removeAttribute('data-zanpakuto');
+            localStorage.removeItem('zanpakuto_theme');
+            cards.forEach(c => c.classList.remove('active'));
+            stopSakuraPetals();
+            showToast('Zanpakuto spiritual pressure sealed (Default Theme).', 'info');
+        });
+    }
+}
+
+function applyZanpakutoTheme(themeName, showNotification = true) {
+    const validThemes = ['getsuga-tensho', 'nozarashi', 'senbonzakura', 'kyoka-suigetsu'];
+    if (!validThemes.includes(themeName)) return;
+
+    document.documentElement.setAttribute('data-zanpakuto', themeName);
+    localStorage.setItem('zanpakuto_theme', themeName);
+
+    // Highlight card
+    document.querySelectorAll('.zanpakuto-card').forEach(card => {
+        if (card.dataset.zanpakuto === themeName) {
+            card.classList.add('active');
+        } else {
+            card.classList.remove('active');
+        }
+    });
+
+    // Sakura petals effect handling for Senbonzakura
+    if (themeName === 'senbonzakura') {
+        startSakuraPetals();
+    } else {
+        stopSakuraPetals();
+    }
+
+    if (showNotification) {
+        const themeTitles = {
+            'getsuga-tensho': 'Getsuga Tensho (月牙天衝) — Black & White Theme',
+            'nozarashi': 'Nozarashi (野晒) — Yellow & Black Theme',
+            'senbonzakura': 'Senbonzakura (千本桜) — Sakura Pink Theme with Flower Petals',
+            'kyoka-suigetsu': 'Kyoka Suigetsu (鏡花水月) — Purple & Black Theme'
+        };
+        showToast(`Awakened: ${themeTitles[themeName] || themeName}!`, 'success');
+    }
+}
+
+// Sakura Falling Petals Canvas System (Senbonzakura Effect)
+function startSakuraPetals() {
+    const canvas = document.getElementById('sakura-canvas');
+    if (!canvas) return;
+    canvas.classList.remove('hidden');
+
+    const ctx = canvas.getContext('2d');
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    const onResize = () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+    };
+    window.addEventListener('resize', onResize);
+
+    const petals = [];
+    const petalCount = 42;
+    const colors = [
+        'rgba(244, 114, 182, 0.85)',
+        'rgba(251, 207, 232, 0.9)',
+        'rgba(236, 72, 153, 0.8)',
+        'rgba(219, 39, 119, 0.75)'
+    ];
+
+    for (let i = 0; i < petalCount; i++) {
+        petals.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            size: 7 + Math.random() * 9,
+            speedY: 1.1 + Math.random() * 1.8,
+            speedX: -0.8 + Math.random() * 1.6,
+            angle: Math.random() * Math.PI * 2,
+            angularSpeed: (Math.random() - 0.5) * 0.035,
+            oscillation: Math.random() * Math.PI * 2,
+            oscillationSpeed: 0.015 + Math.random() * 0.025,
+            color: colors[Math.floor(Math.random() * colors.length)]
+        });
+    }
+
+    function drawPetal(p) {
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.angle);
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.bezierCurveTo(p.size / 2, -p.size / 2, p.size, -p.size / 4, p.size, 0);
+        ctx.bezierCurveTo(p.size, p.size / 4, p.size / 2, p.size / 2, 0, 0);
+        ctx.fill();
+        ctx.restore();
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, width, height);
+        for (let i = 0; i < petals.length; i++) {
+            const p = petals[i];
+            p.oscillation += p.oscillationSpeed;
+            p.x += p.speedX + Math.sin(p.oscillation) * 1.2;
+            p.y += p.speedY;
+            p.angle += p.angularSpeed;
+
+            if (p.y > height + 20) {
+                p.y = -20;
+                p.x = Math.random() * width;
+            }
+            if (p.x < -20) p.x = width + 20;
+            if (p.x > width + 20) p.x = -20;
+
+            drawPetal(p);
+        }
+        sakuraAnimationId = requestAnimationFrame(animate);
+    }
+
+    if (sakuraAnimationId) cancelAnimationFrame(sakuraAnimationId);
+    animate();
+}
+
+function stopSakuraPetals() {
+    if (sakuraAnimationId) {
+        cancelAnimationFrame(sakuraAnimationId);
+        sakuraAnimationId = null;
+    }
+    const canvas = document.getElementById('sakura-canvas');
+    if (canvas) {
+        canvas.classList.add('hidden');
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+}
+

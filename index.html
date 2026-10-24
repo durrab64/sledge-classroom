@@ -8,13 +8,16 @@
         content="Sledge Classroom — A free, open learning management system for university students. Access course materials, past papers, lab resources, and stay on top of assignments.">
     <meta name="keywords" content="LMS, classroom, university, courses, past papers, assignments, study materials">
     <title>Sledge Classroom — Your Learning Hub</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="styles.css?v=5">
+    <link rel="stylesheet" href="styles.css?v=6">
 </head>
 
 <body>
@@ -545,6 +548,192 @@
         </div>
     </div>
 
+    <!-- ===== BLEACH SHINIGAMI GATE MODAL (MVC EASTER EGG) ===== -->
+    <div class="modal-overlay hidden" id="bleach-gate-modal">
+        <div class="modal bleach-modal">
+            <div class="bleach-modal-banner">
+                <div class="bleach-badge-tag"><i class="fas fa-torii-gate"></i> SOUL SOCIETY GATEWAY</div>
+                <button class="btn btn-ghost btn-sm modal-close" id="bleach-gate-close" title="Close Gate">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="bleach-modal-content">
+                <div class="bleach-avatar-wrapper">
+                    <img src="orihime.png" alt="Orihime Inoue" class="bleach-orihime-img">
+                    <div class="bleach-halo"></div>
+                </div>
+                <div class="bleach-dialog-card">
+                    <div class="bleach-speaker-name">Orihime Inoue <span>(Senkaimon Gatekeeper)</span></div>
+                    <h3 class="bleach-question">"Is Bleach better than One Piece?"</h3>
+                    <p class="bleach-subtext">You are trying to enter <strong>Multivariable Calculus (MVC)</strong>. Orihime requires your confession before opening the Senkaimon!</p>
+                </div>
+                
+                <div id="bleach-rejection-msg" class="bleach-alert bleach-alert-error hidden">
+                    <div class="bleach-alert-icon"><i class="fas fa-shield-halved"></i></div>
+                    <div>
+                        <strong>ACCESS DENIED!</strong>
+                        <p>Orihime blocked you with <em>Santen Kesshun</em>! Only true Soul Reapers who acknowledge Bleach can unlock Multivariable Calculus. Repent and choose wisely!</p>
+                    </div>
+                </div>
+
+                <div id="bleach-success-msg" class="bleach-alert bleach-alert-success hidden">
+                    <div class="bleach-alert-icon"><i class="fas fa-check-circle"></i></div>
+                    <div>
+                        <strong>ACCESS GRANTED!</strong>
+                        <p><em>"Kurosaki-kun would be so proud!"</em> Opening Multivariable Calculus...</p>
+                    </div>
+                </div>
+
+                <div class="bleach-actions" id="bleach-actions-row">
+                    <button class="btn btn-primary bleach-btn-yes" id="bleach-gate-yes">
+                        <i class="fas fa-fire"></i> Yes! Bleach is Peak 🔥
+                    </button>
+                    <button class="btn btn-outline bleach-btn-no" id="bleach-gate-no">
+                        <i class="fas fa-skull-crossbones"></i> No, One Piece is better 👒
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ZANPAKUTO THEMES EASTER EGG (RIGHT SIDEBAR) ===== -->
+    <!-- Floating Edge Trigger -->
+    <button class="zanpakuto-floating-btn" id="zanpakuto-floating-btn" title="Awaken Zanpakuto Themes" aria-label="Zanpakuto Themes">
+        <span class="sword-badge-icon">⚔️</span>
+        <span class="zanpakuto-btn-text">ZANPAKUTO</span>
+    </button>
+
+    <!-- Slide-out Sidebar Overlay & Drawer -->
+    <div class="zanpakuto-backdrop hidden" id="zanpakuto-backdrop"></div>
+    <aside class="zanpakuto-drawer" id="zanpakuto-drawer">
+        <div class="zanpakuto-drawer-header">
+            <div class="drawer-header-left">
+                <div class="zanpakuto-flame-icon"><i class="fas fa-khanda"></i></div>
+                <div>
+                    <h3>Zanpakuto Archives</h3>
+                    <span class="drawer-subtitle">Bleach Spiritual Energy Themes</span>
+                </div>
+            </div>
+            <button class="btn btn-ghost btn-sm" id="zanpakuto-close-btn" aria-label="Close Zanpakuto Drawer">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="zanpakuto-drawer-body">
+            <p class="zanpakuto-intro">Select an awakened Zanpakuto release to infuse the website with its spiritual pressure. Works across both Light and Dark modes!</p>
+
+            <div class="zanpakuto-card-list">
+                <!-- 1. Getsuga Tensho -->
+                <button class="zanpakuto-card" data-zanpakuto="getsuga-tensho" id="card-getsuga">
+                    <div class="zan-icon-box zan-getsuga">
+                        <svg viewBox="0 0 64 64" class="zan-svg" fill="currentColor">
+                            <!-- Ichigo Zangetsu Cleaver Slash & Crescent Moon -->
+                            <path d="M10 54 L32 10 L44 14 L24 54 Z" opacity="0.9"/>
+                            <path d="M26 8 Q56 20 48 52 Q36 34 26 8 Z" fill="none" stroke="currentColor" stroke-width="3"/>
+                            <circle cx="20" cy="48" r="3"/>
+                        </svg>
+                    </div>
+                    <div class="zan-card-info">
+                        <div class="zan-name-row">
+                            <span class="zan-name">Getsuga Tensho</span>
+                            <span class="zan-kanji">月牙天衝</span>
+                        </div>
+                        <span class="zan-wielder">Ichigo Kurosaki</span>
+                        <span class="zan-desc">Monochrome Black & White spirit slash</span>
+                    </div>
+                    <div class="zan-palette-preview palette-getsuga">
+                        <span class="dot dot-black"></span>
+                        <span class="dot dot-white"></span>
+                    </div>
+                </button>
+
+                <!-- 2. Nozarashi -->
+                <button class="zanpakuto-card" data-zanpakuto="nozarashi" id="card-nozarashi">
+                    <div class="zan-icon-box zan-nozarashi">
+                        <svg viewBox="0 0 64 64" class="zan-svg" fill="currentColor">
+                            <!-- Zaraki Kenpachi Savage Axe/Cleaver & Battle Notches -->
+                            <path d="M12 50 L34 12 L50 18 L36 30 L44 38 L24 54 Z"/>
+                            <line x1="20" y1="36" x2="28" y2="32" stroke="#111" stroke-width="2.5" stroke-linecap="round"/>
+                            <line x1="24" y1="44" x2="32" y2="40" stroke="#111" stroke-width="2.5" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <div class="zan-card-info">
+                        <div class="zan-name-row">
+                            <span class="zan-name">Nozarashi</span>
+                            <span class="zan-kanji">野晒</span>
+                        </div>
+                        <span class="zan-wielder">Zaraki Kenpachi</span>
+                        <span class="zan-desc">Fierce Yellow & Black berserker energy</span>
+                    </div>
+                    <div class="zan-palette-preview palette-nozarashi">
+                        <span class="dot dot-yellow"></span>
+                        <span class="dot dot-dark"></span>
+                    </div>
+                </button>
+
+                <!-- 3. Senbonzakura -->
+                <button class="zanpakuto-card" data-zanpakuto="senbonzakura" id="card-senbonzakura">
+                    <div class="zan-icon-box zan-senbonzakura">
+                        <svg viewBox="0 0 64 64" class="zan-svg" fill="currentColor">
+                            <!-- Four-petal Cherry Blossom Crossguard & Petals -->
+                            <circle cx="32" cy="32" r="5"/>
+                            <path d="M32 12 C28 20 28 24 32 24 C36 24 36 20 32 12 Z"/>
+                            <path d="M32 52 C28 44 28 40 32 40 C36 40 36 44 32 52 Z"/>
+                            <path d="M12 32 C20 28 24 28 24 32 C24 36 20 36 12 32 Z"/>
+                            <path d="M52 32 C44 28 40 28 40 32 C40 36 44 36 52 32 Z"/>
+                        </svg>
+                    </div>
+                    <div class="zan-card-info">
+                        <div class="zan-name-row">
+                            <span class="zan-name">Senbonzakura</span>
+                            <span class="zan-kanji">千本桜</span>
+                        </div>
+                        <span class="zan-wielder">Byakuya Kuchiki</span>
+                        <span class="zan-desc">Pink Sakura theme + Falling Petal effect</span>
+                    </div>
+                    <div class="zan-palette-preview palette-senbonzakura">
+                        <span class="dot dot-pink"></span>
+                        <span class="dot dot-sakura"></span>
+                    </div>
+                </button>
+
+                <!-- 4. Kyoka Suigetsu -->
+                <button class="zanpakuto-card" data-zanpakuto="kyoka-suigetsu" id="card-kyoka">
+                    <div class="zan-icon-box zan-kyoka">
+                        <svg viewBox="0 0 64 64" class="zan-svg" fill="currentColor">
+                            <!-- Hexagonal Mirror & Hypnotic Eye Illusion -->
+                            <polygon points="32,10 50,20 50,44 32,54 14,44 14,20" fill="none" stroke="currentColor" stroke-width="3"/>
+                            <circle cx="32" cy="32" r="7"/>
+                            <circle cx="32" cy="32" r="3" fill="#ffffff"/>
+                            <line x1="14" y1="20" x2="50" y2="44" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3,3"/>
+                        </svg>
+                    </div>
+                    <div class="zan-card-info">
+                        <div class="zan-name-row">
+                            <span class="zan-name">Kyoka Suigetsu</span>
+                            <span class="zan-kanji">鏡花水月</span>
+                        </div>
+                        <span class="zan-wielder">Sosuke Aizen</span>
+                        <span class="zan-desc">Hypnotic Purple & Black Complete Illusion</span>
+                    </div>
+                    <div class="zan-palette-preview palette-kyoka">
+                        <span class="dot dot-purple"></span>
+                        <span class="dot dot-black"></span>
+                    </div>
+                </button>
+            </div>
+
+            <div class="zanpakuto-actions">
+                <button class="btn btn-outline btn-block" id="zanpakuto-reset-btn">
+                    <i class="fas fa-undo"></i> Reset to Default Theme
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Canvas for Senbonzakura Falling Sakura Petals & Leaves -->
+    <canvas id="sakura-canvas" class="sakura-canvas hidden"></canvas>
+
     <!-- ===== LOADING OVERLAY ===== -->
     <div class="loading-overlay hidden" id="loading-overlay">
         <div class="loading-spinner">
@@ -599,7 +788,7 @@
 
     <!-- App Scripts -->
     <script src="firebase-config.js?v=5"></script>
-    <script src="app.js?v=5"></script>
+    <script src="app.js?v=6"></script>
 </body>
 
 </html>
