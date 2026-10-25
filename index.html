@@ -789,6 +789,175 @@
     <!-- App Scripts -->
     <script src="firebase-config.js?v=5"></script>
     <script src="app.js?v=6"></script>
+
+    <!-- ===== BLEACH EASTER EGG ===== -->
+    <script>
+(function BleachEasterEgg() {
+    var CONFIG = {
+        initialDelay: 1000,    // First peek 1s after page load
+        interval: 9000,        // Every 9s next character peeks
+        stayDuration: 3000,    // Stay for exactly 3 seconds as requested
+        charSize: 92,          // Small size sticking to edge
+        charSizeMobile: 68,
+        zIndex: 999999
+    };
+
+    var CHARACTERS = [
+        {
+            id: 'orihime',
+            name: 'Orihime',
+            src: 'orihime.gif',
+            fallbackSrc: 'orihime.webp',
+            bubbleBg: 'linear-gradient(135deg,#fff0f6 0%,#ffe4f0 100%)',
+            bubbleBorder: '#f472b6',
+            textColor: '#9d174d',
+            dialogues: ['KAWAIII~! \u2665', 'Hewwooo! \u2728', 'Ehehe~ \uD83D\uDC97', 'Haiii! \u2665', 'Ganbatte! \u2728']
+        },
+        {
+            id: 'ichigo',
+            name: 'Ichigo',
+            src: 'ichigo.gif',
+            fallbackSrc: 'ichigo.gif',
+            bubbleBg: 'linear-gradient(135deg,#fff7ed 0%,#ffedd5 100%)',
+            bubbleBorder: '#fb923c',
+            textColor: '#7c2d12',
+            dialogues: ['Heh, studying? \uD83D\uDC4A', 'BANKAI!! \u26A1', 'Not bad! \uD83D\uDE01', 'Keep it up! \uD83D\uDD25', 'Oi, focus! \uD83D\uDC4B']
+        },
+        {
+            id: 'miku',
+            name: 'Miku',
+            src: 'miku.gif',
+            fallbackSrc: 'miku.gif',
+            bubbleBg: 'linear-gradient(135deg,#f0fdfa 0%,#ccfbf1 100%)',
+            bubbleBorder: '#2dd4bf',
+            textColor: '#134e4a',
+            dialogues: ['Miku Miku~! \u2665', 'Let\u2019s study! \uD83C\uDFB5', 'Ganbare ne~! \u2728', 'Hatsune Miku desu! \uD83C\uDFB6', 'Yay yay~! \uD83D\uDC97']
+        }
+    ];
+
+    var nextSide = 'left'; // Alternates 'left' -> 'right' -> 'left'
+    var charIndex = 0;
+    var isAnimating = false;
+    var container = null;
+
+    function getSize() {
+        return window.innerWidth <= 600 ? CONFIG.charSizeMobile : CONFIG.charSize;
+    }
+
+    function injectStyles() {
+        if (document.getElementById('bee-styles')) return;
+        var style = document.createElement('style');
+        style.id = 'bee-styles';
+        style.textContent =
+            '#bee-container { position: fixed; inset: 0; pointer-events: none; z-index: 999999; }' +
+            '.bee-wrap { position: fixed; pointer-events: auto; z-index: 999999; cursor: pointer; ' +
+            'transition: transform 0.38s cubic-bezier(0.34, 1.4, 0.64, 1), opacity 0.3s ease; will-change: transform, opacity; }' +
+            '.bee-wrap.bee-left { left: 0; transform: translateX(-100%); opacity: 0; }' +
+            '.bee-wrap.bee-left.bee-active { transform: translateX(0) !important; opacity: 1 !important; }' +
+            '.bee-wrap.bee-right { right: 0; transform: translateX(100%); opacity: 0; }' +
+            '.bee-wrap.bee-right.bee-active { transform: translateX(0) !important; opacity: 1 !important; }' +
+            '.bee-img { display: block; object-fit: contain; pointer-events: none; filter: drop-shadow(0 4px 14px rgba(0,0,0,0.22)); user-select: none; }' +
+            '.bee-bubble { position: absolute; bottom: calc(100% + 6px); padding: 5px 12px; border-radius: 12px; border: 2px solid; ' +
+            'font-family: Inter, system-ui, sans-serif; font-size: 11px; font-weight: 700; white-space: nowrap; ' +
+            'box-shadow: 0 4px 16px rgba(0,0,0,0.16); opacity: 0; transform: scale(0.6) translateY(6px); ' +
+            'transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); pointer-events: none; }' +
+            '.bee-bubble.bee-bubble-left { left: 4px; }' +
+            '.bee-bubble.bee-bubble-right { right: 4px; }' +
+            '.bee-bubble.bee-show { opacity: 1; transform: scale(1) translateY(0); }';
+        document.head.appendChild(style);
+    }
+
+    function showCharacter() {
+        if (isAnimating) return;
+        isAnimating = true;
+
+        var char = CHARACTERS[charIndex % CHARACTERS.length];
+        charIndex++;
+
+        var side = nextSide;
+        nextSide = (nextSide === 'left') ? 'right' : 'left'; // Alternate for next time!
+
+        var size = getSize();
+        var dialogue = char.dialogues[Math.floor(Math.random() * char.dialogues.length)];
+
+        var wrap = document.createElement('div');
+        wrap.className = 'bee-wrap ' + (side === 'left' ? 'bee-left' : 'bee-right');
+
+        // Mid-screen vertical positioning
+        var vh = window.innerHeight;
+        var topPos = Math.round(vh * 0.45);
+        wrap.style.top = Math.max(100, Math.min(vh - size - 60, topPos)) + 'px';
+
+        var img = document.createElement('img');
+        img.className = 'bee-img';
+        img.src = char.src;
+        img.alt = char.name;
+        img.style.width = size + 'px';
+        img.style.height = size + 'px';
+        img.onerror = function() {
+            if (char.fallbackSrc && img.src.indexOf(char.fallbackSrc) === -1) {
+                img.src = char.fallbackSrc;
+            }
+        };
+
+        var bubble = document.createElement('div');
+        bubble.className = 'bee-bubble ' + (side === 'left' ? 'bee-bubble-left' : 'bee-bubble-right');
+        bubble.style.background = char.bubbleBg;
+        bubble.style.borderColor = char.bubbleBorder;
+        bubble.style.color = char.textColor;
+        bubble.textContent = dialogue;
+
+        wrap.appendChild(bubble);
+        wrap.appendChild(img);
+        (container || document.body).appendChild(wrap);
+
+        // Slide in
+        setTimeout(function() {
+            wrap.classList.add('bee-active');
+
+            // Bubble pops open
+            setTimeout(function() {
+                bubble.classList.add('bee-show');
+            }, 250);
+
+            // Stays for 3 seconds, then retreats
+            setTimeout(function() {
+                bubble.classList.remove('bee-show');
+                setTimeout(function() {
+                    wrap.classList.remove('bee-active');
+                    // Clean up DOM after slide-out
+                    setTimeout(function() {
+                        if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
+                        isAnimating = false;
+                    }, 400);
+                }, 150);
+            }, CONFIG.stayDuration);
+        }, 30);
+    }
+
+    window.triggerBleachEasterEgg = function() {
+        isAnimating = false;
+        showCharacter();
+    };
+
+    function init() {
+        injectStyles();
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'bee-container';
+            (document.body || document.documentElement).appendChild(container);
+        }
+        setTimeout(showCharacter, CONFIG.initialDelay);
+        setInterval(showCharacter, CONFIG.interval);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init, { once: true });
+    } else {
+        init();
+    }
+})();
+    </script>
 </body>
 
 </html>
