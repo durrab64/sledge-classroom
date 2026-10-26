@@ -1,0 +1,14 @@
+# ===================================================
+# Sledge Classroom — robots.txt
+# https://sledge-classroom.web.app/
+# ===================================================
+
+User-agent: *
+Allow: /
+Disallow: /chrome-extension/
+
+# Host
+Host: https://sledge-classroom.web.app
+
+# Sitemap
+Sitemap: https://sledge-classroom.web.app/sitemap.xml

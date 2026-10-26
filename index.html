@@ -4,20 +4,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sledge Classroom | NUML BSCS Notes, Labs &amp; Past Papers</title>
     <meta name="description"
-        content="Sledge Classroom — A free, open learning management system for university students. Access course materials, past papers, lab resources, and stay on top of assignments.">
-    <meta name="keywords" content="LMS, classroom, university, courses, past papers, assignments, study materials">
-    <title>Sledge Classroom — Your Learning Hub</title>
+        content="Explore computer science study materials, programming labs, course notes, and past papers for NUML BSCS students through Sledge Classroom. Free, open, and organized.">
+    <link rel="canonical" href="https://sledge-classroom.web.app/">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="author" content="Muhammad Durrab (Sledge)">
+    <meta name="publisher" content="Sledge Classroom">
+    <meta name="application-name" content="Sledge Classroom">
+    <meta name="theme-color" content="#6366f1">
+
+    <!-- Open Graph / Facebook / WhatsApp -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Sledge Classroom">
+    <meta property="og:title" content="Sledge Classroom | NUML BSCS Notes, Labs &amp; Past Papers">
+    <meta property="og:description"
+        content="Explore computer science study materials, programming labs, course notes, and past papers for NUML BSCS students through Sledge Classroom. Free, open, and organized.">
+    <meta property="og:url" content="https://sledge-classroom.web.app/">
+    <meta property="og:image" content="https://sledge-classroom.web.app/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Sledge Classroom — NUML BSCS Learning Hub">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Sledge Classroom | NUML BSCS Notes, Labs &amp; Past Papers">
+    <meta name="twitter:description"
+        content="Explore computer science study materials, programming labs, course notes, and past papers for NUML BSCS students through Sledge Classroom. Free, open, and organized.">
+    <meta name="twitter:image" content="https://sledge-classroom.web.app/og-image.png">
+
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="apple-touch-icon" href="favicon.png">
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://sledge-classroom.web.app/#website",
+          "url": "https://sledge-classroom.web.app/",
+          "name": "Sledge Classroom",
+          "alternateName": ["SledgeClassroom", "Sledge Classroom NUML", "Sledge LMS"],
+          "description": "Educational resource hub offering lecture notes, programming labs, past papers, and study resources for NUML BSCS students.",
+          "inLanguage": "en-US",
+          "author": {
+            "@type": "Person",
+            "name": "Muhammad Durrab",
+            "alternateName": "Sledge",
+            "url": "https://github.com/durrab64"
+          }
+        },
+        {
+          "@type": "EducationalOrganization",
+          "@id": "https://sledge-classroom.web.app/#organization",
+          "name": "Sledge Classroom",
+          "url": "https://sledge-classroom.web.app/",
+          "logo": "https://sledge-classroom.web.app/favicon.png",
+          "description": "An open student-created learning management and resource hub tailored for NUML Computer Science (BSCS) undergraduates.",
+          "founder": {
+            "@type": "Person",
+            "name": "Muhammad Durrab",
+            "alternateName": "Sledge",
+            "url": "https://github.com/durrab64"
+          },
+          "hasOfferCatalog": {
+            "@type": "OfferCatalog",
+            "name": "NUML BSCS Courses & Study Materials",
+            "itemListElement": [
+              {
+                "@type": "Course",
+                "name": "Theory of Automata",
+                "courseCode": "CS 311",
+                "description": "Finite state machines, regular languages, context-free grammars, Turing machines, and computability theory."
+              },
+              {
+                "@type": "Course",
+                "name": "Operating Systems",
+                "courseCode": "CS 321",
+                "description": "Processes, CPU scheduling algorithms, synchronization, memory management, virtual memory, and practical lab exercises."
+              },
+              {
+                "@type": "Course",
+                "name": "Web Engineering",
+                "courseCode": "CS 341",
+                "description": "Modern full-stack web development, client-server architecture, HTML5, CSS3, JavaScript, APIs, and web frameworks."
+              },
+              {
+                "@type": "Course",
+                "name": "Computer Architecture",
+                "courseCode": "CS 331",
+                "description": "Instruction set design, pipelining, hazards, cache hierarchies, CPU organization, and assembly lab resources."
+              },
+              {
+                "@type": "Course",
+                "name": "Statistics & Probability",
+                "courseCode": "STAT 301",
+                "description": "Probability distributions, random variables, hypothesis testing, sampling distributions, and regression models."
+              },
+              {
+                "@type": "Course",
+                "name": "Multivariable Calculus",
+                "courseCode": "MATH 201",
+                "description": "Functions of several variables, partial derivatives, double and triple integrals, gradient vectors, and Stokes theorem."
+              }
+            ]
+          }
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://sledge-classroom.web.app/#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "What is Sledge Classroom?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Sledge Classroom is an open, student-focused educational platform and resource hub created by Muhammad Durrab (Sledge) specifically for NUML Computer Science (BSCS) students. It organizes university lecture notes, past papers, lab manuals, and academic calendars in one accessible place."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Are course materials and past papers on Sledge Classroom free?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes, 100% free! All students can view online previews and download lecture slides, past exams, and lab resources directly without paying or creating an account."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Which NUML BSCS courses are included on Sledge Classroom?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Sledge Classroom currently hosts course materials for Theory of Automata (CS 311), Operating Systems (CS 321), Web Engineering (CS 341), Computer Architecture (CS 331), Statistics & Probability (STAT 301), and Multivariable Calculus (MATH 201), including dedicated practical lab sections."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Do I need to sign in to download past papers and notes?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "No login is required for students. Login access is strictly reserved for the administrator to upload and manage educational resources."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+
+    <!-- Google Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="styles.css?v=6">
+    <link rel="stylesheet" href="styles.css?v=7">
     <link rel="stylesheet" href="now-playing-widget.css">
 </head>
 
@@ -25,23 +171,23 @@
     <!-- ===== NAVBAR ===== -->
     <nav class="navbar" id="navbar">
         <div class="nav-container">
-            <a href="#" class="nav-logo" id="nav-logo-link">
+            <a href="#home" class="nav-logo" id="nav-logo-link" aria-label="Sledge Classroom Home">
                 <div class="logo-icon">
                     <i class="fas fa-graduation-cap"></i>
                 </div>
                 <span class="logo-text">Sledge<span class="logo-accent">Classroom</span></span>
             </a>
             <div class="nav-links" id="nav-links">
-                <a href="#" class="nav-link active" data-page="home" id="nav-home">
+                <a href="#home" class="nav-link active" data-page="home" id="nav-home">
                     <i class="fas fa-home"></i> Home
                 </a>
-                <a href="#" class="nav-link" data-page="courses" id="nav-courses">
+                <a href="#courses" class="nav-link" data-page="courses" id="nav-courses">
                     <i class="fas fa-book-open"></i> Courses
                 </a>
-                <a href="#" class="nav-link" data-page="labs" id="nav-labs">
+                <a href="#labs" class="nav-link" data-page="labs" id="nav-labs">
                     <i class="fas fa-flask"></i> Labs
                 </a>
-                <a href="#" class="nav-link" data-page="calendar" id="nav-calendar">
+                <a href="#calendar" class="nav-link" data-page="calendar" id="nav-calendar">
                     <i class="fas fa-calendar-alt"></i> Calendar
                 </a>
             </div>
@@ -50,7 +196,7 @@
                     <i class="fas fa-moon" id="theme-icon"></i>
                 </button>
                 <!-- Admin indicator / login button -->
-                <button class="admin-btn" id="admin-btn" title="Admin Login">
+                <button class="admin-btn" id="admin-btn" title="Admin Login" aria-label="Admin Login">
                     <i class="fas fa-user-shield" id="admin-icon"></i>
                 </button>
                 <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle menu">
@@ -62,16 +208,16 @@
 
     <!-- ===== MOBILE MENU ===== -->
     <div class="mobile-menu" id="mobile-menu">
-        <a href="#" class="mobile-link active" data-page="home" id="mobile-nav-home">
+        <a href="#home" class="mobile-link active" data-page="home" id="mobile-nav-home">
             <i class="fas fa-home"></i> Home
         </a>
-        <a href="#" class="mobile-link" data-page="courses" id="mobile-nav-courses">
+        <a href="#courses" class="mobile-link" data-page="courses" id="mobile-nav-courses">
             <i class="fas fa-book-open"></i> Courses
         </a>
-        <a href="#" class="mobile-link" data-page="labs" id="mobile-nav-labs">
+        <a href="#labs" class="mobile-link" data-page="labs" id="mobile-nav-labs">
             <i class="fas fa-flask"></i> Labs
         </a>
-        <a href="#" class="mobile-link" data-page="calendar" id="mobile-nav-calendar">
+        <a href="#calendar" class="mobile-link" data-page="calendar" id="mobile-nav-calendar">
             <i class="fas fa-calendar-alt"></i> Calendar
         </a>
     </div>
@@ -93,12 +239,11 @@
                         <i class="fas fa-sparkles"></i> Open & Free for Everyone
                     </div>
                     <h1 class="hero-title">
-                        Your Learning,<br>
-                        <span class="gradient-text">Simplified.</span>
+                        Sledge Classroom<br>
+                        <span class="gradient-text">NUML BSCS Learning Hub</span>
                     </h1>
                     <p class="hero-subtitle">
-                        Access lecture slides, past papers, lab resources, and stay on top of your schedule — all in one
-                        place. No login required to view or download.
+                        Explore computer science study materials, programming labs, course notes, and past papers for NUML BSCS students through Sledge Classroom. 100% free with direct downloads and zero login barriers.
                     </p>
                     <div class="hero-actions">
                         <button class="btn btn-primary btn-lg" id="hero-explore-btn">
@@ -166,6 +311,164 @@
                         <i class="fas fa-calendar-check"></i>
                         <h3>No Upcoming Events</h3>
                         <p>Add events from the Calendar page to see them here.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- About Sledge Classroom -->
+            <div class="section" id="about-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-graduation-cap"></i> About Sledge Classroom
+                    </h2>
+                    <p class="section-subtitle">A student-focused open learning management system and resource hub</p>
+                </div>
+                <div class="about-grid">
+                    <div class="about-card">
+                        <div class="about-card-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                        <h3>NUML BSCS Curated Notes</h3>
+                        <p>Comprehensive lecture slides and presentations for core Computer Science semester subjects, neatly organized by topic and lecture number.</p>
+                    </div>
+                    <div class="about-card">
+                        <div class="about-card-icon"><i class="fas fa-scroll"></i></div>
+                        <h3>Past Papers &amp; Exam Prep</h3>
+                        <p>Midterm and final exam past papers with solution guidelines, marking schemes, and revision keys to help university students excel.</p>
+                    </div>
+                    <div class="about-card">
+                        <div class="about-card-icon"><i class="fas fa-laptop-code"></i></div>
+                        <h3>Practical Programming Labs</h3>
+                        <p>Lab manuals, code templates, viva questions, and hands-on exercises for practical subjects like Operating Systems, Web Engineering, and Computer Architecture.</p>
+                    </div>
+                    <div class="about-card">
+                        <div class="about-card-icon"><i class="fas fa-unlock-alt"></i></div>
+                        <h3>100% Free &amp; Open Access</h3>
+                        <p>Created by Muhammad Durrab (Sledge) with zero paywalls, mandatory registrations, or subscription fees. Click, preview online, and download directly.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Core Subjects & Curriculum Directory -->
+            <div class="section" id="curriculum-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-sitemap"></i> NUML BSCS Course Curriculum
+                    </h2>
+                    <p class="section-subtitle">Explore lecture notes, solved papers, and lab manuals by subject</p>
+                </div>
+                <div class="curriculum-grid">
+                    <a href="#courses" class="curriculum-card" data-course="automata">
+                        <div>
+                            <div class="curriculum-card-header">
+                                <span class="curriculum-code">CS 311</span>
+                                <span class="curriculum-badge">Theory</span>
+                            </div>
+                            <h3>Theory of Automata</h3>
+                            <p>Finite state automata, regular expressions, context-free grammars, pushdown automata, Turing machines, and decidability.</p>
+                        </div>
+                        <span class="curriculum-link">View Notes &amp; Past Papers <i class="fas fa-arrow-right"></i></span>
+                    </a>
+                    <a href="#courses" class="curriculum-card" data-course="os">
+                        <div>
+                            <div class="curriculum-card-header">
+                                <span class="curriculum-code">CS 321</span>
+                                <span class="curriculum-badge">Theory &amp; Lab</span>
+                            </div>
+                            <h3>Operating Systems</h3>
+                            <p>Processes, CPU scheduling, thread synchronization, semaphores, deadlock handling, virtual memory, and Linux CLI lab tasks.</p>
+                        </div>
+                        <span class="curriculum-link">View Notes &amp; Lab Manuals <i class="fas fa-arrow-right"></i></span>
+                    </a>
+                    <a href="#courses" class="curriculum-card" data-course="web">
+                        <div>
+                            <div class="curriculum-card-header">
+                                <span class="curriculum-code">CS 341</span>
+                                <span class="curriculum-badge">Theory &amp; Lab</span>
+                            </div>
+                            <h3>Web Engineering</h3>
+                            <p>Modern frontend &amp; backend web development, DOM manipulation, responsive CSS, JavaScript, REST APIs, and database integration.</p>
+                        </div>
+                        <span class="curriculum-link">View Notes &amp; Code Samples <i class="fas fa-arrow-right"></i></span>
+                    </a>
+                    <a href="#courses" class="curriculum-card" data-course="arch">
+                        <div>
+                            <div class="curriculum-card-header">
+                                <span class="curriculum-code">CS 331</span>
+                                <span class="curriculum-badge">Theory &amp; Lab</span>
+                            </div>
+                            <h3>Computer Architecture</h3>
+                            <p>Von Neumann architecture, instruction set architectures, instruction-level parallelism, pipelining, hazards, and memory hierarchy.</p>
+                        </div>
+                        <span class="curriculum-link">View Notes &amp; Past Papers <i class="fas fa-arrow-right"></i></span>
+                    </a>
+                    <a href="#courses" class="curriculum-card" data-course="stats">
+                        <div>
+                            <div class="curriculum-card-header">
+                                <span class="curriculum-code">STAT 301</span>
+                                <span class="curriculum-badge">Theory</span>
+                            </div>
+                            <h3>Statistics &amp; Probability</h3>
+                            <p>Descriptive statistics, discrete &amp; continuous probability distributions, Bayes theorem, hypothesis testing, and regression analysis.</p>
+                        </div>
+                        <span class="curriculum-link">View Notes &amp; Past Papers <i class="fas fa-arrow-right"></i></span>
+                    </a>
+                    <a href="#courses" class="curriculum-card" data-course="calculus">
+                        <div>
+                            <div class="curriculum-card-header">
+                                <span class="curriculum-code">MATH 201</span>
+                                <span class="curriculum-badge">Theory</span>
+                            </div>
+                            <h3>Multivariable Calculus</h3>
+                            <p>Partial derivatives, chain rule in multiple variables, double &amp; triple integration, vector fields, divergence, curl, and Green's theorem.</p>
+                        </div>
+                        <span class="curriculum-link">View Notes &amp; Past Papers <i class="fas fa-arrow-right"></i></span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Frequently Asked Questions (FAQ) Section -->
+            <div class="section" id="faq-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-question-circle"></i> Frequently Asked Questions
+                    </h2>
+                    <p class="section-subtitle">Common questions about Sledge Classroom and study materials</p>
+                </div>
+                <div class="faq-list">
+                    <div class="faq-item">
+                        <button class="faq-question" type="button" aria-expanded="false">
+                            <span>What is Sledge Classroom?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <p>Sledge Classroom is an open, student-focused educational platform and resource hub created by Muhammad Durrab (Sledge) specifically for NUML Computer Science (BSCS) students. It organizes university lecture notes, past papers, lab manuals, and academic calendars in one accessible place.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <button class="faq-question" type="button" aria-expanded="false">
+                            <span>Are course materials and past papers on Sledge Classroom free?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <p>Yes, 100% free! All students can view online previews and download lecture slides, past exams, and lab resources directly without paying or creating an account.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <button class="faq-question" type="button" aria-expanded="false">
+                            <span>Which NUML BSCS courses are included on Sledge Classroom?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <p>Sledge Classroom currently hosts course materials for Theory of Automata (CS 311), Operating Systems (CS 321), Web Engineering (CS 341), Computer Architecture (CS 331), Statistics &amp; Probability (STAT 301), and Multivariable Calculus (MATH 201), including dedicated practical lab sections.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <button class="faq-question" type="button" aria-expanded="false">
+                            <span>Do I need to sign in to download past papers and notes?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <p>No login is required for students. Login access is strictly reserved for the administrator to upload and manage educational resources.</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -755,19 +1058,19 @@
             </div>
             <div class="footer-links-section">
                 <h4>Quick Links</h4>
-                <a href="#" data-page="home">Home</a>
-                <a href="#" data-page="courses">Courses</a>
-                <a href="#" data-page="labs">Labs</a>
-                <a href="#" data-page="calendar">Calendar</a>
+                <a href="#home" data-page="home">Home</a>
+                <a href="#courses" data-page="courses">Courses</a>
+                <a href="#labs" data-page="labs">Labs</a>
+                <a href="#calendar" data-page="calendar">Calendar</a>
             </div>
             <div class="footer-links-section">
                 <h4>Courses</h4>
-                <a href="#" data-course="stats">Statistics & Probability</a>
-                <a href="#" data-course="automata">Theory of Automata</a>
-                <a href="#" data-course="calculus">Multivariable Calculus</a>
-                <a href="#" data-course="os">Operating Systems</a>
-                <a href="#" data-course="web">Web Engineering</a>
-                <a href="#" data-course="arch">Computer Architecture</a>
+                <a href="#course-stats" data-course="stats">Statistics &amp; Probability</a>
+                <a href="#course-automata" data-course="automata">Theory of Automata</a>
+                <a href="#course-calculus" data-course="calculus">Multivariable Calculus</a>
+                <a href="#course-os" data-course="os">Operating Systems</a>
+                <a href="#course-web" data-course="web">Web Engineering</a>
+                <a href="#course-arch" data-course="arch">Computer Architecture</a>
             </div>
         </div>
         <div class="footer-bottom">

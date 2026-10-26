@@ -113,6 +113,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initCalendar();
     populateEventCourseSelect();
     initFooterLinks();
+    initFaqAccordion();
+    initCurriculumCards();
     initZanpakutoThemes();
     initBleachGateModal();
 
@@ -267,20 +269,24 @@ async function handleLogin() {
     }
 }
 
-// ===== NAVIGATION =====
+// ===== NAVIGATION & HASH ROUTING =====
 function initNavigation() {
     document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            navigateTo(link.dataset.page);
+            const page = link.dataset.page;
+            if (page) navigateTo(page);
         });
     });
 
     document.querySelectorAll('.mobile-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            navigateTo(link.dataset.page);
-            closeMobileMenu();
+            const page = link.dataset.page;
+            if (page) {
+                navigateTo(page);
+                closeMobileMenu();
+            }
         });
     });
 
@@ -293,9 +299,35 @@ function initNavigation() {
 
     document.getElementById('hero-explore-btn').addEventListener('click', () => navigateTo('courses'));
     document.getElementById('hero-calendar-btn').addEventListener('click', () => navigateTo('calendar'));
+
+    // Hash routing for deep links & browser back/forward buttons
+    window.addEventListener('hashchange', handleHashRoute);
+    
+    // Initial route handling
+    handleHashRoute();
 }
 
-function navigateTo(page) {
+function handleHashRoute() {
+    const raw = (window.location.hash || '').replace(/^#\/?/, '').toLowerCase().trim();
+    if (!raw || raw === 'home') {
+        navigateTo('home', false);
+    } else if (raw === 'courses') {
+        navigateTo('courses', false);
+    } else if (raw === 'labs') {
+        navigateTo('labs', false);
+    } else if (raw === 'calendar') {
+        navigateTo('calendar', false);
+    } else if (raw.startsWith('course-')) {
+        const cId = raw.replace('course-', '');
+        if (COURSES.some(c => c.id === cId)) {
+            openCourseDetail(cId, 'theory', 'courses');
+        } else {
+            navigateTo('courses', false);
+        }
+    }
+}
+
+function navigateTo(page, updateHash = true) {
     currentPage = page;
 
     if (page === 'courses') {
@@ -313,6 +345,14 @@ function navigateTo(page) {
 
     document.querySelectorAll('.nav-link').forEach(l => l.classList.toggle('active', l.dataset.page === page));
     document.querySelectorAll('.mobile-link').forEach(l => l.classList.toggle('active', l.dataset.page === page));
+
+    if (updateHash && window.location.hash !== `#${page}`) {
+        try {
+            history.pushState(null, '', `#${page}`);
+        } catch (e) {
+            window.location.hash = `#${page}`;
+        }
+    }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -1481,6 +1521,43 @@ function initFooterLinks() {
             e.preventDefault();
             openCourseDetail(link.dataset.course);
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    });
+}
+
+// ===== FAQ ACCORDION (SEO & ACCESSIBILITY) =====
+function initFaqAccordion() {
+    document.querySelectorAll('.faq-question').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const item = btn.closest('.faq-item');
+            if (!item) return;
+            const isOpen = item.classList.contains('active');
+
+            // Close all items
+            document.querySelectorAll('.faq-item').forEach(other => {
+                other.classList.remove('active');
+                const otherBtn = other.querySelector('.faq-question');
+                if (otherBtn) otherBtn.setAttribute('aria-expanded', 'false');
+            });
+
+            // Toggle clicked item
+            if (!isOpen) {
+                item.classList.add('active');
+                btn.setAttribute('aria-expanded', 'true');
+            }
+        });
+    });
+}
+
+// ===== CURRICULUM DIRECTORY CARDS =====
+function initCurriculumCards() {
+    document.querySelectorAll('.curriculum-card[data-course]').forEach(card => {
+        card.addEventListener('click', (e) => {
+            e.preventDefault();
+            const courseId = card.dataset.course;
+            if (courseId) {
+                openCourseDetail(courseId, 'theory', 'home');
+            }
         });
     });
 }
