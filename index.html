@@ -18,6 +18,7 @@
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="styles.css?v=6">
+    <link rel="stylesheet" href="now-playing-widget.css">
 </head>
 
 <body>
@@ -785,10 +786,15 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <!-- Realtime Database SDK (for Now Playing widget only) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
     <!-- App Scripts -->
-    <script src="firebase-config.js?v=5"></script>
+    <script src="firebase-config.js?v=6"></script>
     <script src="app.js?v=6"></script>
+
+    <!-- ===== NOW PLAYING WIDGET ===== -->
+    <script src="now-playing-widget.js"></script>
 
     <!-- ===== BLEACH EASTER EGG ===== -->
     <script>

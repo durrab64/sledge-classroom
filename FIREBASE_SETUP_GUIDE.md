@@ -110,3 +110,47 @@ You can publish your LMS live on the web in 1 simple step:
 4. 🚀 That's it! Your website is live worldwide at:
    👉 **`https://sledge-classroom.web.app`**
    *(and also `https://sledge-classroom.firebaseapp.com`)*
+
+---
+
+## Step 5: Enable Realtime Database for Live "Now Playing" Widget 🎵
+
+The Now Playing widget shows what you are listening to in real-time. It uses Firebase **Realtime Database** (RTDB) alongside your existing **Cloud Firestore**:
+
+1. In the [Firebase Console](https://console.firebase.google.com/), open project **`sledge-classroom`**.
+2. In the left sidebar, click **Build** ➔ **Realtime Database**.
+3. Click **Create Database**.
+4. Choose your preferred location (e.g. `United States (us-central1)`), select **Start in locked mode**, and click **Enable**.
+5. Once created, notice the URL at the top (e.g. `https://sledge-classroom-default-rtdb.firebaseio.com/`).
+   - If your URL is different, paste it into `firebase-config.js` (`databaseURL: "..."`).
+6. Click on the **Rules** tab, and paste these exact rules:
+   ```json
+   {
+     "rules": {
+       "nowPlaying": {
+         "current": {
+           ".read": true,
+           ".write": "auth != null"
+         }
+       },
+       "$other": {
+         ".read": false,
+         ".write": false
+       }
+     }
+   }
+   ```
+7. Click **Publish**. *(Or deploy from terminal via `npx firebase-tools deploy --only database`)*.
+
+> [!NOTE]
+> **Your course materials remain 100% safe!**
+> Sledge Classroom stores all courses and documents in **Cloud Firestore** (`service cloud.firestore`), which has its own independent rules. Realtime Database rules only govern the `/nowPlaying/current` node and cannot touch or expose your Firestore course data.
+
+### Loading the Chrome Extension:
+1. Open Google Chrome and navigate to `chrome://extensions`.
+2. Toggle ON **Developer mode** in the top-right corner.
+3. Click **Load unpacked** in the top-left corner.
+4. Select the `chrome-extension` folder inside `c:\LMS FOR my class lmao\chrome-extension`.
+5. Click the extension icon in your toolbar, enter your Firebase Admin email and password, and click **Save & Connect**.
+6. Play any song on `youtube.com` or `music.youtube.com` — your website will immediately display the live Now Playing card!
+

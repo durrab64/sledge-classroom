@@ -1,12 +1,17 @@
 {
+  "database": {
+    "rules": "database.rules.json"
+  },
   "hosting": {
     "public": ".",
     "ignore": [
       "firebase.json",
+      "database.rules.json",
       ".firebaserc",
       "**/.*",
       "**/node_modules/**",
-      "FIREBASE_SETUP_GUIDE.md"
+      "FIREBASE_SETUP_GUIDE.md",
+      "chrome-extension/**"
     ],
     "rewrites": [
       {

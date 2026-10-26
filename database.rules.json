@@ -1,0 +1,14 @@
+{
+  "rules": {
+    "nowPlaying": {
+      "current": {
+        ".read": true,
+        ".write": "auth != null"
+      }
+    },
+    "$other": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}
