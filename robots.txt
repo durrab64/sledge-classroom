@@ -8,7 +8,7 @@ Allow: /
 Disallow: /chrome-extension/
 
 # Host
-Host: https://sledge-classroom.web.app
+Host: sledge-classroom.web.app
 
 # Sitemap
 Sitemap: https://sledge-classroom.web.app/sitemap.xml

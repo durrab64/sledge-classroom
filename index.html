@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sledge Classroom | NUML BSCS Notes, Labs &amp; Past Papers</title>
     <meta name="description"
-        content="Explore computer science study materials, programming labs, course notes, and past papers for NUML BSCS students through Sledge Classroom. Free, open, and organized.">
+        content="Free NUML BSCS study platform. Download curated lecture notes, past papers, and programming lab materials on Sledge Classroom. 100% free with zero login.">
     <link rel="canonical" href="https://sledge-classroom.web.app/">
     <meta name="google-site-verification" content="InGCo2TjrhQdhyl4JosoFjmBkN17S-gCLyg7r_eKmMQ" />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
@@ -20,7 +20,7 @@
     <meta property="og:site_name" content="Sledge Classroom">
     <meta property="og:title" content="Sledge Classroom | NUML BSCS Notes, Labs &amp; Past Papers">
     <meta property="og:description"
-        content="Explore computer science study materials, programming labs, course notes, and past papers for NUML BSCS students through Sledge Classroom. Free, open, and organized.">
+        content="Free NUML BSCS study platform. Download curated lecture notes, past papers, and programming lab materials on Sledge Classroom. 100% free with zero login.">
     <meta property="og:url" content="https://sledge-classroom.web.app/">
     <meta property="og:image" content="https://sledge-classroom.web.app/og-image.png">
     <meta property="og:image:width" content="1200">
@@ -32,7 +32,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Sledge Classroom | NUML BSCS Notes, Labs &amp; Past Papers">
     <meta name="twitter:description"
-        content="Explore computer science study materials, programming labs, course notes, and past papers for NUML BSCS students through Sledge Classroom. Free, open, and organized.">
+        content="Free NUML BSCS study platform. Download curated lecture notes, past papers, and programming lab materials on Sledge Classroom. 100% free with zero login.">
     <meta name="twitter:image" content="https://sledge-classroom.web.app/og-image.png">
 
     <!-- Favicon -->
@@ -228,6 +228,7 @@
 
         <!-- ===== HOME PAGE ===== -->
         <section class="page page-home active" id="page-home">
+            <span id="home" class="anchor-target" aria-hidden="true"></span>
             <!-- Hero Section -->
             <div class="hero">
                 <div class="hero-bg-shapes">
@@ -357,7 +358,7 @@
                     <p class="section-subtitle">Explore lecture notes, solved papers, and lab manuals by subject</p>
                 </div>
                 <div class="curriculum-grid">
-                    <a href="#courses" class="curriculum-card" data-course="automata">
+                    <a href="#courses" class="curriculum-card" data-course="automata" id="course-automata">
                         <div>
                             <div class="curriculum-card-header">
                                 <span class="curriculum-code">CS 311</span>
@@ -368,7 +369,7 @@
                         </div>
                         <span class="curriculum-link">View Notes &amp; Past Papers <i class="fas fa-arrow-right"></i></span>
                     </a>
-                    <a href="#courses" class="curriculum-card" data-course="os">
+                    <a href="#courses" class="curriculum-card" data-course="os" id="course-os">
                         <div>
                             <div class="curriculum-card-header">
                                 <span class="curriculum-code">CS 321</span>
@@ -379,7 +380,7 @@
                         </div>
                         <span class="curriculum-link">View Notes &amp; Lab Manuals <i class="fas fa-arrow-right"></i></span>
                     </a>
-                    <a href="#courses" class="curriculum-card" data-course="web">
+                    <a href="#courses" class="curriculum-card" data-course="web" id="course-web">
                         <div>
                             <div class="curriculum-card-header">
                                 <span class="curriculum-code">CS 341</span>
@@ -390,7 +391,7 @@
                         </div>
                         <span class="curriculum-link">View Notes &amp; Code Samples <i class="fas fa-arrow-right"></i></span>
                     </a>
-                    <a href="#courses" class="curriculum-card" data-course="arch">
+                    <a href="#courses" class="curriculum-card" data-course="arch" id="course-arch">
                         <div>
                             <div class="curriculum-card-header">
                                 <span class="curriculum-code">CS 331</span>
@@ -401,7 +402,7 @@
                         </div>
                         <span class="curriculum-link">View Notes &amp; Past Papers <i class="fas fa-arrow-right"></i></span>
                     </a>
-                    <a href="#courses" class="curriculum-card" data-course="stats">
+                    <a href="#courses" class="curriculum-card" data-course="stats" id="course-stats">
                         <div>
                             <div class="curriculum-card-header">
                                 <span class="curriculum-code">STAT 301</span>
@@ -412,7 +413,7 @@
                         </div>
                         <span class="curriculum-link">View Notes &amp; Past Papers <i class="fas fa-arrow-right"></i></span>
                     </a>
-                    <a href="#courses" class="curriculum-card" data-course="calculus">
+                    <a href="#courses" class="curriculum-card" data-course="calculus" id="course-calculus">
                         <div>
                             <div class="curriculum-card-header">
                                 <span class="curriculum-code">MATH 201</span>
@@ -477,10 +478,11 @@
 
         <!-- ===== COURSES PAGE ===== -->
         <section class="page page-courses" id="page-courses">
+            <span id="courses" class="anchor-target" aria-hidden="true"></span>
             <!-- Course List View -->
             <div class="courses-list-view" id="courses-list-view">
                 <div class="page-header">
-                    <h1 class="page-title"><i class="fas fa-book-open"></i> All Courses & Labs</h1>
+                    <h2 class="page-title"><i class="fas fa-book-open"></i> All Courses &amp; Labs</h2>
                     <p class="page-subtitle">Separate theory coursework and hands-on practical lab sections</p>
                 </div>
                 <!-- Filter Pills on Courses Page -->
@@ -612,10 +614,11 @@
 
         <!-- ===== LABS PAGE ===== -->
         <section class="page page-labs" id="page-labs">
+            <span id="labs" class="anchor-target" aria-hidden="true"></span>
             <!-- Labs List View -->
             <div class="labs-list-view" id="labs-list-view">
                 <div class="page-header">
-                    <h1 class="page-title"><i class="fas fa-flask"></i> Lab Sections</h1>
+                    <h2 class="page-title"><i class="fas fa-flask"></i> Lab Sections</h2>
                     <p class="page-subtitle">Hands-on lab resources for practical courses</p>
                 </div>
                 <div class="labs-grid" id="labs-grid">
@@ -649,13 +652,14 @@
 
         <!-- ===== CALENDAR PAGE ===== -->
         <section class="page page-calendar" id="page-calendar">
+            <span id="calendar" class="anchor-target" aria-hidden="true"></span>
             <div class="page-header">
-                <h1 class="page-title"><i class="fas fa-calendar-alt"></i> Master Calendar</h1>
+                <h2 class="page-title"><i class="fas fa-calendar-alt"></i> Master Calendar</h2>
                 <p class="page-subtitle">All your events across every course in one view</p>
             </div>
             <div class="calendar-controls">
                 <button class="btn btn-ghost" id="cal-prev"><i class="fas fa-chevron-left"></i></button>
-                <h2 class="calendar-month-title" id="calendar-month-title">October 2026</h2>
+                <h3 class="calendar-month-title" id="calendar-month-title">October 2026</h3>
                 <button class="btn btn-ghost" id="cal-next"><i class="fas fa-chevron-right"></i></button>
                 <button class="btn btn-primary btn-sm admin-only" id="add-global-event-btn" style="margin-left: auto;">
                     <i class="fas fa-plus"></i> Add Event
@@ -864,7 +868,7 @@
             </div>
             <div class="bleach-modal-content">
                 <div class="bleach-avatar-wrapper">
-                    <img src="orihime.png" alt="Orihime Inoue" class="bleach-orihime-img">
+                    <img src="orihime.png" alt="Orihime Inoue" class="bleach-orihime-img" width="160" height="240" loading="lazy">
                     <div class="bleach-halo"></div>
                 </div>
                 <div class="bleach-dialog-card">
@@ -1058,14 +1062,14 @@
                 <p class="footer-tagline">Making education accessible for everyone.</p>
             </div>
             <div class="footer-links-section">
-                <h4>Quick Links</h4>
+                <h3>Quick Links</h3>
                 <a href="#home" data-page="home">Home</a>
                 <a href="#courses" data-page="courses">Courses</a>
                 <a href="#labs" data-page="labs">Labs</a>
                 <a href="#calendar" data-page="calendar">Calendar</a>
             </div>
             <div class="footer-links-section">
-                <h4>Courses</h4>
+                <h3>Courses</h3>
                 <a href="#course-stats" data-course="stats">Statistics &amp; Probability</a>
                 <a href="#course-automata" data-course="automata">Theory of Automata</a>
                 <a href="#course-calculus" data-course="calculus">Multivariable Calculus</a>
@@ -1075,7 +1079,7 @@
             </div>
         </div>
         <div class="footer-bottom">
-            <p>Made by <a href="https://github.com/durrab64" class="author-link"><strong>Muhammad Durrab</strong></a>
+            <p>Made by <a href="https://github.com/durrab64" class="author-link" target="_blank" rel="noopener noreferrer"><strong>Muhammad Durrab</strong></a>
                 aka
                 <strong>Sledge</strong>
             </p>
