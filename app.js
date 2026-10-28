@@ -117,6 +117,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initCurriculumCards();
     initZanpakutoThemes();
     initBleachGateModal();
+    initFloatingDock();
+    initTensaMoon();
 
     // Load initial data from Firestore
     loadAllCourseCards();
@@ -1677,89 +1679,104 @@ function promptBleachGate(onSuccess) {
 
 // ===== ZANPAKUTO THEMES & SAKURA EFFECT =====
 let sakuraAnimationId = null;
+let sakuraResizeHandler = null;
+let reiatsuResizeHandler = null;
+let fireAnimationId = null;
+let fireResizeHandler = null;
+
+// Persisted effect preferences (shared with the floating dock)
+let sakuraEffectEnabled = localStorage.getItem('effect_sakura') !== 'false';
+let reiatsuEffectEnabled = localStorage.getItem('effect_reiatsu') !== 'false';
+let nozarashiEffectEnabled = localStorage.getItem('effect_nozarashi') !== 'false';
+
+function prefersReducedMotion() {
+    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+}
+
+function areDecorativeEffectsAllowed() {
+    return !prefersReducedMotion() && !document.body.classList.contains('quiet-mode');
+}
 
 function initZanpakutoThemes() {
-    const triggerBtn = document.getElementById('zanpakuto-floating-btn');
-    const drawer = document.getElementById('zanpakuto-drawer');
-    const backdrop = document.getElementById('zanpakuto-backdrop');
-    const closeBtn = document.getElementById('zanpakuto-close-btn');
-    const resetBtn = document.getElementById('zanpakuto-reset-btn');
-    const cards = document.querySelectorAll('.zanpakuto-card');
-
-    if (!triggerBtn || !drawer) return;
-
-    // Open Drawer
-    triggerBtn.addEventListener('click', () => {
-        drawer.classList.add('open');
-        backdrop.classList.remove('hidden');
-    });
-
-    // Close Drawer
-    const closeDrawer = () => {
-        drawer.classList.remove('open');
-        backdrop.classList.add('hidden');
-    };
-
-    if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
-    if (backdrop) backdrop.addEventListener('click', closeDrawer);
-
-    // Apply saved theme on reload
+    // The theme picker now lives in the floating dock; just restore the saved theme.
     const savedTheme = localStorage.getItem('zanpakuto_theme');
     if (savedTheme) {
         applyZanpakutoTheme(savedTheme, false);
     }
+}
 
-    // Card Selection
-    cards.forEach(card => {
-        card.addEventListener('click', () => {
-            const theme = card.dataset.zanpakuto;
-            applyZanpakutoTheme(theme, true);
-        });
-    });
-
-    // Reset button
-    if (resetBtn) {
-        resetBtn.addEventListener('click', () => {
-            document.documentElement.removeAttribute('data-zanpakuto');
-            localStorage.removeItem('zanpakuto_theme');
-            cards.forEach(c => c.classList.remove('active'));
-            stopSakuraPetals();
-            showToast('Zanpakuto spiritual pressure sealed (Default Theme).', 'info');
-        });
+// Restore the default (non-Zanpakuto) theme.
+// Shared by the floating dock's theme list.
+function resetZanpakutoTheme(showNotification = true) {
+    document.documentElement.removeAttribute('data-zanpakuto');
+    document.documentElement.removeAttribute('data-blood-moon');
+    localStorage.removeItem('zanpakuto_theme');
+    stopSakuraPetals();
+    stopReiatsuEmbers();
+    stopNozarashiFlames();
+    if (showNotification) {
+        showToast('Zanpakuto spiritual pressure sealed (Default Theme).', 'info');
     }
 }
 
 function applyZanpakutoTheme(themeName, showNotification = true) {
-    const validThemes = ['getsuga-tensho', 'nozarashi', 'senbonzakura', 'kyoka-suigetsu'];
+    const validThemes = ['getsuga-tensho', 'nozarashi', 'senbonzakura', 'kyoka-suigetsu', 'tensa-zangetsu'];
     if (!validThemes.includes(themeName)) return;
 
     document.documentElement.setAttribute('data-zanpakuto', themeName);
     localStorage.setItem('zanpakuto_theme', themeName);
 
-    // Highlight card
-    document.querySelectorAll('.zanpakuto-card').forEach(card => {
-        if (card.dataset.zanpakuto === themeName) {
-            card.classList.add('active');
-        } else {
-            card.classList.remove('active');
-        }
-    });
-
-    // Sakura petals effect handling for Senbonzakura
-    if (themeName === 'senbonzakura') {
-        startSakuraPetals();
-    } else {
-        stopSakuraPetals();
+    // Blood Moon only belongs to Tensa Zangetsu
+    if (themeName !== 'tensa-zangetsu') {
+        document.documentElement.removeAttribute('data-blood-moon');
     }
+
+    // Particle effect handling follows the user's effect preferences
+    syncThemeEffects(themeName);
 
     if (showNotification) {
         const themeTitles = {
             'getsuga-tensho': 'Getsuga Tensho (月牙天衝) — Black & White Theme',
-            'nozarashi': 'Nozarashi (野晒) — Yellow & Black Theme',
+            'nozarashi': 'Nozarashi (野晒) — Yellow & Black Theme with Fire',
             'senbonzakura': 'Senbonzakura (千本桜) — Sakura Pink Theme with Flower Petals',
-            'kyoka-suigetsu': 'Kyoka Suigetsu (鏡花水月) — Purple & Black Theme'
+            'kyoka-suigetsu': 'Kyoka Suigetsu (鏡花水月) — Purple & Black Theme',
+            'tensa-zangetsu': 'Tensa Zangetsu (天鎖斬月) — Crimson Bankai + Blood Moon'
         };
         showToast(`Awakened: ${themeTitles[themeName] || themeName}!`, 'success');
+    }
+}
+
+// Start/stop the decorative particle system that belongs to the active theme.
+// Shared by theme switching, quiet mode and reduced-motion changes.
+function syncThemeEffects(themeName) {
+    if (themeName === 'senbonzakura') {
+        stopReiatsuEmbers();
+        stopNozarashiFlames();
+        if (sakuraEffectEnabled) {
+            startSakuraPetals();
+        } else {
+            stopSakuraPetals();
+        }
+    } else if (themeName === 'tensa-zangetsu') {
+        stopSakuraPetals();
+        stopNozarashiFlames();
+        if (reiatsuEffectEnabled) {
+            startReiatsuEmbers();
+        } else {
+            stopReiatsuEmbers();
+        }
+    } else if (themeName === 'nozarashi') {
+        stopSakuraPetals();
+        stopReiatsuEmbers();
+        if (nozarashiEffectEnabled) {
+            startNozarashiFlames();
+        } else {
+            stopNozarashiFlames();
+        }
+    } else {
+        stopSakuraPetals();
+        stopReiatsuEmbers();
+        stopNozarashiFlames();
     }
 }
 
@@ -1767,9 +1784,12 @@ function applyZanpakutoTheme(themeName, showNotification = true) {
 function startSakuraPetals() {
     const canvas = document.getElementById('sakura-canvas');
     if (!canvas) return;
+    if (sakuraAnimationId) return;
+    if (!areDecorativeEffectsAllowed()) return;
     canvas.classList.remove('hidden');
 
     const ctx = canvas.getContext('2d');
+    ctx.globalCompositeOperation = 'source-over';
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
 
@@ -1777,6 +1797,7 @@ function startSakuraPetals() {
         width = canvas.width = window.innerWidth;
         height = canvas.height = window.innerHeight;
     };
+    sakuraResizeHandler = onResize;
     window.addEventListener('resize', onResize);
 
     const petals = [];
@@ -1846,11 +1867,667 @@ function stopSakuraPetals() {
         cancelAnimationFrame(sakuraAnimationId);
         sakuraAnimationId = null;
     }
+    if (sakuraResizeHandler) {
+        window.removeEventListener('resize', sakuraResizeHandler);
+        sakuraResizeHandler = null;
+    }
     const canvas = document.getElementById('sakura-canvas');
-    if (canvas) {
+    if (canvas && !reiatsuAnimationId && !fireAnimationId) {
         canvas.classList.add('hidden');
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
 }
 
+// ===== TENSA ZANGETSU BANKAI REIATSU EMBERS =====
+let reiatsuAnimationId = null;
+
+function startReiatsuEmbers() {
+    const canvas = document.getElementById('sakura-canvas');
+    if (!canvas) return;
+    if (reiatsuAnimationId) return;
+    if (!areDecorativeEffectsAllowed()) return;
+    canvas.classList.remove('hidden');
+
+    const ctx = canvas.getContext('2d');
+    ctx.globalCompositeOperation = 'source-over';
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    const onResize = () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+    };
+    reiatsuResizeHandler = onResize;
+    window.addEventListener('resize', onResize);
+
+    const embers = [];
+    const emberCount = 38;
+
+    for (let i = 0; i < emberCount; i++) {
+        embers.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            size: 2 + Math.random() * 4.5,
+            speedY: -(0.9 + Math.random() * 1.8),
+            speedX: -0.6 + Math.random() * 1.2,
+            opacity: 0.3 + Math.random() * 0.65,
+            pulse: Math.random() * Math.PI * 2,
+            pulseSpeed: 0.03 + Math.random() * 0.04,
+            isBladeShard: Math.random() > 0.75
+        });
+    }
+
+    function animateEmbers() {
+        ctx.clearRect(0, 0, width, height);
+        const isBloodMoon = document.documentElement.getAttribute('data-blood-moon') === 'true';
+
+        for (let i = 0; i < embers.length; i++) {
+            const e = embers[i];
+            e.pulse += e.pulseSpeed;
+            e.y += e.speedY;
+            e.x += e.speedX + Math.sin(e.pulse) * 0.6;
+            const currentAlpha = Math.max(0.15, Math.min(1, e.opacity + Math.sin(e.pulse) * 0.25));
+
+            if (e.y < -20) {
+                e.y = height + 10;
+                e.x = Math.random() * width;
+            }
+            if (e.x < -20) e.x = width + 20;
+            if (e.x > width + 20) e.x = -20;
+
+            ctx.save();
+            ctx.translate(e.x, e.y);
+
+            if (isBloodMoon) {
+                // Intense razor scarlet and crimson embers
+                ctx.fillStyle = e.isBladeShard
+                    ? `rgba(255, 30, 45, ${currentAlpha})`
+                    : `rgba(220, 20, 30, ${currentAlpha * 0.85})`;
+                ctx.shadowColor = '#ff0033';
+                ctx.shadowBlur = 10;
+            } else {
+                // Dual crimson & black spiritual reiatsu embers
+                ctx.fillStyle = e.isBladeShard
+                    ? `rgba(239, 68, 68, ${currentAlpha})`
+                    : `rgba(20, 0, 0, ${currentAlpha * 0.9})`;
+                ctx.shadowColor = '#ef4444';
+                ctx.shadowBlur = 6;
+            }
+
+            if (e.isBladeShard) {
+                // Crescent spirit slash fragment
+                ctx.beginPath();
+                ctx.ellipse(0, 0, e.size * 1.8, e.size * 0.6, -Math.PI / 4, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                // Glowing spirit ember
+                ctx.beginPath();
+                ctx.arc(0, 0, e.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+        reiatsuAnimationId = requestAnimationFrame(animateEmbers);
+    }
+
+    if (reiatsuAnimationId) cancelAnimationFrame(reiatsuAnimationId);
+    animateEmbers();
+}
+
+function stopReiatsuEmbers() {
+    if (reiatsuAnimationId) {
+        cancelAnimationFrame(reiatsuAnimationId);
+        reiatsuAnimationId = null;
+    }
+    if (reiatsuResizeHandler) {
+        window.removeEventListener('resize', reiatsuResizeHandler);
+        reiatsuResizeHandler = null;
+    }
+    const canvas = document.getElementById('sakura-canvas');
+    if (canvas && !sakuraAnimationId && !fireAnimationId) {
+        canvas.classList.add('hidden');
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+}
+
+// ===== NOZARASHI BERSERKER FLAMES =====
+function startNozarashiFlames() {
+    const canvas = document.getElementById('sakura-canvas');
+    if (!canvas) return;
+    if (fireAnimationId) return;
+    if (!areDecorativeEffectsAllowed()) return;
+    canvas.classList.remove('hidden');
+
+    const ctx = canvas.getContext('2d');
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    const onResize = () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+    };
+    fireResizeHandler = onResize;
+    window.addEventListener('resize', onResize);
+
+    const flameCount = 34;
+    const flames = [];
+    const sparks = [];
+
+    function spawnFlame(fresh = false) {
+        return {
+            x: Math.random() * width,
+            y: fresh ? height + 10 + Math.random() * 30 : height - Math.random() * height * 0.55,
+            size: 16 + Math.random() * 30,
+            speedY: 1.4 + Math.random() * 2.6,
+            drift: -0.5 + Math.random() * 1,
+            wobble: Math.random() * Math.PI * 2,
+            wobbleSpeed: 0.02 + Math.random() * 0.035,
+            life: fresh ? 0.15 + Math.random() * 0.2 : Math.random() * 0.85,
+            heat: 0.45 + Math.random() * 0.55
+        };
+    }
+
+    for (let i = 0; i < flameCount; i++) flames.push(spawnFlame());
+    for (let i = 0; i < 12; i++) {
+        sparks.push({
+            x: Math.random() * width,
+            y: height - Math.random() * height * 0.4,
+            size: 1 + Math.random() * 2,
+            speedY: 2.5 + Math.random() * 4,
+            drift: -1.2 + Math.random() * 2.4,
+            life: Math.random()
+        });
+    }
+
+    function animateFlames() {
+        ctx.clearRect(0, 0, width, height);
+        ctx.globalCompositeOperation = 'lighter';
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+        for (let i = 0; i < flames.length; i++) {
+            const f = flames[i];
+            f.life += 0.007 + f.heat * 0.006;
+            f.wobble += f.wobbleSpeed;
+            f.y -= f.speedY;
+            f.x += f.drift + Math.sin(f.wobble) * 0.9;
+
+            if (f.life >= 1 || f.y < height * 0.18) {
+                flames[i] = spawnFlame(true);
+                continue;
+            }
+
+            const fade = Math.sin(f.life * Math.PI);
+            const alpha = Math.max(0.08, fade * (isDark ? 0.8 : 0.5));
+            const radius = f.size * (0.5 + f.life * 0.9);
+
+            const gradient = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, radius);
+            gradient.addColorStop(0, `rgba(254, 240, 138, ${alpha})`);
+            gradient.addColorStop(0.35, `rgba(250, 204, 21, ${alpha * 0.85})`);
+            gradient.addColorStop(0.7, `rgba(234, 88, 12, ${alpha * 0.5})`);
+            gradient.addColorStop(1, 'rgba(120, 30, 0, 0)');
+
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.ellipse(f.x, f.y, radius * 0.72, radius * 1.15, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        for (let i = 0; i < sparks.length; i++) {
+            const s = sparks[i];
+            s.life += 0.012;
+            s.y -= s.speedY;
+            s.x += s.drift + Math.sin(s.life * 12) * 0.6;
+            if (s.life >= 1 || s.y < height * 0.2) {
+                s.x = Math.random() * width;
+                s.y = height + Math.random() * 20;
+                s.life = 0;
+                continue;
+            }
+            ctx.fillStyle = `rgba(253, 224, 71, ${(1 - s.life) * 0.9})`;
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        ctx.globalCompositeOperation = 'source-over';
+        fireAnimationId = requestAnimationFrame(animateFlames);
+    }
+
+    if (fireAnimationId) cancelAnimationFrame(fireAnimationId);
+    animateFlames();
+}
+
+function stopNozarashiFlames() {
+    if (fireAnimationId) {
+        cancelAnimationFrame(fireAnimationId);
+        fireAnimationId = null;
+    }
+    if (fireResizeHandler) {
+        window.removeEventListener('resize', fireResizeHandler);
+        fireResizeHandler = null;
+    }
+    const canvas = document.getElementById('sakura-canvas');
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.globalCompositeOperation = 'source-over';
+        if (!sakuraAnimationId && !reiatsuAnimationId) {
+            canvas.classList.add('hidden');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+    }
+}
+
+// ===== FLOATING DOCK =====
+function initFloatingDock() {
+    const dock = document.getElementById('sledge-dock');
+    if (!dock) return;
+
+    const themeBtn = document.getElementById('dock-themes');
+    const themePopup = document.getElementById('dock-theme-popup');
+    const effectsBtn = document.getElementById('dock-effects');
+    const effectsPopup = document.getElementById('dock-effects-popup');
+    const musicBtn = document.getElementById('dock-music');
+    const quietBtn = document.getElementById('dock-quiet');
+
+    if (!themeBtn || !themePopup || !effectsBtn || !effectsPopup || !musicBtn || !quietBtn) return;
+
+    const fireToggle = document.getElementById('toggle-fire');
+    const sakuraToggle = document.getElementById('toggle-sakura');
+    const reiatsuToggle = document.getElementById('toggle-reiatsu');
+    const bloodmoonToggle = document.getElementById('toggle-bloodmoon');
+    const charsToggle = document.getElementById('toggle-chars');
+    const effectsNote = document.getElementById('dock-effects-note');
+    const emptyMsg = document.getElementById('dock-effects-empty');
+    const motionQuery = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+
+    let quietActive = localStorage.getItem('quiet_mode') === 'true';
+    let charactersEnabled = localStorage.getItem('character_popups') !== 'false';
+
+    const getActiveTheme = () => document.documentElement.getAttribute('data-zanpakuto') || 'default';
+
+    // ---------- Popup plumbing ----------
+    function setPopupOpen(popup, btn, open) {
+        popup.classList.toggle('open', open);
+        popup.setAttribute('aria-hidden', String(!open));
+        btn.setAttribute('aria-expanded', String(open));
+        // `inert` removes closed popup controls from the tab order
+        if ('inert' in popup) popup.inert = !open;
+    }
+
+    function closePopups(restoreFocusTo) {
+        setPopupOpen(themePopup, themeBtn, false);
+        setPopupOpen(effectsPopup, effectsBtn, false);
+        if (restoreFocusTo) restoreFocusTo.focus();
+    }
+
+    function openPopup(popup, btn) {
+        const isOpen = popup.classList.contains('open');
+        closePopups();
+        if (isOpen) return;
+        setPopupOpen(popup, btn, true);
+        const first = popup.querySelector('.active-theme') ||
+            popup.querySelector('button:not([disabled]), input:not([disabled])');
+        if (first) first.focus({ preventScroll: true });
+    }
+
+    themeBtn.addEventListener('click', () => {
+        updateDockThemeHighlight();
+        openPopup(themePopup, themeBtn);
+    });
+
+    effectsBtn.addEventListener('click', () => {
+        updateEffectsPanel();
+        openPopup(effectsPopup, effectsBtn);
+    });
+
+    document.addEventListener('click', (e) => {
+        if (dock.contains(e.target)) return;
+        if (themePopup.classList.contains('open') || effectsPopup.classList.contains('open')) {
+            closePopups();
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape') return;
+        if (!themePopup.classList.contains('open') && !effectsPopup.classList.contains('open')) return;
+        const trigger = themePopup.classList.contains('open') ? themeBtn : effectsBtn;
+        closePopups(trigger);
+    });
+
+    // Arrow-key navigation inside the theme list
+    themePopup.addEventListener('keydown', (e) => {
+        if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+        const items = Array.from(themePopup.querySelectorAll('.dock-theme-item'));
+        const index = items.indexOf(document.activeElement);
+        if (index === -1) return;
+        e.preventDefault();
+        const next = e.key === 'ArrowDown'
+            ? (index + 1) % items.length
+            : (index - 1 + items.length) % items.length;
+        items[next].focus();
+    });
+
+    // ---------- Themes (reuse the existing theme engine) ----------
+    themePopup.querySelectorAll('.dock-theme-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const theme = item.dataset.dockTheme;
+            if (theme === 'default') {
+                resetZanpakutoTheme(true);
+            } else {
+                applyZanpakutoTheme(theme, true);
+            }
+            updateDockThemeHighlight();
+            closePopups(themeBtn);
+        });
+    });
+
+    function updateDockThemeHighlight() {
+        const active = getActiveTheme();
+        themePopup.querySelectorAll('.dock-theme-item').forEach(item => {
+            const isActive = item.dataset.dockTheme === active;
+            item.classList.toggle('active-theme', isActive);
+            if (isActive) {
+                item.setAttribute('aria-current', 'true');
+            } else {
+                item.removeAttribute('aria-current');
+            }
+        });
+        updateEffectsPanel();
+    }
+
+    // ---------- Effects ----------
+    function setRowVisible(row, visible) {
+        if (row) row.hidden = !visible;
+    }
+
+    function updateEffectsPanel() {
+        const active = getActiveTheme();
+        const hasFire = active === 'nozarashi';
+        const hasSakura = active === 'senbonzakura';
+        const hasTensa = active === 'tensa-zangetsu';
+        const locked = quietActive || prefersReducedMotion();
+
+        setRowVisible(document.getElementById('effect-row-fire'), hasFire);
+        setRowVisible(document.getElementById('effect-row-sakura'), hasSakura);
+        setRowVisible(document.getElementById('effect-row-reiatsu'), hasTensa);
+        setRowVisible(document.getElementById('effect-row-bloodmoon'), hasTensa);
+        setRowVisible(document.getElementById('effect-row-chars'), true);
+
+        if (emptyMsg) emptyMsg.hidden = hasFire || hasSakura || hasTensa;
+
+        if (fireToggle) {
+            fireToggle.checked = nozarashiEffectEnabled;
+            fireToggle.disabled = !hasFire || locked;
+        }
+        if (sakuraToggle) {
+            sakuraToggle.checked = sakuraEffectEnabled;
+            sakuraToggle.disabled = !hasSakura || locked;
+        }
+        if (reiatsuToggle) {
+            reiatsuToggle.checked = reiatsuEffectEnabled;
+            reiatsuToggle.disabled = !hasTensa || locked;
+        }
+        if (bloodmoonToggle) {
+            bloodmoonToggle.checked = document.documentElement.getAttribute('data-blood-moon') === 'true';
+            bloodmoonToggle.disabled = !hasTensa || locked;
+        }
+        if (charsToggle) {
+            charsToggle.checked = charactersEnabled;
+            charsToggle.disabled = locked;
+        }
+
+        if (effectsNote) {
+            let note = '';
+            if (prefersReducedMotion()) {
+                note = 'Reduced motion is enabled in your system settings — decorative effects are paused.';
+            } else if (quietActive) {
+                note = 'Quiet mode is on — decorative effects are paused.';
+            }
+            effectsNote.textContent = note;
+            effectsNote.hidden = !note;
+        }
+    }
+
+    if (fireToggle) {
+        fireToggle.addEventListener('change', () => {
+            nozarashiEffectEnabled = fireToggle.checked;
+            localStorage.setItem('effect_nozarashi', String(nozarashiEffectEnabled));
+            if (nozarashiEffectEnabled) {
+                startNozarashiFlames();
+            } else {
+                stopNozarashiFlames();
+            }
+            updateEffectsPanel();
+        });
+    }
+
+    if (sakuraToggle) {
+        sakuraToggle.addEventListener('change', () => {
+            sakuraEffectEnabled = sakuraToggle.checked;
+            localStorage.setItem('effect_sakura', String(sakuraEffectEnabled));
+            if (sakuraEffectEnabled) {
+                startSakuraPetals();
+            } else {
+                stopSakuraPetals();
+            }
+            updateEffectsPanel();
+        });
+    }
+
+    if (reiatsuToggle) {
+        reiatsuToggle.addEventListener('change', () => {
+            reiatsuEffectEnabled = reiatsuToggle.checked;
+            localStorage.setItem('effect_reiatsu', String(reiatsuEffectEnabled));
+            if (reiatsuEffectEnabled) {
+                startReiatsuEmbers();
+            } else {
+                stopReiatsuEmbers();
+            }
+            updateEffectsPanel();
+        });
+    }
+
+    if (bloodmoonToggle) {
+        bloodmoonToggle.addEventListener('change', () => {
+            if (getActiveTheme() !== 'tensa-zangetsu') return;
+            const moon = document.getElementById('tensa-moon');
+            if (moon) moon.click();
+            updateEffectsPanel();
+        });
+    }
+
+    // ---------- Character pop-ups ----------
+    function applyCharactersEnabled(enabled, persist = true) {
+        charactersEnabled = enabled;
+        if (persist) localStorage.setItem('character_popups', String(enabled));
+        document.body.classList.toggle('characters-off', !enabled);
+        if (window.__bleachCharacters) {
+            window.__bleachCharacters.setEnabled(enabled && !quietActive && !prefersReducedMotion());
+        }
+        if (charsToggle) charsToggle.checked = enabled;
+    }
+
+    if (charsToggle) {
+        charsToggle.addEventListener('change', () => {
+            applyCharactersEnabled(charsToggle.checked);
+            updateEffectsPanel();
+        });
+    }
+
+    // ---------- Music pop-up (existing Now Playing widget) ----------
+    function syncMusicButton() {
+        const np = window.__nowPlayingWidget;
+        const open = !!(np && typeof np.isOpen === 'function' && np.isOpen());
+        musicBtn.classList.toggle('dock-active', open);
+        musicBtn.setAttribute('aria-pressed', String(open));
+    }
+
+    musicBtn.addEventListener('click', () => {
+        const np = window.__nowPlayingWidget;
+        if (!np || typeof np.showDetails !== 'function') {
+            showToast('Music pop-up is still loading…', 'info');
+            return;
+        }
+        // Keep the transient music toast from covering an open dock popover
+        closePopups();
+        if (typeof np.isOpen === 'function' && np.isOpen()) {
+            np.hide();
+        } else {
+            np.showDetails();
+        }
+        syncMusicButton();
+    });
+
+    document.addEventListener('sledge:nowplaying', syncMusicButton);
+
+    // ---------- Quiet mode ----------
+    function applyQuietMode(active, persist = true) {
+        quietActive = active;
+        document.body.classList.toggle('quiet-mode', active);
+        quietBtn.classList.toggle('dock-active', active);
+        quietBtn.setAttribute('aria-pressed', String(active));
+        const icon = quietBtn.querySelector('i');
+        if (icon) icon.className = active ? 'fas fa-eye' : 'fas fa-eye-slash';
+        quietBtn.title = active
+            ? 'Quiet mode is on — click to restore decorative effects'
+            : 'Quiet mode: hide decorative pop-ups and effects';
+        if (persist) localStorage.setItem('quiet_mode', String(active));
+
+        if (window.__bleachCharacters) {
+            window.__bleachCharacters.setEnabled(charactersEnabled && !active && !prefersReducedMotion());
+        }
+
+        if (active) {
+            stopSakuraPetals();
+            stopReiatsuEmbers();
+            stopNozarashiFlames();
+        } else {
+            syncThemeEffects(getActiveTheme());
+        }
+        updateEffectsPanel();
+    }
+
+    quietBtn.addEventListener('click', () => applyQuietMode(!quietActive));
+
+    // ---------- Reduced-motion changes at runtime ----------
+    if (motionQuery) {
+        const onMotionChange = () => {
+            if (prefersReducedMotion()) {
+                stopSakuraPetals();
+                stopReiatsuEmbers();
+                stopNozarashiFlames();
+                if (window.__bleachCharacters) window.__bleachCharacters.setEnabled(false);
+            } else if (!quietActive) {
+                syncThemeEffects(getActiveTheme());
+                if (window.__bleachCharacters) window.__bleachCharacters.setEnabled(charactersEnabled);
+            }
+            updateEffectsPanel();
+        };
+        if (typeof motionQuery.addEventListener === 'function') {
+            motionQuery.addEventListener('change', onMotionChange);
+        } else if (typeof motionQuery.addListener === 'function') {
+            motionQuery.addListener(onMotionChange);
+        }
+    }
+
+    // Keep the dock in sync when the theme changes anywhere
+    const observer = new MutationObserver(() => updateDockThemeHighlight());
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['data-zanpakuto', 'data-blood-moon']
+    });
+
+    // Initial state
+    applyCharactersEnabled(charactersEnabled, false);
+    applyQuietMode(quietActive, false);
+    updateDockThemeHighlight();
+    syncMusicButton();
+    setTimeout(syncMusicButton, 600); // widget builds on DOMContentLoaded
+}
+
+// ===== TENSA ZANGETSU BLOOD MOON =====
+function initTensaMoon() {
+    const moon = document.getElementById('tensa-moon');
+    const slashOverlay = document.getElementById('tensa-slash-overlay');
+    if (!moon) return;
+
+    let bloodMoonActive = false;
+
+    function triggerSlashEffect() {
+        if (!slashOverlay) return;
+        slashOverlay.innerHTML = '';
+        slashOverlay.classList.add('active');
+        const count = 3 + Math.floor(Math.random() * 2);
+        for (let i = 0; i < count; i++) {
+            const line = document.createElement('div');
+            line.className = 'tensa-slash-line';
+            line.style.left = (10 + i * 22) + '%';
+            line.style.animationDelay = (i * 0.07) + 's';
+            slashOverlay.appendChild(line);
+        }
+        setTimeout(() => {
+            slashOverlay.classList.remove('active');
+            slashOverlay.innerHTML = '';
+        }, 700);
+    }
+
+    function activateBloodMoon() {
+        bloodMoonActive = true;
+        document.documentElement.setAttribute('data-blood-moon', 'true');
+        moon.setAttribute('title', 'Tensō Zangetsu — Blood Moon Active! Click to seal.');
+        moon.setAttribute('aria-label', 'Blood Moon active — click to deactivate');
+        const bloodmoonToggle = document.getElementById('toggle-bloodmoon');
+        if (bloodmoonToggle) bloodmoonToggle.checked = true;
+        triggerSlashEffect();
+        // Re-ignite reiatsu embers into fierce crimson flames
+        if (reiatsuAnimationId) {
+            startReiatsuEmbers();
+        }
+        showToast('⚔️ BANKAI… Tensa Zangetsu! Blood Moon Awakened!', 'success');
+    }
+
+    function deactivateBloodMoon() {
+        bloodMoonActive = false;
+        document.documentElement.removeAttribute('data-blood-moon');
+        moon.setAttribute('title', 'Tensō Zangetsu — Click to awaken Blood Moon');
+        moon.setAttribute('aria-label', 'Tensa Zangetsu Moon — click to activate Blood Moon');
+        const bloodmoonToggle = document.getElementById('toggle-bloodmoon');
+        if (bloodmoonToggle) bloodmoonToggle.checked = false;
+        if (reiatsuAnimationId) {
+            startReiatsuEmbers();
+        }
+        showToast('Blood Moon sealed. 月牙天衝…', 'info');
+    }
+
+    function onMoonClick() {
+        const activeTheme = document.documentElement.getAttribute('data-zanpakuto');
+        if (activeTheme !== 'tensa-zangetsu') return;
+        if (bloodMoonActive) {
+            deactivateBloodMoon();
+        } else {
+            activateBloodMoon();
+        }
+    }
+
+    moon.addEventListener('click', onMoonClick);
+    moon.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onMoonClick();
+        }
+    });
+
+    // Reset blood moon when switching away from tensa theme
+    const observer = new MutationObserver(() => {
+        const activeTheme = document.documentElement.getAttribute('data-zanpakuto');
+        if (activeTheme !== 'tensa-zangetsu' && bloodMoonActive) {
+            bloodMoonActive = false;
+            document.documentElement.removeAttribute('data-blood-moon');
+            const bloodmoonToggle = document.getElementById('toggle-bloodmoon');
+            if (bloodmoonToggle) bloodmoonToggle.checked = false;
+        }
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-zanpakuto'] });
+}

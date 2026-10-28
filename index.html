@@ -161,8 +161,8 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="styles.css?v=7">
-    <link rel="stylesheet" href="now-playing-widget.css?v=2">
+    <link rel="stylesheet" href="styles.css?v=12">
+    <link rel="stylesheet" href="now-playing-widget.css?v=4">
 </head>
 
 <body>
@@ -902,143 +902,147 @@
         </div>
     </div>
 
-    <!-- ===== ZANPAKUTO THEMES EASTER EGG (RIGHT SIDEBAR) ===== -->
-    <!-- Floating Edge Trigger -->
-    <button class="zanpakuto-floating-btn" id="zanpakuto-floating-btn" title="Awaken Zanpakuto Themes" aria-label="Zanpakuto Themes">
-        <span class="sword-badge-icon">⚔️</span>
-        <span class="zanpakuto-btn-text">ZANPAKUTO</span>
-    </button>
-
-    <!-- Slide-out Sidebar Overlay & Drawer -->
-    <div class="zanpakuto-backdrop hidden" id="zanpakuto-backdrop"></div>
-    <aside class="zanpakuto-drawer" id="zanpakuto-drawer">
-        <div class="zanpakuto-drawer-header">
-            <div class="drawer-header-left">
-                <div class="zanpakuto-flame-icon"><i class="fas fa-khanda"></i></div>
-                <div>
-                    <h3>Zanpakuto Archives</h3>
-                    <span class="drawer-subtitle">Bleach Spiritual Energy Themes</span>
-                </div>
-            </div>
-            <button class="btn btn-ghost btn-sm" id="zanpakuto-close-btn" aria-label="Close Zanpakuto Drawer">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-
-        <div class="zanpakuto-drawer-body">
-            <p class="zanpakuto-intro">Select an awakened Zanpakuto release to infuse the website with its spiritual pressure. Works across both Light and Dark modes!</p>
-
-            <div class="zanpakuto-card-list">
-                <!-- 1. Getsuga Tensho -->
-                <button class="zanpakuto-card" data-zanpakuto="getsuga-tensho" id="card-getsuga">
-                    <div class="zan-icon-box zan-getsuga">
-                        <svg viewBox="0 0 64 64" class="zan-svg" fill="currentColor">
-                            <!-- Ichigo Zangetsu Cleaver Slash & Crescent Moon -->
-                            <path d="M10 54 L32 10 L44 14 L24 54 Z" opacity="0.9"/>
-                            <path d="M26 8 Q56 20 48 52 Q36 34 26 8 Z" fill="none" stroke="currentColor" stroke-width="3"/>
-                            <circle cx="20" cy="48" r="3"/>
-                        </svg>
-                    </div>
-                    <div class="zan-card-info">
-                        <div class="zan-name-row">
-                            <span class="zan-name">Getsuga Tensho</span>
-                            <span class="zan-kanji">月牙天衝</span>
-                        </div>
-                        <span class="zan-wielder">Ichigo Kurosaki</span>
-                        <span class="zan-desc">Monochrome Black & White spirit slash</span>
-                    </div>
-                    <div class="zan-palette-preview palette-getsuga">
-                        <span class="dot dot-black"></span>
-                        <span class="dot dot-white"></span>
-                    </div>
-                </button>
-
-                <!-- 2. Nozarashi -->
-                <button class="zanpakuto-card" data-zanpakuto="nozarashi" id="card-nozarashi">
-                    <div class="zan-icon-box zan-nozarashi">
-                        <svg viewBox="0 0 64 64" class="zan-svg" fill="currentColor">
-                            <!-- Zaraki Kenpachi Savage Axe/Cleaver & Battle Notches -->
-                            <path d="M12 50 L34 12 L50 18 L36 30 L44 38 L24 54 Z"/>
-                            <line x1="20" y1="36" x2="28" y2="32" stroke="#111" stroke-width="2.5" stroke-linecap="round"/>
-                            <line x1="24" y1="44" x2="32" y2="40" stroke="#111" stroke-width="2.5" stroke-linecap="round"/>
-                        </svg>
-                    </div>
-                    <div class="zan-card-info">
-                        <div class="zan-name-row">
-                            <span class="zan-name">Nozarashi</span>
-                            <span class="zan-kanji">野晒</span>
-                        </div>
-                        <span class="zan-wielder">Zaraki Kenpachi</span>
-                        <span class="zan-desc">Fierce Yellow & Black berserker energy</span>
-                    </div>
-                    <div class="zan-palette-preview palette-nozarashi">
-                        <span class="dot dot-yellow"></span>
-                        <span class="dot dot-dark"></span>
-                    </div>
-                </button>
-
-                <!-- 3. Senbonzakura -->
-                <button class="zanpakuto-card" data-zanpakuto="senbonzakura" id="card-senbonzakura">
-                    <div class="zan-icon-box zan-senbonzakura">
-                        <svg viewBox="0 0 64 64" class="zan-svg" fill="currentColor">
-                            <!-- Four-petal Cherry Blossom Crossguard & Petals -->
-                            <circle cx="32" cy="32" r="5"/>
-                            <path d="M32 12 C28 20 28 24 32 24 C36 24 36 20 32 12 Z"/>
-                            <path d="M32 52 C28 44 28 40 32 40 C36 40 36 44 32 52 Z"/>
-                            <path d="M12 32 C20 28 24 28 24 32 C24 36 20 36 12 32 Z"/>
-                            <path d="M52 32 C44 28 40 28 40 32 C40 36 44 36 52 32 Z"/>
-                        </svg>
-                    </div>
-                    <div class="zan-card-info">
-                        <div class="zan-name-row">
-                            <span class="zan-name">Senbonzakura</span>
-                            <span class="zan-kanji">千本桜</span>
-                        </div>
-                        <span class="zan-wielder">Byakuya Kuchiki</span>
-                        <span class="zan-desc">Pink Sakura theme + Falling Petal effect</span>
-                    </div>
-                    <div class="zan-palette-preview palette-senbonzakura">
-                        <span class="dot dot-pink"></span>
-                        <span class="dot dot-sakura"></span>
-                    </div>
-                </button>
-
-                <!-- 4. Kyoka Suigetsu -->
-                <button class="zanpakuto-card" data-zanpakuto="kyoka-suigetsu" id="card-kyoka">
-                    <div class="zan-icon-box zan-kyoka">
-                        <svg viewBox="0 0 64 64" class="zan-svg" fill="currentColor">
-                            <!-- Hexagonal Mirror & Hypnotic Eye Illusion -->
-                            <polygon points="32,10 50,20 50,44 32,54 14,44 14,20" fill="none" stroke="currentColor" stroke-width="3"/>
-                            <circle cx="32" cy="32" r="7"/>
-                            <circle cx="32" cy="32" r="3" fill="#ffffff"/>
-                            <line x1="14" y1="20" x2="50" y2="44" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3,3"/>
-                        </svg>
-                    </div>
-                    <div class="zan-card-info">
-                        <div class="zan-name-row">
-                            <span class="zan-name">Kyoka Suigetsu</span>
-                            <span class="zan-kanji">鏡花水月</span>
-                        </div>
-                        <span class="zan-wielder">Sosuke Aizen</span>
-                        <span class="zan-desc">Hypnotic Purple & Black Complete Illusion</span>
-                    </div>
-                    <div class="zan-palette-preview palette-kyoka">
-                        <span class="dot dot-purple"></span>
-                        <span class="dot dot-black"></span>
-                    </div>
-                </button>
-            </div>
-
-            <div class="zanpakuto-actions">
-                <button class="btn btn-outline btn-block" id="zanpakuto-reset-btn">
-                    <i class="fas fa-undo"></i> Reset to Default Theme
-                </button>
-            </div>
-        </div>
-    </aside>
 
     <!-- Canvas for Senbonzakura Falling Sakura Petals & Leaves -->
     <canvas id="sakura-canvas" class="sakura-canvas hidden"></canvas>
+
+    <!-- ===== TENSA ZANGETSU MOON ===== -->
+    <div id="tensa-moon" role="button" tabindex="0" aria-label="Tensa Zangetsu Moon — click to activate Blood Moon" title="Tensō Zangetsu — Click to awaken Blood Moon">
+        <div class="moon-crescent"></div>
+    </div>
+    <div id="tensa-slash-overlay" aria-hidden="true"></div>
+
+    <!-- ===== FLOATING DOCK ===== -->
+    <nav id="sledge-dock" aria-label="Quick controls dock">
+        <!-- Theme popup (anchored to dock) -->
+        <div id="dock-theme-popup" role="dialog" aria-label="Choose theme" aria-hidden="true" inert>
+            <h4><i class="fas fa-palette"></i>Choose Theme</h4>
+            <div class="dock-theme-list" role="group" aria-label="Available themes">
+                <button class="dock-theme-item" type="button" data-dock-theme="default" id="dock-t-default">
+                    <span class="dock-theme-swatch swatch-default" aria-hidden="true"></span>
+                    <span>Sledge Default</span>
+                    <i class="fas fa-check dock-check" aria-hidden="true"></i>
+                </button>
+                <button class="dock-theme-item" type="button" data-dock-theme="getsuga-tensho" id="dock-t-getsuga">
+                    <span class="dock-theme-swatch swatch-getsuga" aria-hidden="true"></span>
+                    <span>Getsuga Tensho</span>
+                    <i class="fas fa-check dock-check" aria-hidden="true"></i>
+                </button>
+                <button class="dock-theme-item" type="button" data-dock-theme="nozarashi" id="dock-t-nozarashi">
+                    <span class="dock-theme-swatch swatch-nozarashi" aria-hidden="true"></span>
+                    <span>Nozarashi</span>
+                    <i class="fas fa-check dock-check" aria-hidden="true"></i>
+                </button>
+                <button class="dock-theme-item" type="button" data-dock-theme="senbonzakura" id="dock-t-senbonzakura">
+                    <span class="dock-theme-swatch swatch-senbonzakura" aria-hidden="true"></span>
+                    <span>Senbonzakura</span>
+                    <i class="fas fa-check dock-check" aria-hidden="true"></i>
+                </button>
+                <button class="dock-theme-item" type="button" data-dock-theme="kyoka-suigetsu" id="dock-t-kyoka">
+                    <span class="dock-theme-swatch swatch-kyoka" aria-hidden="true"></span>
+                    <span>Kyoka Suigetsu</span>
+                    <i class="fas fa-check dock-check" aria-hidden="true"></i>
+                </button>
+                <button class="dock-theme-item" type="button" data-dock-theme="tensa-zangetsu" id="dock-t-tensa">
+                    <span class="dock-theme-swatch swatch-tensa" aria-hidden="true"></span>
+                    <span>Tensa Zangetsu</span>
+                    <i class="fas fa-check dock-check" aria-hidden="true"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Effects popup (anchored to dock) -->
+        <div id="dock-effects-popup" role="dialog" aria-label="Visual effects" aria-hidden="true" inert>
+            <h4><i class="fas fa-sparkles"></i>Visual Effects</h4>
+            <div id="dock-effects-list">
+                <!-- Note is populated by JS (quiet mode / reduced motion) -->
+                <div class="dock-effects-note" id="dock-effects-note" hidden></div>
+                <!-- Nozarashi flames row - shown only when nozarashi is active -->
+                <div class="dock-effect-row" id="effect-row-fire" hidden>
+                    <label class="dock-effect-label" for="toggle-fire">
+                        <i class="fas fa-fire"></i> Nozarashi Flames
+                    </label>
+                    <label class="dock-toggle">
+                        <input type="checkbox" id="toggle-fire" checked>
+                        <span class="dock-toggle-slider"></span>
+                    </label>
+                </div>
+                <!-- Sakura petals row - shown only when senbonzakura is active -->
+                <div class="dock-effect-row" id="effect-row-sakura" hidden>
+                    <label class="dock-effect-label" for="toggle-sakura">
+                        <i class="fas fa-fan"></i> Sakura Petals
+                    </label>
+                    <label class="dock-toggle">
+                        <input type="checkbox" id="toggle-sakura" checked>
+                        <span class="dock-toggle-slider"></span>
+                    </label>
+                </div>
+                <!-- Bankai Reiatsu Embers row — shown only when tensa-zangetsu is active -->
+                <div class="dock-effect-row" id="effect-row-reiatsu" hidden>
+                    <label class="dock-effect-label" for="toggle-reiatsu">
+                        <i class="fas fa-fire"></i> Reiatsu Embers
+                    </label>
+                    <label class="dock-toggle">
+                        <input type="checkbox" id="toggle-reiatsu" checked>
+                        <span class="dock-toggle-slider"></span>
+                    </label>
+                </div>
+                <!-- Blood Moon toggle row — shown only when tensa-zangetsu is active -->
+                <div class="dock-effect-row" id="effect-row-bloodmoon" hidden>
+                    <label class="dock-effect-label" for="toggle-bloodmoon">
+                        <i class="fas fa-moon"></i> Blood Moon Mode
+                    </label>
+                    <label class="dock-toggle">
+                        <input type="checkbox" id="toggle-bloodmoon">
+                        <span class="dock-toggle-slider"></span>
+                    </label>
+                </div>
+                <!-- Character pop-ups row -->
+                <div class="dock-effect-row" id="effect-row-chars">
+                    <label class="dock-effect-label" for="toggle-chars">
+                        <i class="fas fa-ghost"></i> Character Pop-ups
+                    </label>
+                    <label class="dock-toggle">
+                        <input type="checkbox" id="toggle-chars" checked>
+                        <span class="dock-toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="dock-effects-empty" id="dock-effects-empty" hidden>No theme-specific effects for this theme.</div>
+            </div>
+        </div>
+
+        <!-- Dock buttons -->
+        <button class="dock-btn" type="button" id="dock-themes" aria-label="Change theme" aria-haspopup="dialog"
+            aria-controls="dock-theme-popup" aria-expanded="false" title="Change theme">
+            <i class="fas fa-palette" aria-hidden="true"></i>
+            <span class="dock-label">Themes</span>
+        </button>
+
+        <div class="dock-sep" role="separator" aria-hidden="true"></div>
+
+        <button class="dock-btn" type="button" id="dock-effects" aria-label="Visual effects" aria-haspopup="dialog"
+            aria-controls="dock-effects-popup" aria-expanded="false" title="Visual effects">
+            <i class="fas fa-sparkles" aria-hidden="true"></i>
+            <span class="dock-label">Effects</span>
+        </button>
+
+        <div class="dock-sep" role="separator" aria-hidden="true"></div>
+
+        <button class="dock-btn" type="button" id="dock-music" aria-label="Show or hide music pop-up"
+            aria-haspopup="dialog" aria-controls="now-playing-widget" aria-pressed="false" title="Show or hide music pop-up">
+            <i class="fas fa-music" aria-hidden="true"></i>
+            <span class="dock-label">Music</span>
+        </button>
+
+        <div class="dock-sep" role="separator" aria-hidden="true"></div>
+
+        <button class="dock-btn" type="button" id="dock-quiet"
+            aria-label="Quiet mode: hide decorative pop-ups and effects" aria-pressed="false"
+            title="Quiet mode: hide decorative pop-ups and effects">
+            <i class="fas fa-eye-slash" aria-hidden="true"></i>
+            <span class="dock-label">Quiet</span>
+        </button>
+    </nav>
 
     <!-- ===== LOADING OVERLAY ===== -->
     <div class="loading-overlay hidden" id="loading-overlay">
@@ -1096,10 +1100,10 @@
 
     <!-- App Scripts -->
     <script src="firebase-config.js?v=6"></script>
-    <script src="app.js?v=6"></script>
+    <script src="app.js?v=12"></script>
 
     <!-- ===== NOW PLAYING WIDGET ===== -->
-    <script src="now-playing-widget.js?v=2"></script>
+    <script src="now-playing-widget.js?v=4"></script>
 
     <!-- ===== BLEACH EASTER EGG ===== -->
     <script>
@@ -1151,6 +1155,13 @@
     var isAnimating = false;
     var container = null;
 
+    // Respect the dock's character toggle, quiet mode and reduced-motion setting
+    var prefersReducedMotion = window.matchMedia &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var enabled = !prefersReducedMotion &&
+        !document.body.classList.contains('quiet-mode') &&
+        localStorage.getItem('character_popups') !== 'false';
+
     function getSize() {
         return window.innerWidth <= 600 ? CONFIG.charSizeMobile : CONFIG.charSize;
     }
@@ -1179,6 +1190,7 @@
     }
 
     function showCharacter() {
+        if (!enabled) return;
         if (isAnimating) return;
         isAnimating = true;
 
@@ -1247,8 +1259,23 @@
     }
 
     window.triggerBleachEasterEgg = function() {
+        if (!enabled) return;
         isAnimating = false;
         showCharacter();
+    };
+
+    // Small public API so the floating dock can pause/resume decorative pop-ups
+    window.__bleachCharacters = {
+        setEnabled: function(value) {
+            enabled = !!value;
+            if (!enabled && container) {
+                container.innerHTML = '';
+                isAnimating = false;
+            }
+        },
+        isEnabled: function() {
+            return enabled;
+        }
     };
 
     function init() {

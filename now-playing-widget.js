@@ -150,6 +150,7 @@
                 // Single click: toggle expanded sleeve
                 _card.classList.toggle('np-expanded');
                 _card.classList.remove('np-auto-peek');
+                emitVisibility();
             }
             _lastClickTime = now;
         });
@@ -158,6 +159,7 @@
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 _card.classList.toggle('np-expanded');
+                emitVisibility();
             }
         });
 
@@ -256,14 +258,30 @@
         document.body.appendChild(_widget);
     }
 
+    // ── Visibility events (used by the floating dock) ──
+    function emitVisibility() {
+        if (!_widget || !_card) return;
+        document.dispatchEvent(new CustomEvent('sledge:nowplaying', {
+            detail: {
+                visible: !_widget.classList.contains('np-hidden'),
+                expanded: _card.classList.contains('np-expanded')
+            }
+        }));
+    }
+
     // ── Show / Hide ───────────────────────────────────
     function show() {
         if (_dismissedByUser) return;
         _widget.classList.remove('np-hidden');
+        emitVisibility();
     }
 
     function hide() {
+        // A user-initiated hide stays hidden until the dock explicitly shows it
+        _dismissedByUser = true;
+        _card.classList.remove('np-expanded', 'np-auto-peek');
         _widget.classList.add('np-hidden');
+        emitVisibility();
     }
 
     // ── Auto Peek on New Track ────────────────────────
@@ -440,6 +458,17 @@
         render: (data) => render(data),
         show: () => { _dismissedByUser = false; show(); },
         hide: () => hide(),
+        isOpen: () => !!(_widget && _card &&
+            !_widget.classList.contains('np-hidden') &&
+            _card.classList.contains('np-expanded')),
+        showDetails: () => {
+            if (!_widget || !_card) return;
+            _dismissedByUser = false;
+            _widget.classList.remove('np-hidden');
+            _card.classList.add('np-expanded');
+            _card.classList.remove('np-auto-peek');
+            emitVisibility();
+        },
         demo: (override) => {
             _dismissedByUser = false;
             render(Object.assign({
