@@ -1677,28 +1677,9 @@ function promptBleachGate(onSuccess) {
     modal.classList.remove('hidden');
 }
 
-// ===== ZANPAKUTO THEMES & SAKURA EFFECT =====
-let sakuraAnimationId = null;
-let sakuraResizeHandler = null;
-let reiatsuResizeHandler = null;
-let fireAnimationId = null;
-let fireResizeHandler = null;
-
-// Persisted effect preferences (shared with the floating dock)
-let sakuraEffectEnabled = localStorage.getItem('effect_sakura') !== 'false';
-let reiatsuEffectEnabled = localStorage.getItem('effect_reiatsu') !== 'false';
-let nozarashiEffectEnabled = localStorage.getItem('effect_nozarashi') !== 'false';
-
-function prefersReducedMotion() {
-    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-}
-
-function areDecorativeEffectsAllowed() {
-    return !prefersReducedMotion() && !document.body.classList.contains('quiet-mode');
-}
-
+// ===== ZANPAKUTO THEMES =====
 function initZanpakutoThemes() {
-    // The theme picker now lives in the floating dock; just restore the saved theme.
+    // The theme picker lives in the floating dock; just restore the saved theme.
     const savedTheme = localStorage.getItem('zanpakuto_theme');
     if (savedTheme) {
         applyZanpakutoTheme(savedTheme, false);
@@ -1706,14 +1687,10 @@ function initZanpakutoThemes() {
 }
 
 // Restore the default (non-Zanpakuto) theme.
-// Shared by the floating dock's theme list.
 function resetZanpakutoTheme(showNotification = true) {
     document.documentElement.removeAttribute('data-zanpakuto');
     document.documentElement.removeAttribute('data-blood-moon');
     localStorage.removeItem('zanpakuto_theme');
-    stopSakuraPetals();
-    stopReiatsuEmbers();
-    stopNozarashiFlames();
     if (showNotification) {
         showToast('Zanpakuto spiritual pressure sealed (Default Theme).', 'info');
     }
@@ -1731,9 +1708,8 @@ function applyZanpakutoTheme(themeName, showNotification = true) {
         document.documentElement.removeAttribute('data-blood-moon');
     }
 
-    // Particle effect handling follows the user's effect preferences
-    syncThemeEffects(themeName);
-
+    // Picking a theme here also awakens its signature effect, via
+    // applyThemeSignatureEffect() in the dock's theme click handler.
     if (showNotification) {
         const themeTitles = {
             'getsuga-tensho': 'Getsuga Tensho (月牙天衝) — Black & White Theme',
@@ -1746,384 +1722,606 @@ function applyZanpakutoTheme(themeName, showNotification = true) {
     }
 }
 
-// Start/stop the decorative particle system that belongs to the active theme.
-// Shared by theme switching, quiet mode and reduced-motion changes.
-function syncThemeEffects(themeName) {
-    if (themeName === 'senbonzakura') {
-        stopReiatsuEmbers();
-        stopNozarashiFlames();
-        if (sakuraEffectEnabled) {
-            startSakuraPetals();
-        } else {
-            stopSakuraPetals();
-        }
-    } else if (themeName === 'tensa-zangetsu') {
-        stopSakuraPetals();
-        stopNozarashiFlames();
-        if (reiatsuEffectEnabled) {
-            startReiatsuEmbers();
-        } else {
-            stopReiatsuEmbers();
-        }
-    } else if (themeName === 'nozarashi') {
-        stopSakuraPetals();
-        stopReiatsuEmbers();
-        if (nozarashiEffectEnabled) {
-            startNozarashiFlames();
-        } else {
-            stopNozarashiFlames();
-        }
-    } else {
-        stopSakuraPetals();
-        stopReiatsuEmbers();
-        stopNozarashiFlames();
-    }
+// Signature visual effect awarded to each Zanpakuto. Clicking a theme in the
+// dock awakens its effect; the user can turn it off later from the dock.
+// Page loads never re-enable it, so an explicit "off" stays off until the
+// theme is picked again.
+const THEME_SIGNATURE_EFFECTS = {
+    'default': null,
+    'getsuga-tensho': 'gold',
+    'nozarashi': 'nozarashi',
+    'senbonzakura': 'sakura',
+    'kyoka-suigetsu': 'reiatsu',
+    'tensa-zangetsu': 'rain'
+};
+
+function applyThemeSignatureEffect(themeName) {
+    const mode = Object.prototype.hasOwnProperty.call(THEME_SIGNATURE_EFFECTS, themeName)
+        ? THEME_SIGNATURE_EFFECTS[themeName]
+        : null;
+    setParticleMode(mode, true);
 }
 
-// Sakura Falling Petals Canvas System (Senbonzakura Effect)
-function startSakuraPetals() {
-    const canvas = document.getElementById('sakura-canvas');
-    if (!canvas) return;
-    if (sakuraAnimationId) return;
-    if (!areDecorativeEffectsAllowed()) return;
-    canvas.classList.remove('hidden');
+// ===== DECORATIVE EFFECT ENGINE =====
+// One canvas particle loop runs at a time so the page never carries several
+// expensive systems at once. Dropping a mode stops the previous loop first.
+const PARTICLE_MODES = ['rain', 'gold', 'sakura', 'nozarashi', 'reiatsu'];
+const EFFECT_INTENSITIES = ['subtle', 'medium', 'intense'];
+const PARTICLE_COUNTS = {
+    rain: { subtle: 40, medium: 85, intense: 145 },
+    gold: { subtle: 32, medium: 65, intense: 105 },
+    sakura: { subtle: 26, medium: 46, intense: 72 },
+    nozarashi: { subtle: 20, medium: 36, intense: 56 },
+    reiatsu: { subtle: 20, medium: 36, intense: 56 }
+};
 
-    const ctx = canvas.getContext('2d');
-    ctx.globalCompositeOperation = 'source-over';
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
+let particleMode = null;
+let particleRafId = null;
+let particleResizeHandler = null;
+let particleCtx = null;
+let particleWidth = 0;
+let particleHeight = 0;
+let particleList = [];
+let particleLastTime = 0;
 
-    const onResize = () => {
-        width = canvas.width = window.innerWidth;
-        height = canvas.height = window.innerHeight;
-    };
-    sakuraResizeHandler = onResize;
-    window.addEventListener('resize', onResize);
-
-    const petals = [];
-    const petalCount = 42;
-    const colors = [
-        'rgba(244, 114, 182, 0.85)',
-        'rgba(251, 207, 232, 0.9)',
-        'rgba(236, 72, 153, 0.8)',
-        'rgba(219, 39, 119, 0.75)'
-    ];
-
-    for (let i = 0; i < petalCount; i++) {
-        petals.push({
-            x: Math.random() * width,
-            y: Math.random() * height,
-            size: 7 + Math.random() * 9,
-            speedY: 1.1 + Math.random() * 1.8,
-            speedX: -0.8 + Math.random() * 1.6,
-            angle: Math.random() * Math.PI * 2,
-            angularSpeed: (Math.random() - 0.5) * 0.035,
-            oscillation: Math.random() * Math.PI * 2,
-            oscillationSpeed: 0.015 + Math.random() * 0.025,
-            color: colors[Math.floor(Math.random() * colors.length)]
-        });
-    }
-
-    function drawPetal(p) {
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.angle);
-        ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.bezierCurveTo(p.size / 2, -p.size / 2, p.size, -p.size / 4, p.size, 0);
-        ctx.bezierCurveTo(p.size, p.size / 4, p.size / 2, p.size / 2, 0, 0);
-        ctx.fill();
-        ctx.restore();
-    }
-
-    function animate() {
-        ctx.clearRect(0, 0, width, height);
-        for (let i = 0; i < petals.length; i++) {
-            const p = petals[i];
-            p.oscillation += p.oscillationSpeed;
-            p.x += p.speedX + Math.sin(p.oscillation) * 1.2;
-            p.y += p.speedY;
-            p.angle += p.angularSpeed;
-
-            if (p.y > height + 20) {
-                p.y = -20;
-                p.x = Math.random() * width;
-            }
-            if (p.x < -20) p.x = width + 20;
-            if (p.x > width + 20) p.x = -20;
-
-            drawPetal(p);
-        }
-        sakuraAnimationId = requestAnimationFrame(animate);
-    }
-
-    if (sakuraAnimationId) cancelAnimationFrame(sakuraAnimationId);
-    animate();
+function prefersReducedMotion() {
+    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 }
 
-function stopSakuraPetals() {
-    if (sakuraAnimationId) {
-        cancelAnimationFrame(sakuraAnimationId);
-        sakuraAnimationId = null;
-    }
-    if (sakuraResizeHandler) {
-        window.removeEventListener('resize', sakuraResizeHandler);
-        sakuraResizeHandler = null;
-    }
-    const canvas = document.getElementById('sakura-canvas');
-    if (canvas && !reiatsuAnimationId && !fireAnimationId) {
-        canvas.classList.add('hidden');
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
+function effectsMotionPaused() {
+    return prefersReducedMotion() || localStorage.getItem('effects_reduced_motion') === 'true';
 }
 
-// ===== TENSA ZANGETSU BANKAI REIATSU EMBERS =====
-let reiatsuAnimationId = null;
-
-function startReiatsuEmbers() {
-    const canvas = document.getElementById('sakura-canvas');
-    if (!canvas) return;
-    if (reiatsuAnimationId) return;
-    if (!areDecorativeEffectsAllowed()) return;
-    canvas.classList.remove('hidden');
-
-    const ctx = canvas.getContext('2d');
-    ctx.globalCompositeOperation = 'source-over';
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
-
-    const onResize = () => {
-        width = canvas.width = window.innerWidth;
-        height = canvas.height = window.innerHeight;
-    };
-    reiatsuResizeHandler = onResize;
-    window.addEventListener('resize', onResize);
-
-    const embers = [];
-    const emberCount = 38;
-
-    for (let i = 0; i < emberCount; i++) {
-        embers.push({
-            x: Math.random() * width,
-            y: Math.random() * height,
-            size: 2 + Math.random() * 4.5,
-            speedY: -(0.9 + Math.random() * 1.8),
-            speedX: -0.6 + Math.random() * 1.2,
-            opacity: 0.3 + Math.random() * 0.65,
-            pulse: Math.random() * Math.PI * 2,
-            pulseSpeed: 0.03 + Math.random() * 0.04,
-            isBladeShard: Math.random() > 0.75
-        });
-    }
-
-    function animateEmbers() {
-        ctx.clearRect(0, 0, width, height);
-        const isBloodMoon = document.documentElement.getAttribute('data-blood-moon') === 'true';
-
-        for (let i = 0; i < embers.length; i++) {
-            const e = embers[i];
-            e.pulse += e.pulseSpeed;
-            e.y += e.speedY;
-            e.x += e.speedX + Math.sin(e.pulse) * 0.6;
-            const currentAlpha = Math.max(0.15, Math.min(1, e.opacity + Math.sin(e.pulse) * 0.25));
-
-            if (e.y < -20) {
-                e.y = height + 10;
-                e.x = Math.random() * width;
-            }
-            if (e.x < -20) e.x = width + 20;
-            if (e.x > width + 20) e.x = -20;
-
-            ctx.save();
-            ctx.translate(e.x, e.y);
-
-            if (isBloodMoon) {
-                // Intense razor scarlet and crimson embers
-                ctx.fillStyle = e.isBladeShard
-                    ? `rgba(255, 30, 45, ${currentAlpha})`
-                    : `rgba(220, 20, 30, ${currentAlpha * 0.85})`;
-                ctx.shadowColor = '#ff0033';
-                ctx.shadowBlur = 10;
-            } else {
-                // Dual crimson & black spiritual reiatsu embers
-                ctx.fillStyle = e.isBladeShard
-                    ? `rgba(239, 68, 68, ${currentAlpha})`
-                    : `rgba(20, 0, 0, ${currentAlpha * 0.9})`;
-                ctx.shadowColor = '#ef4444';
-                ctx.shadowBlur = 6;
-            }
-
-            if (e.isBladeShard) {
-                // Crescent spirit slash fragment
-                ctx.beginPath();
-                ctx.ellipse(0, 0, e.size * 1.8, e.size * 0.6, -Math.PI / 4, 0, Math.PI * 2);
-                ctx.fill();
-            } else {
-                // Glowing spirit ember
-                ctx.beginPath();
-                ctx.arc(0, 0, e.size, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            ctx.restore();
-        }
-        reiatsuAnimationId = requestAnimationFrame(animateEmbers);
-    }
-
-    if (reiatsuAnimationId) cancelAnimationFrame(reiatsuAnimationId);
-    animateEmbers();
+function areDecorativeEffectsAllowed() {
+    return !effectsMotionPaused() && !document.body.classList.contains('quiet-mode');
 }
 
-function stopReiatsuEmbers() {
-    if (reiatsuAnimationId) {
-        cancelAnimationFrame(reiatsuAnimationId);
-        reiatsuAnimationId = null;
-    }
-    if (reiatsuResizeHandler) {
-        window.removeEventListener('resize', reiatsuResizeHandler);
-        reiatsuResizeHandler = null;
-    }
-    const canvas = document.getElementById('sakura-canvas');
-    if (canvas && !sakuraAnimationId && !fireAnimationId) {
-        canvas.classList.add('hidden');
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
+function getEffectIntensity() {
+    const stored = localStorage.getItem('effect_intensity');
+    return EFFECT_INTENSITIES.includes(stored) ? stored : 'medium';
 }
 
-// ===== NOZARASHI BERSERKER FLAMES =====
-function startNozarashiFlames() {
-    const canvas = document.getElementById('sakura-canvas');
-    if (!canvas) return;
-    if (fireAnimationId) return;
-    if (!areDecorativeEffectsAllowed()) return;
-    canvas.classList.remove('hidden');
+function setEffectIntensity(value, persist = true) {
+    if (!EFFECT_INTENSITIES.includes(value)) return;
+    if (persist) localStorage.setItem('effect_intensity', value);
+    refreshParticleEffect();
+}
 
-    const ctx = canvas.getContext('2d');
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
+function particleCountFor(mode) {
+    const base = PARTICLE_COUNTS[mode][getEffectIntensity()];
+    const mobile = window.innerWidth < 640;
+    return Math.max(10, Math.round(base * (mobile ? 0.68 : 1)));
+}
 
-    const onResize = () => {
-        width = canvas.width = window.innerWidth;
-        height = canvas.height = window.innerHeight;
-    };
-    fireResizeHandler = onResize;
-    window.addEventListener('resize', onResize);
+function randomBetween(min, max) {
+    return min + Math.random() * (max - min);
+}
 
-    const flameCount = 34;
-    const flames = [];
-    const sparks = [];
-
-    function spawnFlame(fresh = false) {
+function spawnParticle(mode, initial) {
+    if (mode === 'rain') {
         return {
-            x: Math.random() * width,
-            y: fresh ? height + 10 + Math.random() * 30 : height - Math.random() * height * 0.55,
-            size: 16 + Math.random() * 30,
-            speedY: 1.4 + Math.random() * 2.6,
-            drift: -0.5 + Math.random() * 1,
-            wobble: Math.random() * Math.PI * 2,
-            wobbleSpeed: 0.02 + Math.random() * 0.035,
-            life: fresh ? 0.15 + Math.random() * 0.2 : Math.random() * 0.85,
-            heat: 0.45 + Math.random() * 0.55
+            x: Math.random() * particleWidth,
+            y: initial ? randomBetween(-particleHeight * 0.6, particleHeight) : randomBetween(-particleHeight * 0.5, -20),
+            length: randomBetween(10, 28),
+            width: randomBetween(0.6, 1.8),
+            speed: randomBetween(5, 13),
+            drift: randomBetween(-1.8, -0.2),
+            alpha: randomBetween(0.14, 0.5),
+            bright: Math.random() < 0.12
         };
     }
 
-    for (let i = 0; i < flameCount; i++) flames.push(spawnFlame());
-    for (let i = 0; i < 12; i++) {
-        sparks.push({
-            x: Math.random() * width,
-            y: height - Math.random() * height * 0.4,
-            size: 1 + Math.random() * 2,
-            speedY: 2.5 + Math.random() * 4,
-            drift: -1.2 + Math.random() * 2.4,
-            life: Math.random()
-        });
+    if (mode === 'gold') {
+        return {
+            x: Math.random() * particleWidth,
+            y: initial ? Math.random() * particleHeight : particleHeight + randomBetween(0, 40),
+            size: randomBetween(0.8, 3.2),
+            speedY: -randomBetween(0.2, 1.0),
+            drift: randomBetween(-0.5, 0.5),
+            phase: Math.random() * Math.PI * 2,
+            twinkle: randomBetween(0.02, 0.05),
+            alpha: randomBetween(0.25, 0.75)
+        };
     }
 
-    function animateFlames() {
-        ctx.clearRect(0, 0, width, height);
-        ctx.globalCompositeOperation = 'lighter';
-        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-
-        for (let i = 0; i < flames.length; i++) {
-            const f = flames[i];
-            f.life += 0.007 + f.heat * 0.006;
-            f.wobble += f.wobbleSpeed;
-            f.y -= f.speedY;
-            f.x += f.drift + Math.sin(f.wobble) * 0.9;
-
-            if (f.life >= 1 || f.y < height * 0.18) {
-                flames[i] = spawnFlame(true);
-                continue;
-            }
-
-            const fade = Math.sin(f.life * Math.PI);
-            const alpha = Math.max(0.08, fade * (isDark ? 0.8 : 0.5));
-            const radius = f.size * (0.5 + f.life * 0.9);
-
-            const gradient = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, radius);
-            gradient.addColorStop(0, `rgba(254, 240, 138, ${alpha})`);
-            gradient.addColorStop(0.35, `rgba(250, 204, 21, ${alpha * 0.85})`);
-            gradient.addColorStop(0.7, `rgba(234, 88, 12, ${alpha * 0.5})`);
-            gradient.addColorStop(1, 'rgba(120, 30, 0, 0)');
-
-            ctx.fillStyle = gradient;
-            ctx.beginPath();
-            ctx.ellipse(f.x, f.y, radius * 0.72, radius * 1.15, 0, 0, Math.PI * 2);
-            ctx.fill();
-        }
-
-        for (let i = 0; i < sparks.length; i++) {
-            const s = sparks[i];
-            s.life += 0.012;
-            s.y -= s.speedY;
-            s.x += s.drift + Math.sin(s.life * 12) * 0.6;
-            if (s.life >= 1 || s.y < height * 0.2) {
-                s.x = Math.random() * width;
-                s.y = height + Math.random() * 20;
-                s.life = 0;
-                continue;
-            }
-            ctx.fillStyle = `rgba(253, 224, 71, ${(1 - s.life) * 0.9})`;
-            ctx.beginPath();
-            ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
-            ctx.fill();
-        }
-
-        ctx.globalCompositeOperation = 'source-over';
-        fireAnimationId = requestAnimationFrame(animateFlames);
+    if (mode === 'sakura') {
+        return {
+            x: Math.random() * particleWidth,
+            y: initial ? Math.random() * particleHeight : randomBetween(-particleHeight * 0.25, -20),
+            size: randomBetween(7, 16),
+            speedY: randomBetween(1.1, 2.9),
+            speedX: randomBetween(-0.8, 0.8),
+            angle: Math.random() * Math.PI * 2,
+            angularSpeed: randomBetween(-0.035, 0.035),
+            oscillation: Math.random() * Math.PI * 2,
+            oscillationSpeed: randomBetween(0.015, 0.04),
+            color: ['rgba(244,114,182,0.85)', 'rgba(251,207,232,0.9)',
+                'rgba(236,72,153,0.8)', 'rgba(219,39,119,0.75)'][Math.floor(Math.random() * 4)]
+        };
     }
 
-    if (fireAnimationId) cancelAnimationFrame(fireAnimationId);
-    animateFlames();
+    if (mode === 'nozarashi') {
+        if (Math.random() < 0.28) {
+            return {
+                kind: 'spark',
+                x: Math.random() * particleWidth,
+                y: initial ? Math.random() * particleHeight : particleHeight + randomBetween(0, 20),
+                size: randomBetween(1, 3),
+                speedY: randomBetween(2.5, 6.5),
+                drift: randomBetween(-1.2, 1.2),
+                life: initial ? Math.random() : 0
+            };
+        }
+        return {
+            kind: 'flame',
+            x: Math.random() * particleWidth,
+            y: initial ? randomBetween(particleHeight * 0.45, particleHeight) : particleHeight + randomBetween(10, 40),
+            size: randomBetween(16, 46),
+            speedY: randomBetween(1.0, 2.8),
+            drift: randomBetween(-0.5, 0.5),
+            wobble: Math.random() * Math.PI * 2,
+            wobbleSpeed: randomBetween(0.02, 0.055),
+            life: initial ? Math.random() * 0.7 : randomBetween(0.1, 0.25),
+            heat: randomBetween(0.45, 1)
+        };
+    }
+
+    // reiatsu
+    return {
+        x: Math.random() * particleWidth,
+        y: initial ? Math.random() * particleHeight : particleHeight + 10,
+        size: randomBetween(2, 6.5),
+        speedY: -randomBetween(0.9, 2.7),
+        speedX: randomBetween(-0.6, 0.6),
+        opacity: randomBetween(0.3, 0.95),
+        pulse: Math.random() * Math.PI * 2,
+        pulseSpeed: randomBetween(0.03, 0.07),
+        isBladeShard: Math.random() > 0.75
+    };
 }
 
-function stopNozarashiFlames() {
-    if (fireAnimationId) {
-        cancelAnimationFrame(fireAnimationId);
-        fireAnimationId = null;
+function buildParticleList(mode) {
+    const count = particleCountFor(mode);
+    const list = [];
+    for (let i = 0; i < count; i++) list.push(spawnParticle(mode, true));
+    return list;
+}
+
+function resizeParticleCanvas() {
+    const canvas = document.getElementById('sakura-canvas');
+    if (!canvas) return;
+    particleWidth = canvas.width = window.innerWidth;
+    particleHeight = canvas.height = window.innerHeight;
+}
+
+function drawRain(dt) {
+    particleCtx.lineCap = 'round';
+    for (let i = 0; i < particleList.length; i++) {
+        const p = particleList[i];
+        p.y += p.speed * dt;
+        p.x += p.drift * dt;
+        if (p.y - p.length > particleHeight) {
+            Object.assign(p, spawnParticle('rain', false));
+            continue;
+        }
+        if (p.x < -40) p.x = particleWidth + 40;
+
+        particleCtx.strokeStyle = p.bright
+            ? `rgba(255, 82, 92, ${Math.min(0.75, p.alpha * 1.6)})`
+            : `rgba(176, 16, 34, ${p.alpha})`;
+        particleCtx.lineWidth = p.width;
+        particleCtx.beginPath();
+        particleCtx.moveTo(p.x, p.y);
+        particleCtx.lineTo(p.x - p.drift * 1.6, p.y + p.length);
+        particleCtx.stroke();
     }
-    if (fireResizeHandler) {
-        window.removeEventListener('resize', fireResizeHandler);
-        fireResizeHandler = null;
+}
+
+function drawGold(dt) {
+    particleCtx.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < particleList.length; i++) {
+        const p = particleList[i];
+        p.phase += p.twinkle * dt;
+        p.y += p.speedY * dt;
+        p.x += p.drift * dt + Math.sin(p.phase) * 0.25;
+        if (p.y < -12) {
+            Object.assign(p, spawnParticle('gold', false));
+            continue;
+        }
+        if (p.x < -12) p.x = particleWidth + 12;
+        if (p.x > particleWidth + 12) p.x = -12;
+
+        const alpha = p.alpha * (0.65 + Math.sin(p.phase) * 0.35);
+        particleCtx.fillStyle = `rgba(250, 204, 21, ${Math.max(0.1, alpha)})`;
+        particleCtx.beginPath();
+        particleCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        particleCtx.fill();
     }
+}
+
+function drawSakura(dt) {
+    for (let i = 0; i < particleList.length; i++) {
+        const p = particleList[i];
+        p.oscillation += p.oscillationSpeed * dt;
+        p.x += (p.speedX + Math.sin(p.oscillation) * 1.2) * dt;
+        p.y += p.speedY * dt;
+        p.angle += p.angularSpeed * dt;
+
+        if (p.y > particleHeight + 20) {
+            Object.assign(p, spawnParticle('sakura', false));
+            continue;
+        }
+        if (p.x < -20) p.x = particleWidth + 20;
+        if (p.x > particleWidth + 20) p.x = -20;
+
+        particleCtx.save();
+        particleCtx.translate(p.x, p.y);
+        particleCtx.rotate(p.angle);
+        particleCtx.fillStyle = p.color;
+        particleCtx.beginPath();
+        particleCtx.moveTo(0, 0);
+        particleCtx.bezierCurveTo(p.size / 2, -p.size / 2, p.size, -p.size / 4, p.size, 0);
+        particleCtx.bezierCurveTo(p.size, p.size / 4, p.size / 2, p.size / 2, 0, 0);
+        particleCtx.fill();
+        particleCtx.restore();
+    }
+}
+
+function drawFlames(dt) {
+    particleCtx.globalCompositeOperation = 'lighter';
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+    for (let i = 0; i < particleList.length; i++) {
+        const p = particleList[i];
+        if (p.kind === 'spark') {
+            p.life += 0.012 * dt;
+            p.y -= p.speedY * dt;
+            p.x += p.drift * dt + Math.sin(p.life * 12) * 0.6;
+            if (p.life >= 1 || p.y < particleHeight * 0.18) {
+                Object.assign(p, spawnParticle('nozarashi', false));
+                continue;
+            }
+            particleCtx.fillStyle = `rgba(253, 224, 71, ${(1 - p.life) * 0.9})`;
+            particleCtx.beginPath();
+            particleCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            particleCtx.fill();
+            continue;
+        }
+
+        p.life += (0.007 + p.heat * 0.006) * dt;
+        p.wobble += p.wobbleSpeed * dt;
+        p.y -= p.speedY * dt;
+        p.x += (p.drift + Math.sin(p.wobble) * 0.9) * dt;
+
+        if (p.life >= 1 || p.y < particleHeight * 0.18) {
+            Object.assign(p, spawnParticle('nozarashi', false));
+            continue;
+        }
+
+        const fade = Math.sin(p.life * Math.PI);
+        const alpha = Math.max(0.08, fade * (isDark ? 0.8 : 0.5));
+        const radius = p.size * (0.5 + p.life * 0.9);
+        const gradient = particleCtx.createRadialGradient(p.x, p.y, 0, p.x, p.y, radius);
+        gradient.addColorStop(0, `rgba(254, 240, 138, ${alpha})`);
+        gradient.addColorStop(0.35, `rgba(250, 204, 21, ${alpha * 0.85})`);
+        gradient.addColorStop(0.7, `rgba(234, 88, 12, ${alpha * 0.5})`);
+        gradient.addColorStop(1, 'rgba(120, 30, 0, 0)');
+        particleCtx.fillStyle = gradient;
+        particleCtx.beginPath();
+        particleCtx.ellipse(p.x, p.y, radius * 0.72, radius * 1.15, 0, 0, Math.PI * 2);
+        particleCtx.fill();
+    }
+}
+
+function drawReiatsu(dt) {
+    particleCtx.globalCompositeOperation = 'lighter';
+    const isBloodMoon = document.documentElement.getAttribute('data-blood-moon') === 'true';
+
+    // The spirit-pressure effect follows the active theme's accent so it reads
+    // as "its" reiatsu instead of always drawing crimson.
+    let accentRgb = '239, 68, 68';
+    const shell = document.getElementById('dock-shell');
+    if (shell) {
+        const value = getComputedStyle(shell).getPropertyValue('--dock-accent-rgb').trim();
+        if (value) accentRgb = value;
+    }
+
+    for (let i = 0; i < particleList.length; i++) {
+        const p = particleList[i];
+        p.pulse += p.pulseSpeed * dt;
+        p.y += p.speedY * dt;
+        p.x += (p.speedX + Math.sin(p.pulse) * 0.6) * dt;
+        const alpha = Math.max(0.15, Math.min(1, p.opacity + Math.sin(p.pulse) * 0.25));
+
+        if (p.y < -20) {
+            Object.assign(p, spawnParticle('reiatsu', false));
+            continue;
+        }
+        if (p.x < -20) p.x = particleWidth + 20;
+        if (p.x > particleWidth + 20) p.x = -20;
+
+        particleCtx.save();
+        particleCtx.translate(p.x, p.y);
+        if (isBloodMoon) {
+            particleCtx.fillStyle = p.isBladeShard
+                ? `rgba(255, 30, 45, ${alpha})`
+                : `rgba(220, 20, 30, ${alpha * 0.85})`;
+            particleCtx.shadowColor = '#ff0033';
+            particleCtx.shadowBlur = 10;
+        } else {
+            particleCtx.fillStyle = p.isBladeShard
+                ? `rgba(${accentRgb}, ${alpha})`
+                : `rgba(${accentRgb}, ${alpha * 0.7})`;
+            particleCtx.shadowColor = `rgb(${accentRgb})`;
+            particleCtx.shadowBlur = 6;
+        }
+        if (p.isBladeShard) {
+            particleCtx.beginPath();
+            particleCtx.ellipse(0, 0, p.size * 1.8, p.size * 0.6, -Math.PI / 4, 0, Math.PI * 2);
+            particleCtx.fill();
+        } else {
+            particleCtx.beginPath();
+            particleCtx.arc(0, 0, p.size, 0, Math.PI * 2);
+            particleCtx.fill();
+        }
+        particleCtx.restore();
+    }
+}
+
+function drawParticles(dt) {
+    if (!particleCtx) return;
+    particleCtx.clearRect(0, 0, particleWidth, particleHeight);
+    particleCtx.globalCompositeOperation = 'source-over';
+
+    if (particleMode === 'rain') drawRain(dt);
+    else if (particleMode === 'gold') drawGold(dt);
+    else if (particleMode === 'sakura') drawSakura(dt);
+    else if (particleMode === 'nozarashi') drawFlames(dt);
+    else if (particleMode === 'reiatsu') drawReiatsu(dt);
+
+    particleCtx.globalCompositeOperation = 'source-over';
+}
+
+function animateParticles(now) {
+    if (!particleMode || !particleCtx) return;
+    const elapsed = particleLastTime ? now - particleLastTime : 16.667;
+    particleLastTime = now;
+    const dt = Math.max(0.25, Math.min(3, elapsed / 16.667));
+    drawParticles(dt);
+    particleRafId = requestAnimationFrame(animateParticles);
+}
+
+function stopParticleLoop() {
+    if (particleRafId) {
+        cancelAnimationFrame(particleRafId);
+        particleRafId = null;
+    }
+    if (particleResizeHandler) {
+        window.removeEventListener('resize', particleResizeHandler);
+        particleResizeHandler = null;
+    }
+    particleList = [];
+    document.body.classList.remove('blood-rain-on');
     const canvas = document.getElementById('sakura-canvas');
     if (canvas) {
         const ctx = canvas.getContext('2d');
         ctx.globalCompositeOperation = 'source-over';
-        if (!sakuraAnimationId && !reiatsuAnimationId) {
-            canvas.classList.add('hidden');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        canvas.classList.add('hidden');
     }
+    particleCtx = null;
+}
+
+function startParticleLoop(mode) {
+    const canvas = document.getElementById('sakura-canvas');
+    if (!canvas) return;
+
+    canvas.classList.remove('hidden');
+    particleCtx = canvas.getContext('2d');
+    resizeParticleCanvas();
+    particleList = buildParticleList(mode);
+    document.body.classList.toggle('blood-rain-on', mode === 'rain');
+
+    particleResizeHandler = () => {
+        resizeParticleCanvas();
+        particleList = buildParticleList(mode);
+    };
+    window.addEventListener('resize', particleResizeHandler);
+
+    particleLastTime = 0;
+    particleRafId = requestAnimationFrame(animateParticles);
+}
+
+function refreshParticleEffect() {
+    stopParticleLoop();
+    if (!particleMode || !areDecorativeEffectsAllowed()) return;
+    startParticleLoop(particleMode);
+}
+
+function setParticleMode(mode, persist = true) {
+    particleMode = PARTICLE_MODES.includes(mode) ? mode : null;
+    if (persist) localStorage.setItem('effect_particle', particleMode || 'none');
+    refreshParticleEffect();
+}
+
+// Best-effort migration from the pre-dock effect keys. Once the user makes a
+// choice, `effect_particle` wins on page reload; clicking a theme in the dock
+// deliberately rewakes that theme's signature effect.
+function restoreParticlePreference() {
+    const stored = localStorage.getItem('effect_particle');
+    if (stored !== null) {
+        particleMode = PARTICLE_MODES.includes(stored) ? stored : null;
+        return;
+    }
+    const theme = document.documentElement.getAttribute('data-zanpakuto');
+    if (theme === 'senbonzakura' && localStorage.getItem('effect_sakura') !== 'false') {
+        particleMode = 'sakura';
+    } else if (theme === 'nozarashi' && localStorage.getItem('effect_nozarashi') !== 'false') {
+        particleMode = 'nozarashi';
+    } else if (theme === 'tensa-zangetsu' && localStorage.getItem('effect_reiatsu') !== 'false') {
+        particleMode = 'reiatsu';
+    } else {
+        particleMode = null;
+    }
+}
+
+// ===== CURSOR TRAIL =====
+let cursorTrailEnabled = localStorage.getItem('effect_cursor_trail') === 'true';
+let cursorTrailRafId = null;
+let cursorTrailPoints = [];
+let cursorTrailLastTime = 0;
+let cursorTrailResizeHandler = null;
+let cursorTrailPointerBound = false;
+
+function isFinePointer() {
+    return !window.matchMedia || window.matchMedia('(pointer: fine)').matches;
+}
+
+function cursorTrailAccent() {
+    const shell = document.getElementById('dock-shell');
+    if (!shell) return '#3b82f6';
+    const value = getComputedStyle(shell).getPropertyValue('--dock-accent').trim();
+    return value || '#3b82f6';
+}
+
+function animateCursorTrail(now) {
+    const canvas = document.getElementById('cursor-trail-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const elapsed = cursorTrailLastTime ? now - cursorTrailLastTime : 16.667;
+    cursorTrailLastTime = now;
+    const dt = Math.max(0.25, Math.min(3, elapsed / 16.667));
+
+    const accent = cursorTrailAccent();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = accent;
+    ctx.fillStyle = accent;
+    ctx.shadowColor = accent;
+    ctx.shadowBlur = 8;
+
+    // Draw a dot per sample as well as the connecting segments, so a single
+    // pointer move (one sample) still leaves a visible spark instead of
+    // being cleared before it is ever drawn.
+    for (let i = 0; i < cursorTrailPoints.length; i++) {
+        const point = cursorTrailPoints[i];
+        const life = Math.max(0, point.life);
+        ctx.globalAlpha = life * 0.7;
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, Math.max(0.8, 2.6 * life), 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    for (let i = 1; i < cursorTrailPoints.length; i++) {
+        const prev = cursorTrailPoints[i - 1];
+        const point = cursorTrailPoints[i];
+        ctx.globalAlpha = Math.max(0, point.life) * 0.55;
+        ctx.lineWidth = Math.max(1, 7 * point.life);
+        ctx.beginPath();
+        ctx.moveTo(prev.x, prev.y);
+        ctx.lineTo(point.x, point.y);
+        ctx.stroke();
+    }
+
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+    ctx.globalCompositeOperation = 'source-over';
+
+    for (let i = 0; i < cursorTrailPoints.length; i++) {
+        cursorTrailPoints[i].life -= 0.055 * dt;
+    }
+    cursorTrailPoints = cursorTrailPoints.filter(p => p.life > 0);
+
+    if (cursorTrailPoints.length > 0) {
+        cursorTrailRafId = requestAnimationFrame(animateCursorTrail);
+    } else {
+        cursorTrailRafId = null;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        canvas.classList.add('hidden');
+    }
+}
+
+function onCursorTrailMove(event) {
+    if (!cursorTrailEnabled || !areDecorativeEffectsAllowed()) return;
+    if (event.pointerType === 'touch') return;
+
+    const canvas = document.getElementById('cursor-trail-canvas');
+    if (!canvas) return;
+    if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    canvas.classList.remove('hidden');
+
+    cursorTrailPoints.push({ x: event.clientX, y: event.clientY, life: 1 });
+    if (cursorTrailPoints.length > 18) cursorTrailPoints.shift();
+
+    if (!cursorTrailRafId) {
+        cursorTrailLastTime = 0;
+        cursorTrailRafId = requestAnimationFrame(animateCursorTrail);
+    }
+}
+
+function startCursorTrail() {
+    if (!cursorTrailEnabled || !areDecorativeEffectsAllowed() || !isFinePointer()) return;
+    if (!cursorTrailPointerBound) {
+        document.addEventListener('pointermove', onCursorTrailMove, { passive: true });
+        cursorTrailPointerBound = true;
+    }
+    const canvas = document.getElementById('cursor-trail-canvas');
+    if (canvas) {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        cursorTrailResizeHandler = () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        };
+        window.addEventListener('resize', cursorTrailResizeHandler);
+    }
+}
+
+function stopCursorTrail() {
+    if (cursorTrailRafId) {
+        cancelAnimationFrame(cursorTrailRafId);
+        cursorTrailRafId = null;
+    }
+    if (cursorTrailPointerBound) {
+        document.removeEventListener('pointermove', onCursorTrailMove);
+        cursorTrailPointerBound = false;
+    }
+    if (cursorTrailResizeHandler) {
+        window.removeEventListener('resize', cursorTrailResizeHandler);
+        cursorTrailResizeHandler = null;
+    }
+    cursorTrailPoints = [];
+    const canvas = document.getElementById('cursor-trail-canvas');
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        canvas.classList.add('hidden');
+    }
+}
+
+function refreshCursorTrail() {
+    stopCursorTrail();
+    if (cursorTrailEnabled && areDecorativeEffectsAllowed()) startCursorTrail();
+}
+
+function setCursorTrailEnabled(enabled, persist = true) {
+    cursorTrailEnabled = !!enabled && isFinePointer();
+    if (persist) localStorage.setItem('effect_cursor_trail', String(cursorTrailEnabled));
+    refreshCursorTrail();
 }
 
 // ===== FLOATING DOCK =====
 function initFloatingDock() {
+    const shell = document.getElementById('dock-shell');
     const dock = document.getElementById('sledge-dock');
-    if (!dock) return;
+    if (!shell || !dock) return;
 
+    const toggleBtn = document.getElementById('dock-toggle');
     const themeBtn = document.getElementById('dock-themes');
     const themePopup = document.getElementById('dock-theme-popup');
     const effectsBtn = document.getElementById('dock-effects');
@@ -2131,41 +2329,89 @@ function initFloatingDock() {
     const musicBtn = document.getElementById('dock-music');
     const quietBtn = document.getElementById('dock-quiet');
 
-    if (!themeBtn || !themePopup || !effectsBtn || !effectsPopup || !musicBtn || !quietBtn) return;
+    if (!toggleBtn || !themeBtn || !themePopup || !effectsBtn || !effectsPopup || !musicBtn || !quietBtn) return;
 
-    const fireToggle = document.getElementById('toggle-fire');
+    const rainToggle = document.getElementById('toggle-rain');
+    const goldToggle = document.getElementById('toggle-gold');
     const sakuraToggle = document.getElementById('toggle-sakura');
+    const fireToggle = document.getElementById('toggle-fire');
     const reiatsuToggle = document.getElementById('toggle-reiatsu');
+    const cursorToggle = document.getElementById('toggle-cursor');
+    const reducedToggle = document.getElementById('toggle-reduced');
     const bloodmoonToggle = document.getElementById('toggle-bloodmoon');
     const charsToggle = document.getElementById('toggle-chars');
+    const cursorRow = document.getElementById('effect-row-cursor');
+    const bloodMoonRow = document.getElementById('effect-row-bloodmoon');
     const effectsNote = document.getElementById('dock-effects-note');
-    const emptyMsg = document.getElementById('dock-effects-empty');
+    const clearBtn = document.getElementById('dock-clear-effects');
+    const intensityButtons = Array.from(document.querySelectorAll('[data-intensity]'));
+    const intensityGroup = document.querySelector('.dock-intensity');
     const motionQuery = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+    const hoverQuery = window.matchMedia ? window.matchMedia('(hover: hover) and (pointer: fine)') : null;
 
     let quietActive = localStorage.getItem('quiet_mode') === 'true';
     let charactersEnabled = localStorage.getItem('character_popups') !== 'false';
+    let dockOpen = false;
 
     const getActiveTheme = () => document.documentElement.getAttribute('data-zanpakuto') || 'default';
+    const bloodMoonActive = () => document.documentElement.getAttribute('data-blood-moon') === 'true';
 
-    // ---------- Popup plumbing ----------
+    restoreParticlePreference();
+
+    // ---------- Dock expansion ----------
+    function closePopups(restoreFocusTo) {
+        setPopupOpen(themePopup, themeBtn, false);
+        setPopupOpen(effectsPopup, effectsBtn, false);
+        if (restoreFocusTo) restoreFocusTo.focus({ preventScroll: true });
+    }
+
     function setPopupOpen(popup, btn, open) {
         popup.classList.toggle('open', open);
         popup.setAttribute('aria-hidden', String(!open));
         btn.setAttribute('aria-expanded', String(open));
-        // `inert` removes closed popup controls from the tab order
         if ('inert' in popup) popup.inert = !open;
     }
 
-    function closePopups(restoreFocusTo) {
-        setPopupOpen(themePopup, themeBtn, false);
-        setPopupOpen(effectsPopup, effectsBtn, false);
-        if (restoreFocusTo) restoreFocusTo.focus();
+    function setDockOpen(open, options = {}) {
+        if (dockOpen === open) return;
+        dockOpen = open;
+        shell.classList.toggle('dock-open', open);
+        toggleBtn.setAttribute('aria-expanded', String(open));
+        const label = open ? 'Close quick controls' : 'Open quick controls';
+        toggleBtn.setAttribute('aria-label', label);
+        toggleBtn.title = label;
+        const icon = toggleBtn.querySelector('i');
+        if (icon) icon.className = open ? 'fas fa-xmark' : 'fas fa-bolt';
+        dock.setAttribute('aria-hidden', String(!open));
+        if ('inert' in dock) dock.inert = !open;
+
+        if (open) {
+            updateDockThemeHighlight();
+            updateEffectsPanel();
+            if (options.focusFirst) {
+                const first = dock.querySelector('.dock-btn');
+                if (first) first.focus({ preventScroll: true });
+            }
+        } else {
+            closePopups();
+            if (options.returnFocus) toggleBtn.focus({ preventScroll: true });
+        }
     }
+
+    toggleBtn.addEventListener('click', () => {
+        if (dockOpen) {
+            closePopups();
+            setDockOpen(false, { returnFocus: true });
+        } else {
+            setDockOpen(true, { focusFirst: true });
+        }
+    });
 
     function openPopup(popup, btn) {
         const isOpen = popup.classList.contains('open');
         closePopups();
         if (isOpen) return;
+        setDockOpen(true);
         setPopupOpen(popup, btn, true);
         const first = popup.querySelector('.active-theme') ||
             popup.querySelector('button:not([disabled]), input:not([disabled])');
@@ -2182,32 +2428,59 @@ function initFloatingDock() {
         openPopup(effectsPopup, effectsBtn);
     });
 
-    document.addEventListener('click', (e) => {
-        if (dock.contains(e.target)) return;
-        if (themePopup.classList.contains('open') || effectsPopup.classList.contains('open')) {
-            closePopups();
-        }
+    // Desktop hover expansion; pointer leave only retracts when nothing is
+    // being used and focus is not inside the dock.
+    if (hoverQuery && hoverQuery.matches) {
+        shell.addEventListener('pointerenter', () => {
+            if (!dockOpen) setDockOpen(true);
+        });
+        shell.addEventListener('pointerleave', () => {
+            if (!dockOpen) return;
+            if (themePopup.classList.contains('open') || effectsPopup.classList.contains('open')) return;
+            if (shell.contains(document.activeElement)) return;
+            setDockOpen(false);
+        });
+    }
+
+    document.addEventListener('click', (event) => {
+        if (shell.contains(event.target)) return;
+        if (!dockOpen) return;
+        closePopups();
+        setDockOpen(false);
     });
 
-    document.addEventListener('keydown', (e) => {
-        if (e.key !== 'Escape') return;
-        if (!themePopup.classList.contains('open') && !effectsPopup.classList.contains('open')) return;
-        const trigger = themePopup.classList.contains('open') ? themeBtn : effectsBtn;
-        closePopups(trigger);
+    document.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape' || !dockOpen) return;
+        closePopups();
+        setDockOpen(false, { returnFocus: true });
     });
 
     // Arrow-key navigation inside the theme list
-    themePopup.addEventListener('keydown', (e) => {
-        if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    themePopup.addEventListener('keydown', (event) => {
+        if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
         const items = Array.from(themePopup.querySelectorAll('.dock-theme-item'));
         const index = items.indexOf(document.activeElement);
         if (index === -1) return;
-        e.preventDefault();
-        const next = e.key === 'ArrowDown'
+        event.preventDefault();
+        const next = event.key === 'ArrowDown'
             ? (index + 1) % items.length
             : (index - 1 + items.length) % items.length;
         items[next].focus();
     });
+
+    // Arrow-key navigation inside the intensity radio group
+    if (intensityGroup) {
+        intensityGroup.addEventListener('keydown', (event) => {
+            if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+            const current = intensityButtons.findIndex(btn => btn.getAttribute('aria-checked') === 'true');
+            const direction = event.key === 'ArrowRight' ? 1 : -1;
+            const next = (current + direction + intensityButtons.length) % intensityButtons.length;
+            event.preventDefault();
+            intensityButtons[next].focus();
+            setEffectIntensity(intensityButtons[next].dataset.intensity);
+            updateEffectsPanel();
+        });
+    }
 
     // ---------- Themes (reuse the existing theme engine) ----------
     themePopup.querySelectorAll('.dock-theme-item').forEach(item => {
@@ -2218,6 +2491,9 @@ function initFloatingDock() {
             } else {
                 applyZanpakutoTheme(theme, true);
             }
+            // Choosing a Zanpakuto awakens its signature effect (user can turn
+            // it off afterwards from the dock).
+            applyThemeSignatureEffect(theme);
             updateDockThemeHighlight();
             closePopups(themeBtn);
         });
@@ -2238,92 +2514,92 @@ function initFloatingDock() {
     }
 
     // ---------- Effects ----------
-    function setRowVisible(row, visible) {
-        if (row) row.hidden = !visible;
-    }
-
     function updateEffectsPanel() {
-        const active = getActiveTheme();
-        const hasFire = active === 'nozarashi';
-        const hasSakura = active === 'senbonzakura';
-        const hasTensa = active === 'tensa-zangetsu';
-        const locked = quietActive || prefersReducedMotion();
+        const locked = quietActive || effectsMotionPaused();
+        const finePointer = isFinePointer();
 
-        setRowVisible(document.getElementById('effect-row-fire'), hasFire);
-        setRowVisible(document.getElementById('effect-row-sakura'), hasSakura);
-        setRowVisible(document.getElementById('effect-row-reiatsu'), hasTensa);
-        setRowVisible(document.getElementById('effect-row-bloodmoon'), hasTensa);
-        setRowVisible(document.getElementById('effect-row-chars'), true);
+        if (bloodMoonRow) bloodMoonRow.hidden = getActiveTheme() !== 'tensa-zangetsu';
+        if (cursorRow) cursorRow.hidden = !finePointer;
 
-        if (emptyMsg) emptyMsg.hidden = hasFire || hasSakura || hasTensa;
+        const setToggle = (input, checked, disabled) => {
+            if (!input) return;
+            input.checked = checked;
+            input.disabled = !!disabled;
+        };
 
-        if (fireToggle) {
-            fireToggle.checked = nozarashiEffectEnabled;
-            fireToggle.disabled = !hasFire || locked;
-        }
-        if (sakuraToggle) {
-            sakuraToggle.checked = sakuraEffectEnabled;
-            sakuraToggle.disabled = !hasSakura || locked;
-        }
-        if (reiatsuToggle) {
-            reiatsuToggle.checked = reiatsuEffectEnabled;
-            reiatsuToggle.disabled = !hasTensa || locked;
-        }
-        if (bloodmoonToggle) {
-            bloodmoonToggle.checked = document.documentElement.getAttribute('data-blood-moon') === 'true';
-            bloodmoonToggle.disabled = !hasTensa || locked;
-        }
-        if (charsToggle) {
-            charsToggle.checked = charactersEnabled;
-            charsToggle.disabled = locked;
+        setToggle(rainToggle, particleMode === 'rain', locked);
+        setToggle(goldToggle, particleMode === 'gold', locked);
+        setToggle(sakuraToggle, particleMode === 'sakura', locked);
+        setToggle(fireToggle, particleMode === 'nozarashi', locked);
+        setToggle(reiatsuToggle, particleMode === 'reiatsu', locked);
+        setToggle(cursorToggle, cursorTrailEnabled, locked || !finePointer);
+        setToggle(reducedToggle, effectsMotionPaused(), prefersReducedMotion());
+        setToggle(bloodmoonToggle, bloodMoonActive(), getActiveTheme() !== 'tensa-zangetsu' || locked);
+        setToggle(charsToggle, charactersEnabled, locked);
+
+        intensityButtons.forEach(btn => {
+            btn.setAttribute('aria-checked', String(btn.dataset.intensity === getEffectIntensity()));
+        });
+
+        if (clearBtn) {
+            clearBtn.disabled = !particleMode && !cursorTrailEnabled && !bloodMoonActive() && !charactersEnabled;
         }
 
         if (effectsNote) {
             let note = '';
             if (prefersReducedMotion()) {
-                note = 'Reduced motion is enabled in your system settings — decorative effects are paused.';
+                note = 'Reduced motion is on in your system settings — particle effects are paused.';
+            } else if (effectsMotionPaused()) {
+                note = 'Reduced motion is on — particle effects are paused.';
             } else if (quietActive) {
-                note = 'Quiet mode is on — decorative effects are paused.';
+                note = 'Quiet mode is on — effects are paused until you turn it off.';
+            } else if (particleMode) {
+                note = 'One particle layer runs at a time. Switching effects stops the previous one.';
             }
             effectsNote.textContent = note;
             effectsNote.hidden = !note;
         }
     }
 
-    if (fireToggle) {
-        fireToggle.addEventListener('change', () => {
-            nozarashiEffectEnabled = fireToggle.checked;
-            localStorage.setItem('effect_nozarashi', String(nozarashiEffectEnabled));
-            if (nozarashiEffectEnabled) {
-                startNozarashiFlames();
-            } else {
-                stopNozarashiFlames();
+    function bindParticleToggle(input, mode) {
+        if (!input) return;
+        input.addEventListener('change', () => {
+            if (input.checked) {
+                setParticleMode(mode);
+            } else if (particleMode === mode) {
+                setParticleMode(null);
             }
             updateEffectsPanel();
         });
     }
 
-    if (sakuraToggle) {
-        sakuraToggle.addEventListener('change', () => {
-            sakuraEffectEnabled = sakuraToggle.checked;
-            localStorage.setItem('effect_sakura', String(sakuraEffectEnabled));
-            if (sakuraEffectEnabled) {
-                startSakuraPetals();
-            } else {
-                stopSakuraPetals();
-            }
+    bindParticleToggle(rainToggle, 'rain');
+    bindParticleToggle(goldToggle, 'gold');
+    bindParticleToggle(sakuraToggle, 'sakura');
+    bindParticleToggle(fireToggle, 'nozarashi');
+    bindParticleToggle(reiatsuToggle, 'reiatsu');
+
+    intensityButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            setEffectIntensity(btn.dataset.intensity);
+            updateEffectsPanel();
+        });
+    });
+
+    if (cursorToggle) {
+        cursorToggle.addEventListener('change', () => {
+            setCursorTrailEnabled(cursorToggle.checked);
             updateEffectsPanel();
         });
     }
 
-    if (reiatsuToggle) {
-        reiatsuToggle.addEventListener('change', () => {
-            reiatsuEffectEnabled = reiatsuToggle.checked;
-            localStorage.setItem('effect_reiatsu', String(reiatsuEffectEnabled));
-            if (reiatsuEffectEnabled) {
-                startReiatsuEmbers();
-            } else {
-                stopReiatsuEmbers();
+    if (reducedToggle) {
+        reducedToggle.addEventListener('change', () => {
+            localStorage.setItem('effects_reduced_motion', String(reducedToggle.checked));
+            refreshParticleEffect();
+            refreshCursorTrail();
+            if (window.__bleachCharacters) {
+                window.__bleachCharacters.setEnabled(charactersEnabled && !quietActive && !effectsMotionPaused());
             }
             updateEffectsPanel();
         });
@@ -2344,7 +2620,7 @@ function initFloatingDock() {
         if (persist) localStorage.setItem('character_popups', String(enabled));
         document.body.classList.toggle('characters-off', !enabled);
         if (window.__bleachCharacters) {
-            window.__bleachCharacters.setEnabled(enabled && !quietActive && !prefersReducedMotion());
+            window.__bleachCharacters.setEnabled(enabled && !quietActive && !effectsMotionPaused());
         }
         if (charsToggle) charsToggle.checked = enabled;
     }
@@ -2353,6 +2629,19 @@ function initFloatingDock() {
         charsToggle.addEventListener('change', () => {
             applyCharactersEnabled(charsToggle.checked);
             updateEffectsPanel();
+        });
+    }
+
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            setParticleMode(null);
+            setCursorTrailEnabled(false);
+            applyCharactersEnabled(false);
+            if (window.__tensaBloodMoon && window.__tensaBloodMoon.isActive()) {
+                window.__tensaBloodMoon.setActive(false, false);
+            }
+            updateEffectsPanel();
+            showToast('All decorative effects cleared.', 'info');
         });
     }
 
@@ -2370,7 +2659,6 @@ function initFloatingDock() {
             showToast('Music pop-up is still loading…', 'info');
             return;
         }
-        // Keep the transient music toast from covering an open dock popover
         closePopups();
         if (typeof np.isOpen === 'function' && np.isOpen()) {
             np.hide();
@@ -2393,19 +2681,17 @@ function initFloatingDock() {
         quietBtn.title = active
             ? 'Quiet mode is on — click to restore decorative effects'
             : 'Quiet mode: hide decorative pop-ups and effects';
+        quietBtn.setAttribute('aria-label', quietBtn.title);
         if (persist) localStorage.setItem('quiet_mode', String(active));
 
         if (window.__bleachCharacters) {
-            window.__bleachCharacters.setEnabled(charactersEnabled && !active && !prefersReducedMotion());
+            window.__bleachCharacters.setEnabled(charactersEnabled && !active && !effectsMotionPaused());
         }
 
-        if (active) {
-            stopSakuraPetals();
-            stopReiatsuEmbers();
-            stopNozarashiFlames();
-        } else {
-            syncThemeEffects(getActiveTheme());
-        }
+        // The selected particle mode and trail preference are kept, so turning
+        // Quiet Mode off restores the previous effects.
+        refreshParticleEffect();
+        refreshCursorTrail();
         updateEffectsPanel();
     }
 
@@ -2414,14 +2700,10 @@ function initFloatingDock() {
     // ---------- Reduced-motion changes at runtime ----------
     if (motionQuery) {
         const onMotionChange = () => {
-            if (prefersReducedMotion()) {
-                stopSakuraPetals();
-                stopReiatsuEmbers();
-                stopNozarashiFlames();
-                if (window.__bleachCharacters) window.__bleachCharacters.setEnabled(false);
-            } else if (!quietActive) {
-                syncThemeEffects(getActiveTheme());
-                if (window.__bleachCharacters) window.__bleachCharacters.setEnabled(charactersEnabled);
+            refreshParticleEffect();
+            refreshCursorTrail();
+            if (window.__bleachCharacters) {
+                window.__bleachCharacters.setEnabled(charactersEnabled && !quietActive && !effectsMotionPaused());
             }
             updateEffectsPanel();
         };
@@ -2432,7 +2714,7 @@ function initFloatingDock() {
         }
     }
 
-    // Keep the dock in sync when the theme changes anywhere
+    // Keep the dock in sync when the theme or Blood Moon changes anywhere
     const observer = new MutationObserver(() => updateDockThemeHighlight());
     observer.observe(document.documentElement, {
         attributes: true,
@@ -2450,55 +2732,31 @@ function initFloatingDock() {
 // ===== TENSA ZANGETSU BLOOD MOON =====
 function initTensaMoon() {
     const moon = document.getElementById('tensa-moon');
-    const slashOverlay = document.getElementById('tensa-slash-overlay');
     if (!moon) return;
 
     let bloodMoonActive = false;
 
-    function triggerSlashEffect() {
-        if (!slashOverlay) return;
-        slashOverlay.innerHTML = '';
-        slashOverlay.classList.add('active');
-        const count = 3 + Math.floor(Math.random() * 2);
-        for (let i = 0; i < count; i++) {
-            const line = document.createElement('div');
-            line.className = 'tensa-slash-line';
-            line.style.left = (10 + i * 22) + '%';
-            line.style.animationDelay = (i * 0.07) + 's';
-            slashOverlay.appendChild(line);
-        }
-        setTimeout(() => {
-            slashOverlay.classList.remove('active');
-            slashOverlay.innerHTML = '';
-        }, 700);
-    }
-
-    function activateBloodMoon() {
+    function activateBloodMoon(notify = true) {
         bloodMoonActive = true;
         document.documentElement.setAttribute('data-blood-moon', 'true');
         moon.setAttribute('title', 'Tensō Zangetsu — Blood Moon Active! Click to seal.');
         moon.setAttribute('aria-label', 'Blood Moon active — click to deactivate');
-        const bloodmoonToggle = document.getElementById('toggle-bloodmoon');
-        if (bloodmoonToggle) bloodmoonToggle.checked = true;
-        triggerSlashEffect();
-        // Re-ignite reiatsu embers into fierce crimson flames
-        if (reiatsuAnimationId) {
-            startReiatsuEmbers();
-        }
-        showToast('⚔️ BANKAI… Tensa Zangetsu! Blood Moon Awakened!', 'success');
+        const toggle = document.getElementById('toggle-bloodmoon');
+        if (toggle) toggle.checked = true;
+        // Reiatsu embers change color when the Blood Moon is active.
+        if (particleMode === 'reiatsu') refreshParticleEffect();
+        if (notify) showToast('⚔️ BANKAI… Tensa Zangetsu! Blood Moon Awakened!', 'success');
     }
 
-    function deactivateBloodMoon() {
+    function deactivateBloodMoon(notify = true) {
         bloodMoonActive = false;
         document.documentElement.removeAttribute('data-blood-moon');
         moon.setAttribute('title', 'Tensō Zangetsu — Click to awaken Blood Moon');
         moon.setAttribute('aria-label', 'Tensa Zangetsu Moon — click to activate Blood Moon');
-        const bloodmoonToggle = document.getElementById('toggle-bloodmoon');
-        if (bloodmoonToggle) bloodmoonToggle.checked = false;
-        if (reiatsuAnimationId) {
-            startReiatsuEmbers();
-        }
-        showToast('Blood Moon sealed. 月牙天衝…', 'info');
+        const toggle = document.getElementById('toggle-bloodmoon');
+        if (toggle) toggle.checked = false;
+        if (particleMode === 'reiatsu') refreshParticleEffect();
+        if (notify) showToast('Blood Moon sealed. 月牙天衝…', 'info');
     }
 
     function onMoonClick() {
@@ -2512,21 +2770,31 @@ function initTensaMoon() {
     }
 
     moon.addEventListener('click', onMoonClick);
-    moon.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
+    moon.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
             onMoonClick();
         }
     });
 
-    // Reset blood moon when switching away from tensa theme
+    // Small public API so the dock's "Clear all effects" action can seal the
+    // Blood Moon without firing a second notification.
+    window.__tensaBloodMoon = {
+        isActive: () => bloodMoonActive,
+        setActive: (value, notify = true) => {
+            if (value) activateBloodMoon(notify);
+            else deactivateBloodMoon(notify);
+        }
+    };
+
+    // Reset Blood Moon when switching away from Tensa Zangetsu
     const observer = new MutationObserver(() => {
         const activeTheme = document.documentElement.getAttribute('data-zanpakuto');
         if (activeTheme !== 'tensa-zangetsu' && bloodMoonActive) {
             bloodMoonActive = false;
             document.documentElement.removeAttribute('data-blood-moon');
-            const bloodmoonToggle = document.getElementById('toggle-bloodmoon');
-            if (bloodmoonToggle) bloodmoonToggle.checked = false;
+            const toggle = document.getElementById('toggle-bloodmoon');
+            if (toggle) toggle.checked = false;
         }
     });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-zanpakuto'] });

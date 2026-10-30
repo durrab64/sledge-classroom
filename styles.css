@@ -1854,12 +1854,16 @@ img {
 /* ===== TOAST ===== */
 .toast-container {
     position: fixed;
-    /* Sit above the floating dock instead of covering its controls */
-    bottom: calc(88px + env(safe-area-inset-bottom, 0px));
-    right: 24px;
+    /* Top-left keeps notifications clear of the bottom-right dock and its
+       popovers, which are interactive. */
+    top: calc(var(--nav-height) + 16px + env(safe-area-inset-top, 0px));
+    left: 24px;
+    right: auto;
+    bottom: auto;
     z-index: 3000;
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
     gap: 10px;
 }
 
@@ -3354,166 +3358,227 @@ html[data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] #tensa-moon .moon-
 }
 
 /* ---------------------------------------------------
-   FLOATING DOCK
-   Shared floating controls: theme chooser, effects, music
-   pop-up and quiet mode. It never replaces the navbar or
-   the existing Zanpakuto drawer.
+   FLOATING QUICK-CONTROLS DOCK
+   A 52px theme-aware circle that expands into a compact
+   horizontal bar on hover, tap or keyboard activation.
    --------------------------------------------------- */
-#sledge-dock {
+#dock-shell {
     --dock-accent: #3b82f6;
     --dock-accent-rgb: 59, 130, 246;
-    --dock-glow: rgba(59, 130, 246, 0.25);
-    --dock-border: rgba(255, 255, 255, 0.12);
-    --dock-surface: rgba(10, 12, 18, 0.84);
+    --dock-glow: rgba(59, 130, 246, 0.28);
+    --dock-border: rgba(255, 255, 255, 0.14);
+    --dock-surface: rgba(10, 12, 18, 0.88);
 
     position: fixed;
+    right: calc(24px + env(safe-area-inset-right, 0px));
     bottom: calc(24px + env(safe-area-inset-bottom, 0px));
-    left: 50%;
-    transform: translateX(-50%);
-    /* Above the Zanpakuto rail (998) but below navbar (1000),
-       drawer/backdrop (1000/1001) and modals (2000) */
+    width: 52px;
+    height: 52px;
     z-index: 999;
+}
+
+/* Accent surface follows the active Zanpakuto theme */
+html[data-zanpakuto="getsuga-tensho"] #dock-shell {
+    --dock-accent: #f8fafc;
+    --dock-accent-rgb: 248, 250, 252;
+    --dock-glow: rgba(255, 255, 255, 0.24);
+    --dock-border: rgba(255, 255, 255, 0.28);
+    --dock-surface: rgba(8, 8, 10, 0.9);
+}
+
+html[data-zanpakuto="nozarashi"] #dock-shell {
+    --dock-accent: #eab308;
+    --dock-accent-rgb: 234, 179, 8;
+    --dock-glow: rgba(234, 179, 8, 0.36);
+    --dock-border: rgba(234, 179, 8, 0.34);
+    --dock-surface: rgba(20, 17, 4, 0.9);
+}
+
+html[data-zanpakuto="senbonzakura"] #dock-shell {
+    --dock-accent: #ec4899;
+    --dock-accent-rgb: 236, 72, 153;
+    --dock-glow: rgba(236, 72, 153, 0.36);
+    --dock-border: rgba(236, 72, 153, 0.34);
+    --dock-surface: rgba(24, 8, 17, 0.9);
+}
+
+html[data-zanpakuto="kyoka-suigetsu"] #dock-shell {
+    --dock-accent: #a855f7;
+    --dock-accent-rgb: 168, 85, 247;
+    --dock-glow: rgba(168, 85, 247, 0.36);
+    --dock-border: rgba(168, 85, 247, 0.34);
+    --dock-surface: rgba(13, 9, 26, 0.9);
+}
+
+html[data-zanpakuto="tensa-zangetsu"] #dock-shell {
+    --dock-accent: #ef4444;
+    --dock-accent-rgb: 239, 68, 68;
+    --dock-glow: rgba(239, 68, 68, 0.4);
+    --dock-border: rgba(239, 68, 68, 0.36);
+    --dock-surface: rgba(22, 6, 8, 0.9);
+}
+
+html[data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] #dock-shell {
+    --dock-accent: #ff1e27;
+    --dock-accent-rgb: 255, 30, 39;
+    --dock-glow: rgba(255, 30, 39, 0.58);
+    --dock-border: rgba(255, 30, 39, 0.48);
+    --dock-surface: rgba(30, 2, 4, 0.92);
+}
+
+.dock-toggle-btn {
+    position: relative;
+    width: 52px;
+    height: 52px;
     display: flex;
     align-items: center;
-    gap: 4px;
-    padding: 7px 10px;
+    justify-content: center;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid var(--dock-border);
+    background:
+        radial-gradient(circle at 34% 28%, rgba(var(--dock-accent-rgb), 0.2), transparent 62%),
+        var(--dock-surface);
+    color: var(--dock-accent);
+    cursor: pointer;
+    backdrop-filter: blur(18px) saturate(180%);
+    -webkit-backdrop-filter: blur(18px) saturate(180%);
+    box-shadow:
+        0 8px 28px rgba(0, 0, 0, 0.45),
+        0 0 18px var(--dock-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.09);
+    transition:
+        transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+        box-shadow 0.28s ease,
+        border-color 0.28s ease,
+        background 0.35s ease;
+}
+
+.dock-toggle-btn i {
+    font-size: 1.02rem;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease;
+}
+
+.dock-toggle-btn:hover {
+    transform: translateY(-2px) scale(1.04);
+    border-color: rgba(var(--dock-accent-rgb), 0.6);
+    box-shadow:
+        0 12px 34px rgba(0, 0, 0, 0.5),
+        0 0 26px var(--dock-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.dock-toggle-btn:active {
+    transform: scale(0.96);
+}
+
+.dock-toggle-btn:focus-visible {
+    outline: 2px solid var(--dock-accent);
+    outline-offset: 4px;
+}
+
+#dock-shell.dock-open .dock-toggle-btn {
+    border-color: rgba(var(--dock-accent-rgb), 0.58);
+    background:
+        radial-gradient(circle at 34% 28%, rgba(var(--dock-accent-rgb), 0.3), transparent 64%),
+        var(--dock-surface);
+}
+
+#dock-shell.dock-open .dock-toggle-btn i {
+    transform: rotate(90deg);
+}
+
+.dock-toggle-pulse {
+    position: absolute;
+    inset: -5px;
+    border-radius: 50%;
+    border: 1px solid rgba(var(--dock-accent-rgb), 0.28);
+    pointer-events: none;
+    animation: dockPulse 3.2s ease-in-out infinite;
+}
+
+@keyframes dockPulse {
+    0%, 100% { opacity: 0.25; transform: scale(0.98); }
+    50% { opacity: 0.7; transform: scale(1.06); }
+}
+
+/* Expanded horizontal bar */
+#sledge-dock {
+    position: absolute;
+    right: calc(100% + 10px);
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    width: max-content;
+    max-width: calc(100vw - 100px);
+    padding: 6px;
+    border-radius: 9999px;
+    border: 1px solid var(--dock-border);
     background:
         linear-gradient(135deg, rgba(var(--dock-accent-rgb), 0.13) 0%, transparent 58%),
         var(--dock-surface);
     backdrop-filter: blur(18px) saturate(180%);
     -webkit-backdrop-filter: blur(18px) saturate(180%);
-    border: 1px solid var(--dock-border);
-    border-radius: 9999px;
     box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.45),
-        0 2px 8px rgba(0, 0, 0, 0.3),
+        0 10px 34px rgba(0, 0, 0, 0.48),
+        0 2px 8px rgba(0, 0, 0, 0.32),
         inset 0 1px 0 rgba(255, 255, 255, 0.08);
-    user-select: none;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(12px) scale(0.94);
+    transform-origin: right center;
     transition:
-        box-shadow 0.3s ease,
-        opacity 0.3s ease,
-        transform 0.3s ease,
-        border-color 0.3s ease,
-        background 0.4s ease;
+        opacity 0.2s ease,
+        transform 0.24s cubic-bezier(0.34, 1.4, 0.64, 1),
+        visibility 0s linear 0.24s;
 }
 
-/* Accent surface follows the active Zanpakuto theme */
-html[data-zanpakuto="getsuga-tensho"] #sledge-dock {
-    --dock-accent: #f8fafc;
-    --dock-accent-rgb: 248, 250, 252;
-    --dock-glow: rgba(255, 255, 255, 0.22);
-    --dock-border: rgba(255, 255, 255, 0.24);
-    --dock-surface: rgba(8, 8, 10, 0.86);
-}
-
-html[data-zanpakuto="nozarashi"] #sledge-dock {
-    --dock-accent: #eab308;
-    --dock-accent-rgb: 234, 179, 8;
-    --dock-glow: rgba(234, 179, 8, 0.35);
-    --dock-border: rgba(234, 179, 8, 0.32);
-    --dock-surface: rgba(20, 17, 4, 0.86);
-}
-
-html[data-zanpakuto="senbonzakura"] #sledge-dock {
-    --dock-accent: #ec4899;
-    --dock-accent-rgb: 236, 72, 153;
-    --dock-glow: rgba(236, 72, 153, 0.35);
-    --dock-border: rgba(236, 72, 153, 0.32);
-    --dock-surface: rgba(24, 8, 17, 0.86);
-}
-
-html[data-zanpakuto="kyoka-suigetsu"] #sledge-dock {
-    --dock-accent: #a855f7;
-    --dock-accent-rgb: 168, 85, 247;
-    --dock-glow: rgba(168, 85, 247, 0.35);
-    --dock-border: rgba(168, 85, 247, 0.32);
-    --dock-surface: rgba(13, 9, 26, 0.87);
-}
-
-html[data-zanpakuto="tensa-zangetsu"] #sledge-dock {
-    --dock-accent: #ef4444;
-    --dock-accent-rgb: 239, 68, 68;
-    --dock-glow: rgba(239, 68, 68, 0.38);
-    --dock-border: rgba(239, 68, 68, 0.34);
-    --dock-surface: rgba(22, 6, 8, 0.87);
-}
-
-html[data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] #sledge-dock {
-    --dock-accent: #ff1e27;
-    --dock-accent-rgb: 255, 30, 39;
-    --dock-glow: rgba(255, 30, 39, 0.55);
-    --dock-border: rgba(255, 30, 39, 0.46);
-    --dock-surface: rgba(30, 2, 4, 0.9);
-    box-shadow:
-        0 8px 32px var(--dock-glow),
-        0 2px 8px rgba(0, 0, 0, 0.6),
-        inset 0 1px 0 rgba(255, 60, 80, 0.25);
-}
-
-#sledge-dock:hover {
-    box-shadow:
-        0 12px 40px rgba(0, 0, 0, 0.5),
-        0 0 24px var(--dock-glow),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-/* Theme accent line on dock — changes with active theme */
-#sledge-dock::before {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 40%;
-    height: 2px;
-    border-radius: 999px;
-    background: var(--dock-accent);
-    opacity: 0.7;
-    transition: background 0.5s ease, width 0.3s ease, opacity 0.3s ease;
-}
-
-#sledge-dock:hover::before {
-    width: 70%;
+#dock-shell.dock-open #sledge-dock {
     opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(0) scale(1);
+    transition:
+        opacity 0.2s ease,
+        transform 0.24s cubic-bezier(0.34, 1.4, 0.64, 1),
+        visibility 0s;
 }
 
-/* Dock separator */
-.dock-sep {
-    width: 1px;
-    height: 26px;
-    background: rgba(255, 255, 255, 0.12);
-    border-radius: 1px;
-    flex-shrink: 0;
+.dock-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
 }
 
-/* Dock button base */
+/* Dock action buttons */
 .dock-btn {
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
-    padding: 7px 13px;
+    padding: 9px 11px;
     border-radius: 9999px;
     border: 1px solid transparent;
     background: transparent;
-    color: rgba(255, 255, 255, 0.76);
+    color: rgba(255, 255, 255, 0.78);
     font-family: 'Inter', sans-serif;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 600;
     cursor: pointer;
+    white-space: nowrap;
+    letter-spacing: 0.01em;
     transition:
         background 0.2s ease,
         color 0.2s ease,
         border-color 0.2s ease,
         transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
         box-shadow 0.2s ease;
-    white-space: nowrap;
-    letter-spacing: 0.01em;
 }
 
 .dock-btn i {
-    font-size: 0.9rem;
+    font-size: 0.92rem;
     transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease;
 }
 
@@ -3539,7 +3604,6 @@ html[data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] #sledge-dock {
     outline-offset: 3px;
 }
 
-/* Active/toggled state */
 .dock-btn.dock-active {
     background: rgba(var(--dock-accent-rgb), 0.18);
     color: #ffffff;
@@ -3564,23 +3628,23 @@ html[data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] #sledge-dock {
 #dock-theme-popup,
 #dock-effects-popup {
     position: absolute;
+    right: 0;
     bottom: calc(100% + 12px);
-    left: 50%;
-    transform: translateX(-50%) translateY(8px) scale(0.97);
+    width: 280px;
+    min-width: 250px;
+    max-height: min(72vh, 540px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(var(--dock-accent-rgb), 0.4) transparent;
+    padding: 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(var(--dock-accent-rgb), 0.3);
     background:
         linear-gradient(150deg, rgba(var(--dock-accent-rgb), 0.12) 0%, transparent 55%),
         var(--dock-surface);
     backdrop-filter: blur(22px) saturate(180%);
     -webkit-backdrop-filter: blur(22px) saturate(180%);
-    border: 1px solid rgba(var(--dock-accent-rgb), 0.3);
-    border-radius: 20px;
-    padding: 14px;
-    min-width: 232px;
-    max-height: min(70vh, 520px);
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(var(--dock-accent-rgb), 0.4) transparent;
     box-shadow:
         0 20px 50px rgba(0, 0, 0, 0.55),
         0 4px 16px rgba(0, 0, 0, 0.3),
@@ -3588,6 +3652,8 @@ html[data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] #sledge-dock {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
+    transform: translateY(8px) scale(0.97);
+    transform-origin: bottom right;
     transition:
         opacity 0.2s ease,
         transform 0.2s cubic-bezier(0.34, 1.4, 0.64, 1),
@@ -3596,7 +3662,11 @@ html[data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] #sledge-dock {
 }
 
 #dock-effects-popup {
-    min-width: 228px;
+    width: 310px;
+    min-width: 280px;
+    /* Fits every toggle, the intensity presets and Clear all on a normal
+       desktop window. Shorter windows still scroll inside the panel. */
+    max-height: min(84vh, 640px);
 }
 
 #dock-theme-popup.open,
@@ -3604,7 +3674,7 @@ html[data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] #sledge-dock {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
-    transform: translateX(-50%) translateY(0) scale(1);
+    transform: translateY(0) scale(1);
     transition:
         opacity 0.2s ease,
         transform 0.2s cubic-bezier(0.34, 1.4, 0.64, 1),
@@ -3616,13 +3686,13 @@ html[data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] #sledge-dock {
     display: flex;
     align-items: center;
     gap: 7px;
+    margin-bottom: 10px;
+    padding: 0 4px;
+    color: rgba(255, 255, 255, 0.45);
     font-size: 0.68rem;
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.45);
-    margin-bottom: 10px;
-    padding: 0 4px;
 }
 
 #dock-theme-popup h4 i,
@@ -3641,6 +3711,7 @@ html[data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] #sledge-dock {
     display: flex;
     align-items: center;
     gap: 10px;
+    width: 100%;
     padding: 9px 12px;
     border-radius: 12px;
     border: 1px solid transparent;
@@ -3649,10 +3720,9 @@ html[data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] #sledge-dock {
     font-family: 'Inter', sans-serif;
     font-size: 0.8rem;
     font-weight: 500;
+    text-align: left;
     cursor: pointer;
     transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
-    text-align: left;
-    width: 100%;
 }
 
 .dock-theme-item:hover {
@@ -3686,10 +3756,10 @@ html[data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] #sledge-dock {
 .dock-theme-swatch {
     width: 20px;
     height: 20px;
+    flex-shrink: 0;
     border-radius: 50%;
     border: 2px solid rgba(255, 255, 255, 0.16);
     box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
-    flex-shrink: 0;
 }
 
 /* Swatches mirror the real theme palettes */
@@ -3700,17 +3770,55 @@ html[data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] #sledge-dock {
 .swatch-kyoka { background: linear-gradient(135deg, #9333ea 0%, #312e81 52%, #1e1b4b 100%); }
 .swatch-tensa { background: linear-gradient(135deg, #ef4444 0%, #18181b 52%, #7f1d1d 100%); }
 
-/* Effects list */
+/* Effects popup content */
+#dock-effects-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.dock-effect-section {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.dock-effect-section:last-of-type {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+
+.dock-effect-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 1px 8px 3px;
+    color: rgba(255, 255, 255, 0.38);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.dock-effect-heading em {
+    font-style: normal;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+    opacity: 0.8;
+}
+
 .dock-effect-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    padding: 9px 12px;
-    border-radius: 12px;
+    padding: 5px 10px;
+    border-radius: 11px;
     border: 1px solid transparent;
-    background: transparent;
-    margin-bottom: 3px;
     transition: background 0.15s ease;
 }
 
@@ -3724,19 +3832,18 @@ html[data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] #sledge-dock {
     gap: 8px;
     color: rgba(255, 255, 255, 0.78);
     font-family: 'Inter', sans-serif;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 500;
 }
 
 .dock-effect-label i {
-    font-size: 0.85rem;
     width: 16px;
-    text-align: center;
     color: var(--dock-accent);
+    font-size: 0.82rem;
+    text-align: center;
     opacity: 0.85;
 }
 
-/* Toggle switch */
 .dock-toggle {
     position: relative;
     width: 36px;
@@ -3745,16 +3852,26 @@ html[data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] #sledge-dock {
 }
 
 .dock-toggle input {
+    /* Visually hidden but still exposed to screen readers and keyboard users.
+       The wrapping label makes the whole switch clickable. */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
     opacity: 0;
-    width: 0;
-    height: 0;
 }
 
 .dock-toggle-slider {
     position: absolute;
     inset: 0;
-    background: rgba(255, 255, 255, 0.16);
     border-radius: 999px;
+    background: rgba(255, 255, 255, 0.16);
     cursor: pointer;
     transition: background 0.2s ease, opacity 0.2s ease;
 }
@@ -3762,12 +3879,12 @@ html[data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] #sledge-dock {
 .dock-toggle-slider::before {
     content: '';
     position: absolute;
-    height: 14px;
-    width: 14px;
     left: 3px;
     bottom: 3px;
-    background: rgba(255, 255, 255, 0.85);
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
+    background: rgba(255, 255, 255, 0.85);
     transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease;
 }
 
@@ -3796,39 +3913,114 @@ html[data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] #sledge-dock {
 
 /* Contextual note (quiet mode / reduced motion) */
 .dock-effects-note {
+    margin: 0 0 4px;
     padding: 8px 11px;
-    margin: 0 0 8px;
     border-radius: 10px;
-    background: rgba(var(--dock-accent-rgb), 0.1);
     border: 1px solid rgba(var(--dock-accent-rgb), 0.2);
+    background: rgba(var(--dock-accent-rgb), 0.1);
     color: rgba(255, 255, 255, 0.68);
     font-size: 0.72rem;
     line-height: 1.4;
 }
 
-/* Hidden effect rows must stay hidden (author display rules win over [hidden]) */
 #dock-theme-popup [hidden],
 #dock-effects-popup [hidden] {
     display: none !important;
 }
 
-/* No-effects-message when theme doesn't have theme-specific effects */
-.dock-effects-empty {
-    padding: 8px 12px;
-    color: rgba(255, 255, 255, 0.38);
+/* Intensity selector */
+.dock-intensity-block {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-top: 2px;
+}
+
+.dock-intensity {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    padding: 3px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.28);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dock-intensity button {
+    padding: 6px 4px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.55);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.dock-intensity button:hover {
+    color: #ffffff;
+}
+
+.dock-intensity button[aria-checked="true"] {
+    background: rgba(var(--dock-accent-rgb), 0.24);
+    color: #ffffff;
+    box-shadow: inset 0 0 0 1px rgba(var(--dock-accent-rgb), 0.38);
+}
+
+.dock-intensity button:focus-visible {
+    outline: 2px solid var(--dock-accent);
+    outline-offset: 1px;
+}
+
+.dock-clear-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    width: 100%;
+    margin-top: 2px;
+    padding: 9px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.62);
+    font-family: 'Inter', sans-serif;
     font-size: 0.75rem;
-    font-style: italic;
-    text-align: center;
-    line-height: 1.4;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+
+.dock-clear-btn:hover {
+    border-color: rgba(239, 68, 68, 0.42);
+    background: rgba(239, 68, 68, 0.12);
+    color: #fca5a5;
+}
+
+.dock-clear-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.dock-clear-btn:focus-visible {
+    outline: 2px solid var(--dock-accent);
+    outline-offset: 2px;
 }
 
 /* ---------------------------------------------------
-   QUIET MODE / CHARACTER TOGGLE
-   Hide only decorative layers. Educational content, nav,
-   links, downloads and the dock itself are never hidden.
+   QUIET MODE / DECORATIVE LAYERS
+   Only decorative layers are hidden. Content, navigation,
+   links, downloads and the dock itself stay visible.
    --------------------------------------------------- */
-body.quiet-mode #sakura-canvas {
+body.quiet-mode #sakura-canvas,
+body.quiet-mode #cursor-trail-canvas {
     display: none !important;
+}
+
+body.quiet-mode #blood-rain-aura {
+    opacity: 0 !important;
 }
 
 body.quiet-mode #bee-container,
@@ -3842,16 +4034,28 @@ body.quiet-mode #tensa-moon {
     pointer-events: none !important;
 }
 
-body.quiet-mode #tensa-slash-overlay {
-    display: none !important;
-}
-
-/* Dock is NEVER hidden in quiet mode */
-body.quiet-mode #sledge-dock {
+body.quiet-mode #sledge-dock,
+body.quiet-mode #dock-toggle {
     opacity: 1 !important;
 }
 
-/* Give the fixed dock clearance over the footer */
+/* Ambient crimson light while blood rain is running */
+body.blood-rain-on #blood-rain-aura {
+    opacity: 1;
+}
+
+#blood-rain-aura {
+    position: fixed;
+    inset: 0;
+    z-index: 996;
+    pointer-events: none;
+    opacity: 0;
+    background:
+        radial-gradient(ellipse at 50% 118%, rgba(124, 0, 18, 0.34), rgba(124, 0, 18, 0.08) 42%, transparent 68%);
+    transition: opacity 0.6s ease;
+}
+
+/* Footer clearance so the circle never covers footer links */
 .footer {
     padding-bottom: 64px;
 }
@@ -3860,14 +4064,18 @@ body.quiet-mode #sledge-dock {
    DOCK RESPONSIVE
    --------------------------------------------------- */
 @media (max-width: 640px) {
+    #dock-shell {
+        right: calc(18px + env(safe-area-inset-right, 0px));
+        bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    }
+
     #sledge-dock {
-        bottom: calc(14px + env(safe-area-inset-bottom, 0px));
-        padding: 6px 8px;
-        gap: 2px;
+        max-width: calc(100vw - 88px);
+        padding: 5px;
     }
 
     .dock-btn {
-        padding: 8px 10px;
+        padding: 9px 10px;
     }
 
     .dock-btn i {
@@ -3878,34 +4086,34 @@ body.quiet-mode #sledge-dock {
         display: none;
     }
 
-    .dock-sep {
-        height: 22px;
-        margin: 0 1px;
-    }
-
+    /* Popovers stay anchored to the expanded bar. Do not use position: fixed
+       here: the dock's backdrop-filter creates a containing block for fixed
+       descendants, which would push the sheet off the left edge. */
     #dock-theme-popup,
     #dock-effects-popup {
-        width: min(340px, calc(100vw - 24px));
+        right: 0;
+        bottom: calc(100% + 12px);
+        width: min(300px, calc(100vw - 36px));
         min-width: 0;
-        max-height: min(65vh, 460px);
-        left: 50%;
-        right: auto;
-        transform: translateX(-50%) translateY(8px) scale(0.97);
-    }
-
-    #dock-theme-popup.open,
-    #dock-effects-popup.open {
-        transform: translateX(-50%) translateY(0) scale(1);
+        max-height: min(76vh, 640px);
+        transform-origin: bottom right;
+        /* Phone browsers drop backdrop-filter more often than not, so make the
+           sheet nearly opaque here; the accent gradient and border keep the
+           theme tint. */
+        background:
+            linear-gradient(150deg, rgba(var(--dock-accent-rgb), 0.12) 0%, transparent 55%),
+            rgba(9, 9, 13, 0.97);
     }
 
     .footer {
-        padding-bottom: 72px;
+        padding-bottom: 76px;
     }
 
     .toast-container {
         left: 16px;
         right: 16px;
-        bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+        top: calc(var(--nav-height) + 12px + env(safe-area-inset-top, 0px));
+        bottom: auto;
         align-items: stretch;
     }
 
@@ -3919,12 +4127,18 @@ body.quiet-mode #sledge-dock {
    REDUCED MOTION
    --------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
+    #dock-shell,
+    .dock-toggle-btn,
+    .dock-toggle-btn i,
+    .dock-toggle-pulse,
     #sledge-dock,
     .dock-btn,
     .dock-btn i,
     .dock-theme-item,
     .dock-toggle-slider,
     .dock-toggle-slider::before,
+    .dock-intensity button,
+    #blood-rain-aura,
     #dock-theme-popup,
     #dock-effects-popup {
         animation: none !important;
@@ -3933,7 +4147,8 @@ body.quiet-mode #sledge-dock {
 
     .dock-btn:hover,
     .dock-btn:hover i,
-    .dock-btn:active {
+    .dock-toggle-btn:hover,
+    .dock-toggle-btn:active {
         transform: none !important;
     }
 
@@ -3944,10 +4159,6 @@ body.quiet-mode #sledge-dock {
     #tensa-moon,
     #tensa-moon .moon-crescent {
         animation: none !important;
-    }
-
-    #tensa-slash-overlay {
-        display: none !important;
     }
 }
 
@@ -4119,7 +4330,8 @@ body.quiet-mode #sledge-dock {
 /* ---------------------------------------------------
    SAKURA FALLING PETALS CANVAS (SENBONZAKURA)
    --------------------------------------------------- */
-.sakura-canvas {
+.sakura-canvas,
+.cursor-trail-canvas {
     position: fixed;
     top: 0;
     left: 0;
@@ -4127,6 +4339,10 @@ body.quiet-mode #sledge-dock {
     height: 100vh;
     pointer-events: none;
     z-index: 997;
+}
+
+.cursor-trail-canvas {
+    z-index: 998;
 }
 
 /* ===================================================
@@ -4312,4 +4528,46 @@ body.quiet-mode #sledge-dock {
 
 .faq-item:not(.active) .faq-answer {
     display: none;
+}
+/* ===== THEME ZANPAKUTO CURSORS ===== */
+
+html {
+    --zan-cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj48cGF0aCBkPSJNMyAzIEw4IDUgTDI5IDI2IEwyNiAyOSBMNSA4IFoiIGZpbGw9IiMxZDRlZDgiIHN0cm9rZT0iI2JmZGJmZSIgc3Ryb2tlLXdpZHRoPSIxLjYiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48cGF0aCBkPSJNNyAxMCBMNCAxMyIgc3Ryb2tlPSIjZTBmMmZlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxjaXJjbGUgY3g9IjI2IiBjeT0iMjYiIHI9IjIuMiIgZmlsbD0iIzYwYTVmYSIvPjwvc3ZnPg==") 3 3, auto;
+}
+
+html[data-zanpakuto="getsuga-tensho"] {
+    --zan-cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj48cGF0aCBkPSJNMyAzIEwxMyA1IEwyOSAyNCBMMjUgMjkgTDUgNiBaIiBmaWxsPSIjMDkwOTBiIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PHBhdGggZD0iTTEwIDQgUTIwIDggMjcgMjAiIHN0cm9rZT0iI2Y4ZmFmYyIgc3Ryb2tlLXdpZHRoPSIxLjQiIGZpbGw9Im5vbmUiLz48L3N2Zz4=") 3 3, auto;
+}
+
+html[data-zanpakuto="nozarashi"] {
+    --zan-cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj48cGF0aCBkPSJNMyAzIEwxNSA2IEwyOCAxOSBMMjMgMjQgTDggMTEgWiIgZmlsbD0iI2VhYjMwOCIgc3Ryb2tlPSIjMTgxODFiIiBzdHJva2Utd2lkdGg9IjEuOCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxwYXRoIGQ9Ik0xNCA3IEwxOCAxMSIgc3Ryb2tlPSIjMTgxODFiIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxjaXJjbGUgY3g9IjI2IiBjeT0iMjYiIHI9IjEuOCIgZmlsbD0iI2ZkZTA0NyIvPjwvc3ZnPg==") 3 3, auto;
+}
+
+html[data-zanpakuto="senbonzakura"] {
+    --zan-cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj48cGF0aCBkPSJNMyAzIEw3IDQuNSBMMjkgMjUgTDI2IDI5IEw1IDcgWiIgZmlsbD0iI2VjNDg5OSIgc3Ryb2tlPSIjZmJjZmU4IiBzdHJva2Utd2lkdGg9IjEuNiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxjaXJjbGUgY3g9IjI0IiBjeT0iOCIgcj0iMi41IiBmaWxsPSIjZjlhOGQ0Ii8+PGNpcmNsZSBjeD0iMjciIGN5PSIxMyIgcj0iMS41IiBmaWxsPSIjZmJjZmU4Ii8+PC9zdmc+") 3 3, auto;
+}
+
+html[data-zanpakuto="kyoka-suigetsu"] {
+    --zan-cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj48cGF0aCBkPSJNMyAzIEwxMSA2IEwyOCAyMyBMMjQgMjggTDUgMTAgWiIgZmlsbD0iIzdjM2FlZCIgc3Ryb2tlPSIjZTlkNWZmIiBzdHJva2Utd2lkdGg9IjEuNiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxjaXJjbGUgY3g9IjI1IiBjeT0iMjUiIHI9IjMuNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYzA4NGZjIiBzdHJva2Utd2lkdGg9IjEuOCIvPjwvc3ZnPg==") 3 3, auto;
+}
+
+html[data-zanpakuto="tensa-zangetsu"] {
+    --zan-cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj48cGF0aCBkPSJNMyAzIEw2LjUgNC41IEwyOSAyNiBMMjYgMjkgTDQuNSA3IFoiIGZpbGw9IiMwOTA5MGIiIHN0cm9rZT0iI2VmNDQ0NCIgc3Ryb2tlLXdpZHRoPSIxLjciIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48cGF0aCBkPSJNNiA5IEw5IDYiIHN0cm9rZT0iI2ZlY2FjYSIgc3Ryb2tlLXdpZHRoPSIxLjYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxjaXJjbGUgY3g9IjI2IiBjeT0iMjYiIHI9IjEuOCIgZmlsbD0iI2VmNDQ0NCIvPjwvc3ZnPg==") 3 3, auto;
+}
+
+html body,
+html body * {
+    cursor: var(--zan-cursor) !important;
+}
+
+html body input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+html body textarea,
+html body select,
+html body [contenteditable="true"] {
+    cursor: text !important;
+}
+
+html body [disabled],
+html body button:disabled {
+    cursor: not-allowed !important;
 }

@@ -161,7 +161,7 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="styles.css?v=12">
+    <link rel="stylesheet" href="styles.css?v=13">
     <link rel="stylesheet" href="now-playing-widget.css?v=4">
 </head>
 
@@ -892,7 +892,7 @@
 
                 <div class="bleach-actions" id="bleach-actions-row">
                     <button class="btn btn-primary bleach-btn-yes" id="bleach-gate-yes">
-                        <i class="fas fa-fire"></i> Yes! Bleach is Peak 🔥
+                        <i class="fas fa-fire" aria-hidden="true"></i> Yes! Bleach is Peak 🔥
                     </button>
                     <button class="btn btn-outline bleach-btn-no" id="bleach-gate-no">
                         <i class="fas fa-skull-crossbones"></i> No, One Piece is better 👒
@@ -903,146 +903,216 @@
     </div>
 
 
-    <!-- Canvas for Senbonzakura Falling Sakura Petals & Leaves -->
-    <canvas id="sakura-canvas" class="sakura-canvas hidden"></canvas>
+    <!-- Decorative particle layers -->
+    <div id="blood-rain-aura" aria-hidden="true"></div>
+    <canvas id="sakura-canvas" class="sakura-canvas hidden" aria-hidden="true"></canvas>
+    <canvas id="cursor-trail-canvas" class="cursor-trail-canvas hidden" aria-hidden="true"></canvas>
 
     <!-- ===== TENSA ZANGETSU MOON ===== -->
     <div id="tensa-moon" role="button" tabindex="0" aria-label="Tensa Zangetsu Moon — click to activate Blood Moon" title="Tensō Zangetsu — Click to awaken Blood Moon">
         <div class="moon-crescent"></div>
     </div>
-    <div id="tensa-slash-overlay" aria-hidden="true"></div>
 
-    <!-- ===== FLOATING DOCK ===== -->
-    <nav id="sledge-dock" aria-label="Quick controls dock">
-        <!-- Theme popup (anchored to dock) -->
-        <div id="dock-theme-popup" role="dialog" aria-label="Choose theme" aria-hidden="true" inert>
-            <h4><i class="fas fa-palette"></i>Choose Theme</h4>
-            <div class="dock-theme-list" role="group" aria-label="Available themes">
-                <button class="dock-theme-item" type="button" data-dock-theme="default" id="dock-t-default">
-                    <span class="dock-theme-swatch swatch-default" aria-hidden="true"></span>
-                    <span>Sledge Default</span>
-                    <i class="fas fa-check dock-check" aria-hidden="true"></i>
+    <!-- ===== FLOATING QUICK-CONTROLS DOCK ===== -->
+    <div id="dock-shell">
+        <button class="dock-toggle-btn" type="button" id="dock-toggle"
+            aria-label="Open quick controls" aria-expanded="false" aria-controls="sledge-dock"
+            title="Open quick controls">
+            <i class="fas fa-bolt" aria-hidden="true"></i>
+            <span class="dock-toggle-pulse" aria-hidden="true"></span>
+        </button>
+
+        <nav id="sledge-dock" aria-label="Quick controls dock" aria-hidden="true" inert>
+            <!-- Theme popup (anchored to dock) -->
+            <div id="dock-theme-popup" role="dialog" aria-label="Choose theme" aria-hidden="true" inert>
+                <h4><i class="fas fa-palette"></i>Choose Theme</h4>
+                <div class="dock-theme-list" role="group" aria-label="Available themes">
+                    <button class="dock-theme-item" type="button" data-dock-theme="default" id="dock-t-default">
+                        <span class="dock-theme-swatch swatch-default" aria-hidden="true"></span>
+                        <span>Sledge Default</span>
+                        <i class="fas fa-check dock-check" aria-hidden="true"></i>
+                    </button>
+                    <button class="dock-theme-item" type="button" data-dock-theme="getsuga-tensho" id="dock-t-getsuga">
+                        <span class="dock-theme-swatch swatch-getsuga" aria-hidden="true"></span>
+                        <span>Getsuga Tensho</span>
+                        <i class="fas fa-check dock-check" aria-hidden="true"></i>
+                    </button>
+                    <button class="dock-theme-item" type="button" data-dock-theme="nozarashi" id="dock-t-nozarashi">
+                        <span class="dock-theme-swatch swatch-nozarashi" aria-hidden="true"></span>
+                        <span>Nozarashi</span>
+                        <i class="fas fa-check dock-check" aria-hidden="true"></i>
+                    </button>
+                    <button class="dock-theme-item" type="button" data-dock-theme="senbonzakura" id="dock-t-senbonzakura">
+                        <span class="dock-theme-swatch swatch-senbonzakura" aria-hidden="true"></span>
+                        <span>Senbonzakura</span>
+                        <i class="fas fa-check dock-check" aria-hidden="true"></i>
+                    </button>
+                    <button class="dock-theme-item" type="button" data-dock-theme="kyoka-suigetsu" id="dock-t-kyoka">
+                        <span class="dock-theme-swatch swatch-kyoka" aria-hidden="true"></span>
+                        <span>Kyoka Suigetsu</span>
+                        <i class="fas fa-check dock-check" aria-hidden="true"></i>
+                    </button>
+                    <button class="dock-theme-item" type="button" data-dock-theme="tensa-zangetsu" id="dock-t-tensa">
+                        <span class="dock-theme-swatch swatch-tensa" aria-hidden="true"></span>
+                        <span>Tensa Zangetsu</span>
+                        <i class="fas fa-check dock-check" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Effects popup (anchored to dock) -->
+            <div id="dock-effects-popup" role="dialog" aria-label="Visual effects" aria-hidden="true" inert>
+                <h4><i class="fas fa-sparkles"></i>Visual Effects</h4>
+                <div id="dock-effects-list">
+                    <div class="dock-effects-note" id="dock-effects-note" hidden></div>
+
+                    <div class="dock-effect-section">
+                        <span class="dock-effect-heading">Particles <em>one at a time</em></span>
+
+                        <div class="dock-effect-row">
+                            <label class="dock-effect-label" for="toggle-rain">
+                                <i class="fas fa-cloud-rain" aria-hidden="true"></i> Blood Rain
+                            </label>
+                            <label class="dock-toggle">
+                                <input type="checkbox" id="toggle-rain">
+                                <span class="dock-toggle-slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="dock-effect-row">
+                            <label class="dock-effect-label" for="toggle-gold">
+                                <i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i> Gold Dust
+                            </label>
+                            <label class="dock-toggle">
+                                <input type="checkbox" id="toggle-gold">
+                                <span class="dock-toggle-slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="dock-effect-row">
+                            <label class="dock-effect-label" for="toggle-sakura">
+                                <i class="fas fa-fan" aria-hidden="true"></i> Sakura Petals
+                            </label>
+                            <label class="dock-toggle">
+                                <input type="checkbox" id="toggle-sakura">
+                                <span class="dock-toggle-slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="dock-effect-row">
+                            <label class="dock-effect-label" for="toggle-fire">
+                                <i class="fas fa-fire" aria-hidden="true"></i> Nozarashi Flames
+                            </label>
+                            <label class="dock-toggle">
+                                <input type="checkbox" id="toggle-fire">
+                                <span class="dock-toggle-slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="dock-effect-row">
+                            <label class="dock-effect-label" for="toggle-reiatsu">
+                                <i class="fas fa-bolt" aria-hidden="true"></i> Reiatsu Embers
+                            </label>
+                            <label class="dock-toggle">
+                                <input type="checkbox" id="toggle-reiatsu">
+                                <span class="dock-toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="dock-effect-section">
+                        <span class="dock-effect-heading">Comfort</span>
+
+                        <div class="dock-effect-row" id="effect-row-cursor">
+                            <label class="dock-effect-label" for="toggle-cursor">
+                                <i class="fas fa-arrow-pointer" aria-hidden="true"></i> Cursor Trail
+                            </label>
+                            <label class="dock-toggle">
+                                <input type="checkbox" id="toggle-cursor">
+                                <span class="dock-toggle-slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="dock-effect-row">
+                            <label class="dock-effect-label" for="toggle-reduced">
+                                <i class="fas fa-circle-pause" aria-hidden="true"></i> Reduced motion
+                            </label>
+                            <label class="dock-toggle">
+                                <input type="checkbox" id="toggle-reduced">
+                                <span class="dock-toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="dock-effect-section">
+                        <span class="dock-effect-heading">Theme extras</span>
+
+                        <div class="dock-effect-row" id="effect-row-bloodmoon" hidden>
+                            <label class="dock-effect-label" for="toggle-bloodmoon">
+                                <i class="fas fa-moon" aria-hidden="true"></i> Blood Moon Mode
+                            </label>
+                            <label class="dock-toggle">
+                                <input type="checkbox" id="toggle-bloodmoon">
+                                <span class="dock-toggle-slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="dock-effect-row" id="effect-row-chars">
+                            <label class="dock-effect-label" for="toggle-chars">
+                                <i class="fas fa-ghost" aria-hidden="true"></i> Character Pop-ups
+                            </label>
+                            <label class="dock-toggle">
+                                <input type="checkbox" id="toggle-chars" checked>
+                                <span class="dock-toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="dock-intensity-block">
+                        <span class="dock-effect-heading" id="dock-intensity-label">Particle intensity</span>
+                        <div class="dock-intensity" role="radiogroup" aria-labelledby="dock-intensity-label">
+                            <button type="button" role="radio" aria-checked="false" data-intensity="subtle">Subtle</button>
+                            <button type="button" role="radio" aria-checked="true" data-intensity="medium">Medium</button>
+                            <button type="button" role="radio" aria-checked="false" data-intensity="intense">Intense</button>
+                        </div>
+                    </div>
+
+                    <button type="button" id="dock-clear-effects" class="dock-clear-btn">
+                        <i class="fas fa-broom" aria-hidden="true"></i> Clear all effects
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dock actions -->
+            <div class="dock-actions">
+                <button class="dock-btn" type="button" id="dock-themes" aria-label="Change theme" aria-haspopup="dialog"
+                    aria-controls="dock-theme-popup" aria-expanded="false" title="Change theme">
+                    <i class="fas fa-palette" aria-hidden="true"></i>
+                    <span class="dock-label">Themes</span>
                 </button>
-                <button class="dock-theme-item" type="button" data-dock-theme="getsuga-tensho" id="dock-t-getsuga">
-                    <span class="dock-theme-swatch swatch-getsuga" aria-hidden="true"></span>
-                    <span>Getsuga Tensho</span>
-                    <i class="fas fa-check dock-check" aria-hidden="true"></i>
+
+                <button class="dock-btn" type="button" id="dock-effects" aria-label="Visual effects" aria-haspopup="dialog"
+                    aria-controls="dock-effects-popup" aria-expanded="false" title="Visual effects">
+                    <i class="fas fa-sparkles" aria-hidden="true"></i>
+                    <span class="dock-label">Effects</span>
                 </button>
-                <button class="dock-theme-item" type="button" data-dock-theme="nozarashi" id="dock-t-nozarashi">
-                    <span class="dock-theme-swatch swatch-nozarashi" aria-hidden="true"></span>
-                    <span>Nozarashi</span>
-                    <i class="fas fa-check dock-check" aria-hidden="true"></i>
+
+                <button class="dock-btn" type="button" id="dock-music" aria-label="Show or hide music pop-up"
+                    aria-haspopup="dialog" aria-controls="now-playing-widget" aria-pressed="false"
+                    title="Show or hide music pop-up">
+                    <i class="fas fa-music" aria-hidden="true"></i>
+                    <span class="dock-label">Music</span>
                 </button>
-                <button class="dock-theme-item" type="button" data-dock-theme="senbonzakura" id="dock-t-senbonzakura">
-                    <span class="dock-theme-swatch swatch-senbonzakura" aria-hidden="true"></span>
-                    <span>Senbonzakura</span>
-                    <i class="fas fa-check dock-check" aria-hidden="true"></i>
-                </button>
-                <button class="dock-theme-item" type="button" data-dock-theme="kyoka-suigetsu" id="dock-t-kyoka">
-                    <span class="dock-theme-swatch swatch-kyoka" aria-hidden="true"></span>
-                    <span>Kyoka Suigetsu</span>
-                    <i class="fas fa-check dock-check" aria-hidden="true"></i>
-                </button>
-                <button class="dock-theme-item" type="button" data-dock-theme="tensa-zangetsu" id="dock-t-tensa">
-                    <span class="dock-theme-swatch swatch-tensa" aria-hidden="true"></span>
-                    <span>Tensa Zangetsu</span>
-                    <i class="fas fa-check dock-check" aria-hidden="true"></i>
+
+                <button class="dock-btn" type="button" id="dock-quiet"
+                    aria-label="Quiet mode: hide decorative pop-ups and effects" aria-pressed="false"
+                    title="Quiet mode: hide decorative pop-ups and effects">
+                    <i class="fas fa-eye-slash" aria-hidden="true"></i>
+                    <span class="dock-label">Quiet</span>
                 </button>
             </div>
-        </div>
-
-        <!-- Effects popup (anchored to dock) -->
-        <div id="dock-effects-popup" role="dialog" aria-label="Visual effects" aria-hidden="true" inert>
-            <h4><i class="fas fa-sparkles"></i>Visual Effects</h4>
-            <div id="dock-effects-list">
-                <!-- Note is populated by JS (quiet mode / reduced motion) -->
-                <div class="dock-effects-note" id="dock-effects-note" hidden></div>
-                <!-- Nozarashi flames row - shown only when nozarashi is active -->
-                <div class="dock-effect-row" id="effect-row-fire" hidden>
-                    <label class="dock-effect-label" for="toggle-fire">
-                        <i class="fas fa-fire"></i> Nozarashi Flames
-                    </label>
-                    <label class="dock-toggle">
-                        <input type="checkbox" id="toggle-fire" checked>
-                        <span class="dock-toggle-slider"></span>
-                    </label>
-                </div>
-                <!-- Sakura petals row - shown only when senbonzakura is active -->
-                <div class="dock-effect-row" id="effect-row-sakura" hidden>
-                    <label class="dock-effect-label" for="toggle-sakura">
-                        <i class="fas fa-fan"></i> Sakura Petals
-                    </label>
-                    <label class="dock-toggle">
-                        <input type="checkbox" id="toggle-sakura" checked>
-                        <span class="dock-toggle-slider"></span>
-                    </label>
-                </div>
-                <!-- Bankai Reiatsu Embers row — shown only when tensa-zangetsu is active -->
-                <div class="dock-effect-row" id="effect-row-reiatsu" hidden>
-                    <label class="dock-effect-label" for="toggle-reiatsu">
-                        <i class="fas fa-fire"></i> Reiatsu Embers
-                    </label>
-                    <label class="dock-toggle">
-                        <input type="checkbox" id="toggle-reiatsu" checked>
-                        <span class="dock-toggle-slider"></span>
-                    </label>
-                </div>
-                <!-- Blood Moon toggle row — shown only when tensa-zangetsu is active -->
-                <div class="dock-effect-row" id="effect-row-bloodmoon" hidden>
-                    <label class="dock-effect-label" for="toggle-bloodmoon">
-                        <i class="fas fa-moon"></i> Blood Moon Mode
-                    </label>
-                    <label class="dock-toggle">
-                        <input type="checkbox" id="toggle-bloodmoon">
-                        <span class="dock-toggle-slider"></span>
-                    </label>
-                </div>
-                <!-- Character pop-ups row -->
-                <div class="dock-effect-row" id="effect-row-chars">
-                    <label class="dock-effect-label" for="toggle-chars">
-                        <i class="fas fa-ghost"></i> Character Pop-ups
-                    </label>
-                    <label class="dock-toggle">
-                        <input type="checkbox" id="toggle-chars" checked>
-                        <span class="dock-toggle-slider"></span>
-                    </label>
-                </div>
-                <div class="dock-effects-empty" id="dock-effects-empty" hidden>No theme-specific effects for this theme.</div>
-            </div>
-        </div>
-
-        <!-- Dock buttons -->
-        <button class="dock-btn" type="button" id="dock-themes" aria-label="Change theme" aria-haspopup="dialog"
-            aria-controls="dock-theme-popup" aria-expanded="false" title="Change theme">
-            <i class="fas fa-palette" aria-hidden="true"></i>
-            <span class="dock-label">Themes</span>
-        </button>
-
-        <div class="dock-sep" role="separator" aria-hidden="true"></div>
-
-        <button class="dock-btn" type="button" id="dock-effects" aria-label="Visual effects" aria-haspopup="dialog"
-            aria-controls="dock-effects-popup" aria-expanded="false" title="Visual effects">
-            <i class="fas fa-sparkles" aria-hidden="true"></i>
-            <span class="dock-label">Effects</span>
-        </button>
-
-        <div class="dock-sep" role="separator" aria-hidden="true"></div>
-
-        <button class="dock-btn" type="button" id="dock-music" aria-label="Show or hide music pop-up"
-            aria-haspopup="dialog" aria-controls="now-playing-widget" aria-pressed="false" title="Show or hide music pop-up">
-            <i class="fas fa-music" aria-hidden="true"></i>
-            <span class="dock-label">Music</span>
-        </button>
-
-        <div class="dock-sep" role="separator" aria-hidden="true"></div>
-
-        <button class="dock-btn" type="button" id="dock-quiet"
-            aria-label="Quiet mode: hide decorative pop-ups and effects" aria-pressed="false"
-            title="Quiet mode: hide decorative pop-ups and effects">
-            <i class="fas fa-eye-slash" aria-hidden="true"></i>
-            <span class="dock-label">Quiet</span>
-        </button>
-    </nav>
+        </nav>
+    </div>
 
     <!-- ===== LOADING OVERLAY ===== -->
     <div class="loading-overlay hidden" id="loading-overlay">
@@ -1100,7 +1170,7 @@
 
     <!-- App Scripts -->
     <script src="firebase-config.js?v=6"></script>
-    <script src="app.js?v=12"></script>
+    <script src="app.js?v=13"></script>
 
     <!-- ===== NOW PLAYING WIDGET ===== -->
     <script src="now-playing-widget.js?v=4"></script>
