@@ -116,9 +116,16 @@ document.addEventListener('DOMContentLoaded', () => {
     initFaqAccordion();
     initCurriculumCards();
     initZanpakutoThemes();
+    initVisualCustomization();
     initBleachGateModal();
     initFloatingDock();
     initTensaMoon();
+    initPktClock();
+    initKeyboardShortcuts();
+    initDownloadNotifications();
+    initScrollExperience();
+    initRevealAnimations();
+    initPremiumInteractions();
 
     // Load initial data from Firestore
     loadAllCourseCards();
@@ -497,7 +504,8 @@ async function loadAllCourseCards() {
 async function renderCourseCards(containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
-    container.innerHTML = '<div class="empty-state"><div class="spinner" style="margin:0 auto;"></div><p style="margin-top:16px;">Loading courses & labs...</p></div>';
+    container.setAttribute('aria-busy', 'true');
+    container.innerHTML = skeletonMarkup(6);
 
     // Fetch counts for Theory courses
     const theoryPromises = COURSES.map(async (course) => {
@@ -522,6 +530,7 @@ async function renderCourseCards(containerId) {
         Promise.all(labPromises),
     ]);
 
+    container.removeAttribute('aria-busy');
     container.innerHTML = '';
 
     const showTheory = currentFilter === 'all' || currentFilter === 'theory';
@@ -825,9 +834,11 @@ async function renderFileList(category) {
     const courseId = currentCourseId;
 
     // Show loading
-    listEl.innerHTML = '<div class="empty-state"><div class="spinner" style="margin:0 auto;"></div><p style="margin-top:12px;">Loading...</p></div>';
+    listEl.setAttribute('aria-busy', 'true');
+    listEl.innerHTML = skeletonMarkup(3, 'row');
 
     const files = await getFilesFromDB(courseId, category);
+    listEl.removeAttribute('aria-busy');
 
     if (files.length === 0) {
         const msg = emptyMessages[category] || { icon: 'fas fa-folder-open', title: 'No Files Yet', desc: 'Uploaded resources will appear here.' };
@@ -1091,7 +1102,8 @@ async function confirmUpload() {
 async function renderLabCards() {
     const container = document.getElementById('labs-grid');
     if (!container) return;
-    container.innerHTML = '<div class="empty-state"><div class="spinner" style="margin:0 auto;"></div><p style="margin-top:12px;">Loading labs...</p></div>';
+    container.setAttribute('aria-busy', 'true');
+    container.innerHTML = skeletonMarkup(3);
 
     const promises = LAB_COURSES.map(async (course) => {
         const counts = await getFileCounts(course.id, 'lab');
@@ -1100,6 +1112,7 @@ async function renderLabCards() {
     });
 
     const results = await Promise.all(promises);
+    container.removeAttribute('aria-busy');
     container.innerHTML = '';
 
     results.forEach(({ course, counts, eventCount }) => {
@@ -1123,6 +1136,7 @@ async function renderLabCards() {
         card.addEventListener('click', () => openCourseDetail(course.id, 'lab', 'labs'));
         container.appendChild(card);
     });
+    container.removeAttribute('aria-busy');
 }
 
 async function openLabDetail(courseId) {
@@ -1331,6 +1345,15 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// Lightweight loading placeholders. These are static elements (no animation
+// loop) and CSS disables the shimmer under reduced motion.
+function skeletonMarkup(count = 6, variant = '') {
+    const cls = variant === 'row' ? 'skeleton-card skeleton-row' : 'skeleton-card';
+    let markup = '';
+    for (let i = 0; i < count; i++) markup += `<div class="${cls}" aria-hidden="true"></div>`;
+    return markup;
 }
 
 // ===== HOME EVENTS =====
@@ -1745,14 +1768,16 @@ function applyThemeSignatureEffect(themeName) {
 // ===== DECORATIVE EFFECT ENGINE =====
 // One canvas particle loop runs at a time so the page never carries several
 // expensive systems at once. Dropping a mode stops the previous loop first.
-const PARTICLE_MODES = ['rain', 'gold', 'sakura', 'nozarashi', 'reiatsu'];
+const PARTICLE_MODES = ['rain', 'gold', 'sakura', 'nozarashi', 'reiatsu', 'starfield'];
+const ATMOSPHERE_MODES = ['aurora', 'mist'];
 const EFFECT_INTENSITIES = ['subtle', 'medium', 'intense'];
 const PARTICLE_COUNTS = {
     rain: { subtle: 40, medium: 85, intense: 145 },
     gold: { subtle: 32, medium: 65, intense: 105 },
     sakura: { subtle: 26, medium: 46, intense: 72 },
     nozarashi: { subtle: 20, medium: 36, intense: 56 },
-    reiatsu: { subtle: 20, medium: 36, intense: 56 }
+    reiatsu: { subtle: 20, medium: 36, intense: 56 },
+    starfield: { subtle: 80, medium: 135, intense: 200 }
 };
 
 let particleMode = null;
@@ -1763,6 +1788,9 @@ let particleWidth = 0;
 let particleHeight = 0;
 let particleList = [];
 let particleLastTime = 0;
+let decorativeLoopsSuspended = false;
+
+const ANIMATION_LEVELS = ['off', 'low', 'medium', 'high'];
 
 function prefersReducedMotion() {
     return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -1772,8 +1800,27 @@ function effectsMotionPaused() {
     return prefersReducedMotion() || localStorage.getItem('effects_reduced_motion') === 'true';
 }
 
+function getAnimationLevel() {
+    const stored = localStorage.getItem('sledge_animation');
+    return ANIMATION_LEVELS.includes(stored) ? stored : 'medium';
+}
+
+function animationScale() {
+    const level = getAnimationLevel();
+    if (level === 'off') return 0;
+    if (level === 'low') return 0.68;
+    if (level === 'high') return 1.22;
+    return 1;
+}
+
 function areDecorativeEffectsAllowed() {
-    return !effectsMotionPaused() && !document.body.classList.contains('quiet-mode');
+    return !effectsMotionPaused()
+        && getAnimationLevel() !== 'off'
+        && !document.body.classList.contains('quiet-mode');
+}
+
+function syncDecorationPauseState() {
+    document.body.classList.toggle('effects-paused', !areDecorativeEffectsAllowed());
 }
 
 function getEffectIntensity() {
@@ -1784,13 +1831,18 @@ function getEffectIntensity() {
 function setEffectIntensity(value, persist = true) {
     if (!EFFECT_INTENSITIES.includes(value)) return;
     if (persist) localStorage.setItem('effect_intensity', value);
+    document.documentElement.style.setProperty(
+        '--ambient-opacity',
+        value === 'intense' ? '0.64' : value === 'subtle' ? '0.28' : '0.46'
+    );
     refreshParticleEffect();
 }
 
 function particleCountFor(mode) {
     const base = PARTICLE_COUNTS[mode][getEffectIntensity()];
     const mobile = window.innerWidth < 640;
-    return Math.max(10, Math.round(base * (mobile ? 0.68 : 1)));
+    const motion = animationScale() || 1;
+    return Math.max(10, Math.round(base * (mobile ? 0.68 : 1) * motion));
 }
 
 function randomBetween(min, max) {
@@ -1866,6 +1918,19 @@ function spawnParticle(mode, initial) {
         };
     }
 
+    if (mode === 'starfield') {
+        return {
+            x: Math.random() * particleWidth,
+            y: Math.random() * particleHeight,
+            size: randomBetween(0.5, 1.8),
+            alpha: randomBetween(0.25, 0.9),
+            phase: Math.random() * Math.PI * 2,
+            twinkle: randomBetween(0.006, 0.022),
+            drift: randomBetween(-0.08, 0.08),
+            bright: Math.random() < 0.11
+        };
+    }
+
     // reiatsu
     return {
         x: Math.random() * particleWidth,
@@ -1892,6 +1957,37 @@ function resizeParticleCanvas() {
     if (!canvas) return;
     particleWidth = canvas.width = window.innerWidth;
     particleHeight = canvas.height = window.innerHeight;
+}
+
+function getAccentRgb() {
+    const value = getComputedStyle(document.documentElement).getPropertyValue('--accent-rgb').trim();
+    return value || '59, 130, 246';
+}
+
+function drawStarfield(dt) {
+    const accent = getAccentRgb();
+    particleCtx.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < particleList.length; i++) {
+        const p = particleList[i];
+        p.phase += p.twinkle * dt;
+        p.x += p.drift * dt;
+        const twinkle = 0.58 + Math.sin(p.phase) * 0.42;
+        const alpha = Math.max(0.12, p.alpha * twinkle);
+        if (p.x < -4) p.x = particleWidth + 4;
+        if (p.x > particleWidth + 4) p.x = -4;
+        particleCtx.fillStyle = p.bright
+            ? `rgba(${accent}, ${alpha})`
+            : `rgba(255, 255, 255, ${alpha * 0.8})`;
+        particleCtx.beginPath();
+        particleCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        particleCtx.fill();
+        if (p.bright) {
+            particleCtx.fillStyle = `rgba(${accent}, ${alpha * 0.22})`;
+            particleCtx.beginPath();
+            particleCtx.arc(p.x, p.y, p.size * 2.6, 0, Math.PI * 2);
+            particleCtx.fill();
+        }
+    }
 }
 
 function drawRain(dt) {
@@ -2078,15 +2174,20 @@ function drawParticles(dt) {
     else if (particleMode === 'sakura') drawSakura(dt);
     else if (particleMode === 'nozarashi') drawFlames(dt);
     else if (particleMode === 'reiatsu') drawReiatsu(dt);
+    else if (particleMode === 'starfield') drawStarfield(dt);
 
     particleCtx.globalCompositeOperation = 'source-over';
 }
 
 function animateParticles(now) {
     if (!particleMode || !particleCtx) return;
+    if (document.hidden || decorativeLoopsSuspended) {
+        particleRafId = null;
+        return;
+    }
     const elapsed = particleLastTime ? now - particleLastTime : 16.667;
     particleLastTime = now;
-    const dt = Math.max(0.25, Math.min(3, elapsed / 16.667));
+    const dt = Math.max(0.25, Math.min(3, elapsed / 16.667)) * (animationScale() || 1);
     drawParticles(dt);
     particleRafId = requestAnimationFrame(animateParticles);
 }
@@ -2129,11 +2230,14 @@ function startParticleLoop(mode) {
     window.addEventListener('resize', particleResizeHandler);
 
     particleLastTime = 0;
-    particleRafId = requestAnimationFrame(animateParticles);
+    if (!decorativeLoopsSuspended && !document.hidden) {
+        particleRafId = requestAnimationFrame(animateParticles);
+    }
 }
 
 function refreshParticleEffect() {
     stopParticleLoop();
+    syncDecorationPauseState();
     if (!particleMode || !areDecorativeEffectsAllowed()) return;
     startParticleLoop(particleMode);
 }
@@ -2165,6 +2269,38 @@ function restoreParticlePreference() {
     }
 }
 
+// ===== ATMOSPHERE LAYER =====
+// Aurora and mist are cheap CSS layers. They are mutually exclusive and can
+// run alongside one particle mode because they do not use a second canvas.
+let atmosphereMode = null;
+
+function getAtmosphereMode() {
+    const stored = localStorage.getItem('effect_atmosphere');
+    return ATMOSPHERE_MODES.includes(stored) ? stored : null;
+}
+
+function applyAtmosphereState() {
+    document.documentElement.setAttribute('data-atmosphere', atmosphereMode || 'none');
+    document.documentElement.style.setProperty(
+        '--ambient-opacity',
+        getEffectIntensity() === 'intense' ? '0.64' : getEffectIntensity() === 'subtle' ? '0.28' : '0.46'
+    );
+    syncDecorationPauseState();
+}
+
+function setAtmosphereMode(mode, persist = true) {
+    atmosphereMode = ATMOSPHERE_MODES.includes(mode) ? mode : null;
+    if (persist) {
+        localStorage.setItem('effect_atmosphere', atmosphereMode || 'none');
+    }
+    applyAtmosphereState();
+}
+
+function restoreAtmospherePreference() {
+    atmosphereMode = getAtmosphereMode();
+    applyAtmosphereState();
+}
+
 // ===== CURSOR TRAIL =====
 let cursorTrailEnabled = localStorage.getItem('effect_cursor_trail') === 'true';
 let cursorTrailRafId = null;
@@ -2187,6 +2323,10 @@ function cursorTrailAccent() {
 function animateCursorTrail(now) {
     const canvas = document.getElementById('cursor-trail-canvas');
     if (!canvas) return;
+    if (document.hidden || decorativeLoopsSuspended) {
+        cursorTrailRafId = null;
+        return;
+    }
     const ctx = canvas.getContext('2d');
     const elapsed = cursorTrailLastTime ? now - cursorTrailLastTime : 16.667;
     cursorTrailLastTime = now;
@@ -2245,6 +2385,7 @@ function animateCursorTrail(now) {
 
 function onCursorTrailMove(event) {
     if (!cursorTrailEnabled || !areDecorativeEffectsAllowed()) return;
+    if (document.hidden || decorativeLoopsSuspended) return;
     if (event.pointerType === 'touch') return;
 
     const canvas = document.getElementById('cursor-trail-canvas');
@@ -2306,6 +2447,7 @@ function stopCursorTrail() {
 
 function refreshCursorTrail() {
     stopCursorTrail();
+    syncDecorationPauseState();
     if (cursorTrailEnabled && areDecorativeEffectsAllowed()) startCursorTrail();
 }
 
@@ -2313,6 +2455,743 @@ function setCursorTrailEnabled(enabled, persist = true) {
     cursorTrailEnabled = !!enabled && isFinePointer();
     if (persist) localStorage.setItem('effect_cursor_trail', String(cursorTrailEnabled));
     refreshCursorTrail();
+}
+
+// ===== DECORATIVE LOOP LIFECYCLE =====
+// rAF loops are cancelled while the tab is hidden and rescheduled on return.
+// Canvas state and the user's effect selections are kept, so nothing restarts
+// from scratch and no duplicate loops are created.
+function suspendDecorativeLoops() {
+    if (decorativeLoopsSuspended) return;
+    decorativeLoopsSuspended = true;
+    document.body.classList.add('effects-suspended');
+    if (particleRafId) {
+        cancelAnimationFrame(particleRafId);
+        particleRafId = null;
+    }
+    if (cursorTrailRafId) {
+        cancelAnimationFrame(cursorTrailRafId);
+        cursorTrailRafId = null;
+    }
+}
+
+function resumeDecorativeLoops() {
+    if (!decorativeLoopsSuspended) return;
+    decorativeLoopsSuspended = false;
+    document.body.classList.remove('effects-suspended');
+    if (particleMode && particleCtx && areDecorativeEffectsAllowed() && !particleRafId) {
+        particleLastTime = 0;
+        particleRafId = requestAnimationFrame(animateParticles);
+    }
+    if (cursorTrailEnabled && areDecorativeEffectsAllowed() && cursorTrailPoints.length && !cursorTrailRafId) {
+        cursorTrailLastTime = 0;
+        cursorTrailRafId = requestAnimationFrame(animateCursorTrail);
+    }
+}
+
+function handlePageVisibility() {
+    if (document.hidden) suspendDecorativeLoops();
+    else resumeDecorativeLoops();
+}
+
+document.addEventListener('visibilitychange', handlePageVisibility);
+window.addEventListener('pagehide', suspendDecorativeLoops);
+window.addEventListener('pageshow', () => {
+    if (!document.hidden) resumeDecorativeLoops();
+});
+
+// Small public facade used by the dock, presets and future effect layers.
+window.__sledgeEffects = {
+    setParticleMode: (mode) => setParticleMode(mode),
+    setIntensity: (value) => setEffectIntensity(value),
+    setCursorTrail: (enabled) => setCursorTrailEnabled(enabled),
+    setAtmosphere: (mode) => setAtmosphereMode(mode),
+    setSpotlight: (enabled) => setSpotlightEnabled(enabled),
+    suspend: suspendDecorativeLoops,
+    resume: resumeDecorativeLoops,
+    getState: () => ({
+        particleMode,
+        intensity: getEffectIntensity(),
+        cursorTrail: cursorTrailEnabled,
+        atmosphere: atmosphereMode,
+        spotlight: spotlightEnabled,
+        suspended: decorativeLoopsSuspended,
+        rafActive: !!particleRafId,
+        cursorRafActive: !!cursorTrailRafId
+    })
+};
+
+// ===== VISITOR CUSTOMIZATION =====
+// These are optional overrides layered on top of the six themes. They never
+// replace the theme system and contain no account or credential data.
+const FONT_STACKS = {
+    site: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    inter: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    poppins: "'Poppins', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    outfit: "'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+};
+
+const CHARACTER_FREQUENCIES = ['off', 'rare', 'normal', 'frequent'];
+
+function normalizeHex(value) {
+    const hex = String(value || '').trim();
+    return /^#[0-9a-f]{6}$/i.test(hex) ? hex : null;
+}
+
+function hexToRgbString(hex) {
+    const normalized = normalizeHex(hex);
+    if (!normalized) return '59, 130, 246';
+    const n = parseInt(normalized.slice(1), 16);
+    return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
+}
+
+function getCustomAccent() {
+    return normalizeHex(localStorage.getItem('sledge_accent'));
+}
+
+function syncAccentVars() {
+    const custom = getCustomAccent();
+    const shell = document.getElementById('dock-shell');
+    let accent = custom;
+    let rgb = custom ? hexToRgbString(custom) : '';
+
+    if (!accent && shell) {
+        const computed = getComputedStyle(shell);
+        accent = computed.getPropertyValue('--dock-accent').trim() || '#3b82f6';
+        rgb = computed.getPropertyValue('--dock-accent-rgb').trim() || hexToRgbString(accent);
+    }
+
+    document.documentElement.style.setProperty('--accent-color', accent || '#3b82f6');
+    document.documentElement.style.setProperty('--accent-rgb', rgb || '59, 130, 246');
+
+    if (custom) {
+        document.documentElement.style.setProperty('--custom-accent', custom);
+        document.documentElement.style.setProperty('--custom-accent-rgb', rgb);
+    } else {
+        document.documentElement.style.removeProperty('--custom-accent');
+        document.documentElement.style.removeProperty('--custom-accent-rgb');
+    }
+}
+
+function applyAccentSetting(value, persist = true) {
+    const custom = normalizeHex(value);
+    if (custom) {
+        document.documentElement.setAttribute('data-custom-accent', 'true');
+        document.documentElement.style.setProperty('--custom-accent', custom);
+        document.documentElement.style.setProperty('--custom-accent-rgb', hexToRgbString(custom));
+        if (persist) localStorage.setItem('sledge_accent', custom);
+    } else {
+        document.documentElement.removeAttribute('data-custom-accent');
+        document.documentElement.style.removeProperty('--custom-accent');
+        document.documentElement.style.removeProperty('--custom-accent-rgb');
+        if (persist) localStorage.removeItem('sledge_accent');
+    }
+    syncAccentVars();
+    updateVisualControls();
+}
+
+function ensureFontLoaded(font) {
+    if (font !== 'poppins' && font !== 'outfit') return;
+    const id = `sledge-font-${font}`;
+    if (document.getElementById(id)) return;
+    const link = document.createElement('link');
+    link.id = id;
+    link.rel = 'stylesheet';
+    link.href = font === 'poppins'
+        ? 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap'
+        : 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap';
+    document.head.appendChild(link);
+}
+
+function applyFontSetting(value, persist = true) {
+    const font = Object.prototype.hasOwnProperty.call(FONT_STACKS, value) ? value : 'site';
+    document.documentElement.style.setProperty('--ui-font', FONT_STACKS[font]);
+    if (font !== 'site') ensureFontLoaded(font);
+    if (persist) {
+        if (font === 'site') localStorage.removeItem('sledge_font');
+        else localStorage.setItem('sledge_font', font);
+    }
+    updateVisualControls();
+}
+
+function applyCursorSetting(value, persist = true) {
+    const cursor = value === 'system' ? 'system' : 'theme';
+    if (cursor === 'system') document.documentElement.setAttribute('data-cursor', 'system');
+    else document.documentElement.removeAttribute('data-cursor');
+    if (persist) {
+        if (cursor === 'system') localStorage.setItem('sledge_cursor', 'system');
+        else localStorage.removeItem('sledge_cursor');
+    }
+    updateVisualControls();
+}
+
+function applyCardSetting(value, persist = true) {
+    const cards = ['original', 'glass', 'glow'].includes(value) ? value : 'original';
+    if (cards === 'original') document.documentElement.removeAttribute('data-cards');
+    else document.documentElement.setAttribute('data-cards', cards);
+    if (persist) {
+        if (cards === 'original') localStorage.removeItem('sledge_cards');
+        else localStorage.setItem('sledge_cards', cards);
+    }
+    updateVisualControls();
+}
+
+function applyAnimationSetting(value, persist = true) {
+    const level = ANIMATION_LEVELS.includes(value) ? value : 'medium';
+    if (persist) {
+        if (level === 'medium') localStorage.removeItem('sledge_animation');
+        else localStorage.setItem('sledge_animation', level);
+    }
+    document.documentElement.setAttribute('data-animation', level);
+    refreshParticleEffect();
+    refreshCursorTrail();
+    applyAtmosphereState();
+    if (typeof refreshSpotlight === 'function') refreshSpotlight();
+    if (window.__bleachCharacters) {
+        window.__bleachCharacters.setEnabled(
+            localStorage.getItem('character_popups') !== 'false'
+            && getCharacterFrequency() !== 'off'
+            && areDecorativeEffectsAllowed()
+        );
+    }
+    syncDecorationPauseState();
+    updateVisualControls();
+}
+
+function getCharacterFrequency() {
+    const stored = localStorage.getItem('sledge_character_freq');
+    return CHARACTER_FREQUENCIES.includes(stored) ? stored : 'normal';
+}
+
+function setCharacterFrequency(value, persist = true) {
+    const frequency = CHARACTER_FREQUENCIES.includes(value) ? value : 'normal';
+    localStorage.setItem('sledge_character_freq', frequency);
+    localStorage.setItem('character_popups', frequency === 'off' ? 'false' : 'true');
+    if (window.__bleachCharacters) {
+        window.__bleachCharacters.setFrequency(frequency);
+        window.__bleachCharacters.setEnabled(
+            frequency !== 'off' && areDecorativeEffectsAllowed()
+        );
+    }
+    document.dispatchEvent(new CustomEvent('sledge:settingschanged'));
+    updateVisualControls();
+}
+
+let spotlightEnabled = localStorage.getItem('sledge_spotlight') === 'true';
+let spotlightRafId = null;
+let spotlightX = 0;
+let spotlightY = 0;
+let spotlightBound = false;
+
+function refreshSpotlight() {
+    const el = document.getElementById('cursor-spotlight');
+    if (!el) return;
+    if (!spotlightEnabled || !areDecorativeEffectsAllowed() || !isFinePointer()) {
+        el.classList.remove('active');
+        return;
+    }
+    el.style.setProperty('--spot-x', `${spotlightX}px`);
+    el.style.setProperty('--spot-y', `${spotlightY}px`);
+    el.classList.add('active');
+}
+
+function setSpotlightEnabled(enabled, persist = true) {
+    spotlightEnabled = !!enabled && isFinePointer();
+    if (persist) localStorage.setItem('sledge_spotlight', String(spotlightEnabled));
+    const toggle = document.getElementById('toggle-spotlight');
+    if (toggle) toggle.checked = spotlightEnabled;
+    refreshSpotlight();
+}
+
+function initSpotlight() {
+    if (spotlightBound) return;
+    spotlightBound = true;
+    const el = document.getElementById('cursor-spotlight');
+    if (!el) return;
+
+    document.addEventListener('pointermove', (event) => {
+        if (!spotlightEnabled || !areDecorativeEffectsAllowed() || event.pointerType === 'touch') return;
+        spotlightX = event.clientX;
+        spotlightY = event.clientY;
+        if (spotlightRafId) return;
+        spotlightRafId = requestAnimationFrame(() => {
+            spotlightRafId = null;
+            refreshSpotlight();
+        });
+    }, { passive: true });
+
+    document.addEventListener('pointerleave', () => {
+        el.classList.remove('active');
+    });
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) el.classList.remove('active');
+    });
+}
+
+function updateVisualControls() {
+    const accent = getCustomAccent();
+    const accentInput = document.getElementById('custom-accent');
+    if (accentInput) {
+        const computed = getComputedStyle(document.documentElement).getPropertyValue('--accent-color').trim();
+        if (document.activeElement !== accentInput) accentInput.value = accent || computed || '#6366f1';
+    }
+    const font = localStorage.getItem('sledge_font') || 'site';
+    const fontSelect = document.getElementById('custom-font');
+    if (fontSelect) fontSelect.value = FONT_STACKS[font] ? font : 'site';
+    const cursorSelect = document.getElementById('custom-cursor');
+    if (cursorSelect) cursorSelect.value = document.documentElement.getAttribute('data-cursor') === 'system' ? 'system' : 'theme';
+    const animationSelect = document.getElementById('custom-animation');
+    if (animationSelect) animationSelect.value = getAnimationLevel();
+    const cardsSelect = document.getElementById('custom-cards');
+    if (cardsSelect) cardsSelect.value = document.documentElement.getAttribute('data-cards') || 'original';
+    const charSelect = document.getElementById('character-frequency');
+    if (charSelect) charSelect.value = localStorage.getItem('character_popups') === 'false' ? 'off' : getCharacterFrequency();
+    const spotlightToggle = document.getElementById('toggle-spotlight');
+    if (spotlightToggle) spotlightToggle.checked = spotlightEnabled;
+    const preset = localStorage.getItem('sledge_preset');
+    document.querySelectorAll('[data-preset]').forEach(btn => {
+        btn.setAttribute('aria-pressed', String(!!preset && btn.dataset.preset === preset));
+    });
+}
+
+function initVisualCustomization() {
+    applyAccentSetting(getCustomAccent(), false);
+    applyFontSetting(localStorage.getItem('sledge_font') || 'site', false);
+    applyCursorSetting(localStorage.getItem('sledge_cursor') || 'theme', false);
+    applyCardSetting(localStorage.getItem('sledge_cards') || 'original', false);
+    document.documentElement.setAttribute('data-animation', getAnimationLevel());
+    restoreAtmospherePreference();
+    // Void Mode is a preset-only look flag, so restore it from the preset key.
+    if (localStorage.getItem('sledge_preset') === 'void') {
+        document.documentElement.setAttribute('data-look', 'void');
+    }
+    setSpotlightEnabled(localStorage.getItem('sledge_spotlight') === 'true', false);
+    initSpotlight();
+
+    const accentInput = document.getElementById('custom-accent');
+    if (accentInput) {
+        accentInput.addEventListener('input', () => applyAccentSetting(accentInput.value));
+    }
+    const resetAccent = document.getElementById('reset-accent');
+    if (resetAccent) resetAccent.addEventListener('click', () => applyAccentSetting(''));
+    const fontSelect = document.getElementById('custom-font');
+    if (fontSelect) fontSelect.addEventListener('change', () => applyFontSetting(fontSelect.value));
+    const cursorSelect = document.getElementById('custom-cursor');
+    if (cursorSelect) cursorSelect.addEventListener('change', () => applyCursorSetting(cursorSelect.value));
+    const animationSelect = document.getElementById('custom-animation');
+    if (animationSelect) animationSelect.addEventListener('change', () => applyAnimationSetting(animationSelect.value));
+    const cardsSelect = document.getElementById('custom-cards');
+    if (cardsSelect) cardsSelect.addEventListener('change', () => applyCardSetting(cardsSelect.value));
+    const charSelect = document.getElementById('character-frequency');
+    if (charSelect) charSelect.addEventListener('change', () => setCharacterFrequency(charSelect.value));
+    const reset = document.getElementById('reset-customization');
+    if (reset) {
+        reset.addEventListener('click', () => {
+            applyAccentSetting('');
+            applyFontSetting('site');
+            applyCursorSetting('theme');
+            applyCardSetting('original');
+            applyAnimationSetting('medium');
+            setCharacterFrequency('normal');
+            setSpotlightEnabled(true);
+            showToast('Appearance overrides reset to the active theme.', 'info');
+        });
+    }
+
+    document.addEventListener('sledge:settingschanged', updateVisualControls);
+    document.querySelectorAll('[data-preset]').forEach(btn => {
+        btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
+    });
+    updateVisualControls();
+}
+
+// ===== APPEARANCE PRESETS =====
+const VISUAL_PRESETS = {
+    classic: {
+        label: 'Classic Sledge',
+        theme: 'default',
+        mode: 'dark',
+        look: '',
+        particle: 'gold',
+        atmosphere: null,
+        intensity: 'subtle',
+        accent: '#eab308',
+        font: 'site',
+        cursor: 'theme',
+        animation: 'low',
+        cards: 'original',
+        characters: 'rare'
+    },
+    anime: {
+        label: 'Anime Dream',
+        theme: 'senbonzakura',
+        mode: 'light',
+        look: '',
+        particle: 'sakura',
+        atmosphere: null,
+        intensity: 'medium',
+        accent: '#ec4899',
+        font: 'poppins',
+        cursor: 'theme',
+        animation: 'medium',
+        cards: 'glass',
+        characters: 'normal'
+    },
+    soul: {
+        label: 'Soul Society',
+        theme: 'tensa-zangetsu',
+        mode: 'dark',
+        look: '',
+        particle: 'rain',
+        atmosphere: 'mist',
+        intensity: 'medium',
+        accent: '#ef4444',
+        font: 'site',
+        cursor: 'theme',
+        animation: 'medium',
+        cards: 'original',
+        characters: 'rare'
+    },
+    golden: {
+        label: 'Golden Hour',
+        theme: 'nozarashi',
+        mode: 'dark',
+        look: '',
+        particle: 'gold',
+        atmosphere: 'aurora',
+        intensity: 'medium',
+        accent: '#f59e0b',
+        font: 'outfit',
+        cursor: 'theme',
+        animation: 'medium',
+        cards: 'glow',
+        characters: 'normal'
+    },
+    void: {
+        label: 'Void Mode',
+        theme: 'default',
+        mode: 'dark',
+        look: 'void',
+        particle: 'starfield',
+        atmosphere: null,
+        intensity: 'subtle',
+        accent: '#a3a3a3',
+        font: 'outfit',
+        cursor: 'theme',
+        animation: 'low',
+        cards: 'original',
+        characters: 'rare'
+    }
+};
+
+function applyPreset(name) {
+    const preset = VISUAL_PRESETS[name];
+    if (!preset) return;
+
+    if (preset.theme === 'default') resetZanpakutoTheme(false);
+    else applyZanpakutoTheme(preset.theme, false);
+
+    document.documentElement.setAttribute('data-theme', preset.mode);
+    localStorage.setItem('theme', preset.mode);
+    updateThemeIcon(preset.mode);
+
+    if (preset.look) document.documentElement.setAttribute('data-look', preset.look);
+    else document.documentElement.removeAttribute('data-look');
+
+    setEffectIntensity(preset.intensity, true);
+    setParticleMode(preset.particle, true);
+    setAtmosphereMode(preset.atmosphere, true);
+    applyAccentSetting(preset.accent, true);
+    applyFontSetting(preset.font, true);
+    applyCursorSetting(preset.cursor, true);
+    applyAnimationSetting(preset.animation, true);
+    applyCardSetting(preset.cards, true);
+    setCharacterFrequency(preset.characters, true);
+
+    localStorage.setItem('sledge_preset', name);
+    document.querySelectorAll('[data-preset]').forEach(btn => {
+        btn.setAttribute('aria-pressed', String(btn.dataset.preset === name));
+    });
+    syncAccentVars();
+    document.dispatchEvent(new CustomEvent('sledge:settingschanged'));
+    updateVisualControls();
+    showToast(`Preset applied: ${preset.label}.`, 'success');
+}
+
+// ===== PAKISTAN CLOCK & GREETING =====
+function initPktClock() {
+    const timeEl = document.getElementById('pkt-time');
+    const greetEl = document.getElementById('pkt-greeting');
+    if (!timeEl && !greetEl) return;
+
+    const formatter = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Asia/Karachi',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+    });
+
+    function pktHour() {
+        try {
+            return Number(new Intl.DateTimeFormat('en-GB', {
+                timeZone: 'Asia/Karachi',
+                hour: '2-digit',
+                hour12: false
+            }).format(new Date()));
+        } catch (error) {
+            return new Date().getHours();
+        }
+    }
+
+    function greetingFor(hour) {
+        if (hour < 5) return 'Burning the midnight oil? Study smart, scholars.';
+        if (hour < 12) return 'Good morning, scholars. Pakistan Standard Time.';
+        if (hour < 17) return 'Good afternoon, scholars. Keep your streak alive.';
+        if (hour < 21) return 'Good evening, scholars. One more chapter?';
+        return 'Late-night grind, scholars. Remember to rest.';
+    }
+
+    function render() {
+        if (timeEl) {
+            try {
+                timeEl.textContent = formatter.format(new Date());
+            } catch (error) {
+                timeEl.textContent = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+            }
+        }
+        if (greetEl) greetEl.textContent = greetingFor(pktHour());
+    }
+
+    render();
+    // Align updates to the minute boundary, then tick every minute.
+    const msToNextMinute = 60000 - (Date.now() % 60000);
+    setTimeout(() => {
+        render();
+        setInterval(render, 60000);
+    }, msToNextMinute);
+}
+
+// ===== KEYBOARD SHORTCUTS =====
+function initKeyboardShortcuts() {
+    const overlay = document.getElementById('shortcuts-overlay');
+    const closeBtn = document.getElementById('shortcuts-close');
+    if (!overlay) return;
+    let lastFocused = null;
+
+    function openShortcuts() {
+        lastFocused = document.activeElement;
+        overlay.classList.remove('hidden');
+        const focusTarget = closeBtn || overlay.querySelector('button');
+        if (focusTarget) focusTarget.focus();
+    }
+
+    function closeShortcuts() {
+        if (overlay.classList.contains('hidden')) return;
+        overlay.classList.add('hidden');
+        if (lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus();
+    }
+
+    if (closeBtn) closeBtn.addEventListener('click', closeShortcuts);
+    overlay.addEventListener('click', (event) => {
+        if (event.target === overlay) closeShortcuts();
+    });
+
+    function ensureDockOpen() {
+        const dock = document.getElementById('sledge-dock');
+        if (!dock) return false;
+        if (dock.getAttribute('aria-hidden') !== 'false') {
+            const toggle = document.getElementById('dock-toggle');
+            if (toggle) toggle.click();
+        }
+        return true;
+    }
+
+    function clickDockControl(buttonId) {
+        if (!ensureDockOpen()) return;
+        const btn = document.getElementById(buttonId);
+        if (btn) btn.click();
+    }
+
+    document.addEventListener('keydown', (event) => {
+        const target = event.target;
+        const typing = target && (
+            target.isContentEditable
+            || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName || '')
+        );
+
+        if (event.key === 'Escape') {
+            if (!overlay.classList.contains('hidden')) {
+                event.preventDefault();
+                closeShortcuts();
+            }
+            return;
+        }
+
+        if (typing || event.ctrlKey || event.metaKey) return;
+
+        if (event.key === '?' || (event.shiftKey && event.key === '/')) {
+            event.preventDefault();
+            if (overlay.classList.contains('hidden')) openShortcuts();
+            else closeShortcuts();
+            return;
+        }
+
+        if (!event.altKey) return;
+        const key = event.key.toLowerCase();
+        if (key === 't') { event.preventDefault(); clickDockControl('dock-themes'); }
+        else if (key === 'e') { event.preventDefault(); clickDockControl('dock-effects'); }
+        else if (key === 'm') { event.preventDefault(); clickDockControl('dock-music'); }
+        else if (key === 'q') { event.preventDefault(); clickDockControl('dock-quiet'); }
+    });
+}
+
+// ===== DOWNLOAD NOTIFICATIONS =====
+function initDownloadNotifications() {
+    document.addEventListener('click', (event) => {
+        const link = event.target.closest('.file-action-btn[title="Download Document"]');
+        if (!link) return;
+        const item = link.closest('.file-item');
+        const name = item && item.querySelector('.file-name');
+        const label = name ? name.textContent.trim() : 'your file';
+        showToast(`Download started: ${label}`, 'success');
+    });
+}
+
+// ===== SCROLL PROGRESS & BACK TO TOP =====
+function initScrollExperience() {
+    const bar = document.querySelector('#scroll-progress span');
+    const topBtn = document.getElementById('back-to-top');
+    let ticking = false;
+
+    function update() {
+        ticking = false;
+        const doc = document.documentElement;
+        const max = Math.max(1, doc.scrollHeight - window.innerHeight);
+        const ratio = Math.min(1, Math.max(0, window.scrollY / max));
+        if (bar) bar.style.transform = `scaleX(${ratio})`;
+        if (topBtn) topBtn.classList.toggle('visible', window.scrollY > 480);
+    }
+
+    function onScroll() {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(update);
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    update();
+
+    if (topBtn) {
+        topBtn.addEventListener('click', () => {
+            const smooth = !prefersReducedMotion() && getAnimationLevel() !== 'off';
+            window.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'auto' });
+        });
+    }
+}
+
+// ===== SCROLL REVEALS =====
+function initRevealAnimations() {
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce || !('IntersectionObserver' in window)) return;
+
+    const revealSelector = [
+        '.section-header', '.about-card', '.curriculum-card',
+        '.course-card', '.faq-item', '.contact-card'
+    ].join(',');
+
+    const seen = new WeakSet();
+    let observer = null;
+
+    function ensureObserver() {
+        if (observer) return observer;
+        observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) return;
+                entry.target.classList.add('reveal-in');
+                observer.unobserve(entry.target);
+            });
+        }, { rootMargin: '0px 0px -8% 0px', threshold: 0.06 });
+        return observer;
+    }
+
+    function register(root) {
+        if (!root) return;
+        if (getAnimationLevel() === 'off') {
+            root.querySelectorAll('.reveal-target').forEach(el => el.classList.add('reveal-in'));
+            return;
+        }
+        const io = ensureObserver();
+        const nodes = [];
+        if (root.nodeType === 1 && root.matches && root.matches(revealSelector)) nodes.push(root);
+        const descendants = root.querySelectorAll ? root.querySelectorAll(revealSelector) : [];
+        descendants.forEach(el => nodes.push(el));
+        nodes.forEach((el) => {
+            if (seen.has(el) || el.closest('.hidden')) return;
+            seen.add(el);
+            el.classList.add('reveal-target');
+            io.observe(el);
+        });
+    }
+
+    register(document);
+    // Cards are rendered after Firestore resolves, so watch for new nodes.
+    const mo = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+                if (node.nodeType === 1) register(node.parentNode || node);
+            });
+        });
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
+
+    // Fallback sweep: if the observer misses an element that is already in the
+    // viewport (layout shifts, hidden panels opening), show it rather than
+    // leaving content at zero opacity.
+    function sweep() {
+        document.querySelectorAll('.reveal-target:not(.reveal-in)').forEach((el) => {
+            if (getAnimationLevel() === 'off') { el.classList.add('reveal-in'); return; }
+            const rect = el.getBoundingClientRect();
+            if (rect.height > 0 && rect.top < window.innerHeight * 0.98 && rect.bottom > 0) {
+                el.classList.add('reveal-in');
+                if (observer) observer.unobserve(el);
+            }
+        });
+    }
+    let sweepTimer = null;
+    window.addEventListener('scroll', () => {
+        if (sweepTimer) return;
+        sweepTimer = setTimeout(() => { sweepTimer = null; sweep(); }, 180);
+    }, { passive: true });
+    document.addEventListener('sledge:settingschanged', () => setTimeout(sweep, 60));
+    setTimeout(sweep, 2200);
+
+    // Safety net: never leave content invisible if the observer misses a node.
+    setTimeout(() => {
+        document.querySelectorAll('.reveal-target:not(.reveal-in)').forEach((el) => {
+            if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add('reveal-in');
+        });
+    }, 1600);
+}
+
+// ===== PREMIUM MICRO-INTERACTIONS =====
+function initPremiumInteractions() {
+    if (!isFinePointer()) return;
+
+    document.addEventListener('pointerdown', (event) => {
+        if (event.button !== 0) return;
+        if (!areDecorativeEffectsAllowed()) return;
+        const target = event.target.closest(
+            'button, .btn, .course-card, .dock-action, .dock-theme-item, .file-action-btn, .nav-link'
+        );
+        if (!target) return;
+        const ripple = document.createElement('span');
+        ripple.className = 'click-ripple';
+        ripple.style.left = `${event.clientX}px`;
+        ripple.style.top = `${event.clientY}px`;
+        document.body.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 620);
+    }, { passive: true });
 }
 
 // ===== FLOATING DOCK =====
@@ -2336,7 +3215,11 @@ function initFloatingDock() {
     const sakuraToggle = document.getElementById('toggle-sakura');
     const fireToggle = document.getElementById('toggle-fire');
     const reiatsuToggle = document.getElementById('toggle-reiatsu');
+    const starfieldToggle = document.getElementById('toggle-starfield');
+    const auroraToggle = document.getElementById('toggle-aurora');
+    const mistToggle = document.getElementById('toggle-mist');
     const cursorToggle = document.getElementById('toggle-cursor');
+    const spotlightToggle = document.getElementById('toggle-spotlight');
     const reducedToggle = document.getElementById('toggle-reduced');
     const bloodmoonToggle = document.getElementById('toggle-bloodmoon');
     const charsToggle = document.getElementById('toggle-chars');
@@ -2413,9 +3296,11 @@ function initFloatingDock() {
         if (isOpen) return;
         setDockOpen(true);
         setPopupOpen(popup, btn, true);
-        const first = popup.querySelector('.active-theme') ||
-            popup.querySelector('button:not([disabled]), input:not([disabled])');
-        if (first) first.focus({ preventScroll: true });
+        // Focus the dialog itself so the panel resets to the top instead of
+        // scrolling to (and hiding) its heading.
+        popup.scrollTop = 0;
+        popup.setAttribute('tabindex', '-1');
+        popup.focus({ preventScroll: true });
     }
 
     themeBtn.addEventListener('click', () => {
@@ -2494,6 +3379,9 @@ function initFloatingDock() {
             // Choosing a Zanpakuto awakens its signature effect (user can turn
             // it off afterwards from the dock).
             applyThemeSignatureEffect(theme);
+            document.documentElement.removeAttribute('data-look');
+            localStorage.removeItem('sledge_preset');
+            document.querySelectorAll('[data-preset]').forEach(btn => btn.setAttribute('aria-pressed', 'false'));
             updateDockThemeHighlight();
             closePopups(themeBtn);
         });
@@ -2510,6 +3398,7 @@ function initFloatingDock() {
                 item.removeAttribute('aria-current');
             }
         });
+        syncAccentVars();
         updateEffectsPanel();
     }
 
@@ -2532,17 +3421,25 @@ function initFloatingDock() {
         setToggle(sakuraToggle, particleMode === 'sakura', locked);
         setToggle(fireToggle, particleMode === 'nozarashi', locked);
         setToggle(reiatsuToggle, particleMode === 'reiatsu', locked);
+        setToggle(starfieldToggle, particleMode === 'starfield', locked);
+        setToggle(auroraToggle, atmosphereMode === 'aurora', locked);
+        setToggle(mistToggle, atmosphereMode === 'mist', locked);
         setToggle(cursorToggle, cursorTrailEnabled, locked || !finePointer);
+        setToggle(spotlightToggle, spotlightEnabled, locked || !finePointer);
         setToggle(reducedToggle, effectsMotionPaused(), prefersReducedMotion());
         setToggle(bloodmoonToggle, bloodMoonActive(), getActiveTheme() !== 'tensa-zangetsu' || locked);
-        setToggle(charsToggle, charactersEnabled, locked);
+        setToggle(charsToggle, charactersEnabled, locked || getCharacterFrequency() === 'off');
+
+        var spotlightRow = document.getElementById('effect-row-spotlight');
+        if (spotlightRow) spotlightRow.hidden = !finePointer;
 
         intensityButtons.forEach(btn => {
             btn.setAttribute('aria-checked', String(btn.dataset.intensity === getEffectIntensity()));
         });
 
         if (clearBtn) {
-            clearBtn.disabled = !particleMode && !cursorTrailEnabled && !bloodMoonActive() && !charactersEnabled;
+            clearBtn.disabled = !particleMode && !cursorTrailEnabled && !bloodMoonActive()
+                && !charactersEnabled && !atmosphereMode && !spotlightEnabled;
         }
 
         if (effectsNote) {
@@ -2578,6 +3475,32 @@ function initFloatingDock() {
     bindParticleToggle(sakuraToggle, 'sakura');
     bindParticleToggle(fireToggle, 'nozarashi');
     bindParticleToggle(reiatsuToggle, 'reiatsu');
+    bindParticleToggle(starfieldToggle, 'starfield');
+
+    function bindAtmosphereToggle(input, mode) {
+        if (!input) return;
+        input.addEventListener('change', () => {
+            if (input.checked) {
+                setAtmosphereMode(mode);
+            } else if (atmosphereMode === mode) {
+                setAtmosphereMode(null);
+            }
+            syncAccentVars();
+            updateEffectsPanel();
+            document.dispatchEvent(new CustomEvent('sledge:settingschanged'));
+        });
+    }
+
+    bindAtmosphereToggle(auroraToggle, 'aurora');
+    bindAtmosphereToggle(mistToggle, 'mist');
+
+    if (spotlightToggle) {
+        spotlightToggle.addEventListener('change', () => {
+            setSpotlightEnabled(spotlightToggle.checked);
+            updateEffectsPanel();
+            document.dispatchEvent(new CustomEvent('sledge:settingschanged'));
+        });
+    }
 
     intensityButtons.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -2636,11 +3559,14 @@ function initFloatingDock() {
         clearBtn.addEventListener('click', () => {
             setParticleMode(null);
             setCursorTrailEnabled(false);
+            setAtmosphereMode(null);
+            setSpotlightEnabled(false);
             applyCharactersEnabled(false);
             if (window.__tensaBloodMoon && window.__tensaBloodMoon.isActive()) {
                 window.__tensaBloodMoon.setActive(false, false);
             }
             updateEffectsPanel();
+            document.dispatchEvent(new CustomEvent('sledge:settingschanged'));
             showToast('All decorative effects cleared.', 'info');
         });
     }
@@ -2719,6 +3645,22 @@ function initFloatingDock() {
     observer.observe(document.documentElement, {
         attributes: true,
         attributeFilter: ['data-zanpakuto', 'data-blood-moon']
+    });
+
+    // Customization/preset changes can enable or disable characters from outside
+    // the dock (for example the frequency selector inside the Themes panel).
+    document.addEventListener('sledge:settingschanged', () => {
+        charactersEnabled = localStorage.getItem('character_popups') !== 'false'
+            && getCharacterFrequency() !== 'off';
+        document.body.classList.toggle('characters-off', !charactersEnabled);
+        if (charsToggle) charsToggle.checked = charactersEnabled;
+        if (window.__bleachCharacters) {
+            window.__bleachCharacters.setFrequency(getCharacterFrequency());
+            window.__bleachCharacters.setEnabled(
+                charactersEnabled && !quietActive && !effectsMotionPaused()
+            );
+        }
+        updateEffectsPanel();
     });
 
     // Initial state

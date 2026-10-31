@@ -161,7 +161,7 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="styles.css?v=13">
+    <link rel="stylesheet" href="styles.css?v=14">
     <link rel="stylesheet" href="now-playing-widget.css?v=4">
 </head>
 
@@ -190,6 +190,11 @@
                 </a>
             </div>
             <div class="nav-actions">
+                <div class="pkt-clock" id="pkt-clock" title="Pakistan Standard Time (Asia/Karachi)">
+                    <i class="fas fa-clock" aria-hidden="true"></i>
+                    <span id="pkt-time">--:--</span>
+                    <span class="pkt-zone">PKT</span>
+                </div>
                 <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">
                     <i class="fas fa-moon" id="theme-icon"></i>
                 </button>
@@ -235,8 +240,9 @@
                 </div>
                 <div class="hero-content">
                     <div class="hero-badge">
-                        <i class="fas fa-sparkles"></i> Open & Free for Everyone
+                        <i class="fas fa-wand-magic-sparkles"></i> Open & Free for Everyone
                     </div>
+                    <p class="hero-greeting" id="pkt-greeting">Welcome, scholars.</p>
                     <h1 class="hero-title">
                         Sledge Classroom<br>
                         <span class="gradient-text">NUML BSCS Learning Hub</span>
@@ -904,7 +910,19 @@
 
 
     <!-- Decorative particle layers -->
+    <div id="scroll-progress" aria-hidden="true"><span></span></div>
     <div id="blood-rain-aura" aria-hidden="true"></div>
+    <div id="ambient-aurora" class="ambient-layer" aria-hidden="true">
+        <span class="aurora-band aurora-band-1"></span>
+        <span class="aurora-band aurora-band-2"></span>
+        <span class="aurora-band aurora-band-3"></span>
+    </div>
+    <div id="ambient-mist" class="ambient-layer" aria-hidden="true">
+        <span class="mist-blob mist-blob-1"></span>
+        <span class="mist-blob mist-blob-2"></span>
+        <span class="mist-blob mist-blob-3"></span>
+    </div>
+    <div id="cursor-spotlight" aria-hidden="true"></div>
     <canvas id="sakura-canvas" class="sakura-canvas hidden" aria-hidden="true"></canvas>
     <canvas id="cursor-trail-canvas" class="cursor-trail-canvas hidden" aria-hidden="true"></canvas>
 
@@ -926,6 +944,28 @@
             <!-- Theme popup (anchored to dock) -->
             <div id="dock-theme-popup" role="dialog" aria-label="Choose theme" aria-hidden="true" inert>
                 <h4><i class="fas fa-palette"></i>Choose Theme</h4>
+
+                <div class="dock-presets" id="dock-presets" role="group" aria-label="Appearance presets">
+                    <span class="dock-effect-heading">Presets</span>
+                    <div class="dock-preset-grid">
+                        <button type="button" class="dock-preset-btn" data-preset="classic" aria-pressed="false">
+                            <span>Classic Sledge</span><small>Black &amp; gold</small>
+                        </button>
+                        <button type="button" class="dock-preset-btn" data-preset="anime" aria-pressed="false">
+                            <span>Anime Dream</span><small>Sakura &amp; pink</small>
+                        </button>
+                        <button type="button" class="dock-preset-btn" data-preset="soul" aria-pressed="false">
+                            <span>Soul Society</span><small>Crimson rain</small>
+                        </button>
+                        <button type="button" class="dock-preset-btn" data-preset="golden" aria-pressed="false">
+                            <span>Golden Hour</span><small>Warm glow</small>
+                        </button>
+                        <button type="button" class="dock-preset-btn" data-preset="void" aria-pressed="false">
+                            <span>Void Mode</span><small>AMOLED dark</small>
+                        </button>
+                    </div>
+                </div>
+
                 <div class="dock-theme-list" role="group" aria-label="Available themes">
                     <button class="dock-theme-item" type="button" data-dock-theme="default" id="dock-t-default">
                         <span class="dock-theme-swatch swatch-default" aria-hidden="true"></span>
@@ -958,11 +998,76 @@
                         <i class="fas fa-check dock-check" aria-hidden="true"></i>
                     </button>
                 </div>
+
+                <details class="dock-customize" id="dock-customize">
+                    <summary><i class="fas fa-sliders" aria-hidden="true"></i> Fine-tune appearance</summary>
+                    <div class="dock-customize-body">
+                        <div class="dock-custom-row">
+                            <label for="custom-accent">Accent</label>
+                            <div class="dock-accent-picker">
+                                <input type="color" id="custom-accent" value="#6366f1" aria-label="Custom accent color">
+                                <button type="button" id="reset-accent" class="dock-mini-btn">Theme</button>
+                            </div>
+                        </div>
+
+                        <div class="dock-custom-row">
+                            <label for="custom-font">Font</label>
+                            <select id="custom-font">
+                                <option value="site">Site default (Inter)</option>
+                                <option value="inter">Inter</option>
+                                <option value="poppins">Poppins</option>
+                                <option value="outfit">Outfit</option>
+                            </select>
+                        </div>
+
+                        <div class="dock-custom-row">
+                            <label for="custom-cursor">Cursor</label>
+                            <select id="custom-cursor">
+                                <option value="theme">Zanpakuto cursor</option>
+                                <option value="system">System cursor</option>
+                            </select>
+                        </div>
+
+                        <div class="dock-custom-row">
+                            <label for="custom-animation">Animation</label>
+                            <select id="custom-animation">
+                                <option value="off">Off</option>
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+
+                        <div class="dock-custom-row">
+                            <label for="custom-cards">Cards</label>
+                            <select id="custom-cards">
+                                <option value="original">Original</option>
+                                <option value="glass">Glass</option>
+                                <option value="glow">Subtle glow</option>
+                            </select>
+                        </div>
+
+                        <div class="dock-custom-row">
+                            <label for="character-frequency">Characters</label>
+                            <select id="character-frequency">
+                                <option value="off">Off</option>
+                                <option value="rare">Rare</option>
+                                <option value="normal">Normal</option>
+                                <option value="frequent">Frequent</option>
+                            </select>
+                        </div>
+
+                        <p class="dock-custom-hint">Optional overrides. Your theme stays in charge of the base look.</p>
+                        <button type="button" id="reset-customization" class="dock-clear-btn dock-reset-btn">
+                            <i class="fas fa-rotate-left" aria-hidden="true"></i> Reset overrides
+                        </button>
+                    </div>
+                </details>
             </div>
 
             <!-- Effects popup (anchored to dock) -->
             <div id="dock-effects-popup" role="dialog" aria-label="Visual effects" aria-hidden="true" inert>
-                <h4><i class="fas fa-sparkles"></i>Visual Effects</h4>
+                <h4><i class="fas fa-wand-magic-sparkles"></i>Visual Effects</h4>
                 <div id="dock-effects-list">
                     <div class="dock-effects-note" id="dock-effects-note" hidden></div>
 
@@ -1018,10 +1123,54 @@
                                 <span class="dock-toggle-slider"></span>
                             </label>
                         </div>
+
+                        <div class="dock-effect-row">
+                            <label class="dock-effect-label" for="toggle-starfield">
+                                <i class="fas fa-star" aria-hidden="true"></i> Starfield
+                            </label>
+                            <label class="dock-toggle">
+                                <input type="checkbox" id="toggle-starfield">
+                                <span class="dock-toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="dock-effect-section">
+                        <span class="dock-effect-heading">Atmosphere <em>one at a time</em></span>
+
+                        <div class="dock-effect-row">
+                            <label class="dock-effect-label" for="toggle-aurora">
+                                <i class="fas fa-wind" aria-hidden="true"></i> Aurora
+                            </label>
+                            <label class="dock-toggle">
+                                <input type="checkbox" id="toggle-aurora">
+                                <span class="dock-toggle-slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="dock-effect-row">
+                            <label class="dock-effect-label" for="toggle-mist">
+                                <i class="fas fa-cloud" aria-hidden="true"></i> Ambient Mist
+                            </label>
+                            <label class="dock-toggle">
+                                <input type="checkbox" id="toggle-mist">
+                                <span class="dock-toggle-slider"></span>
+                            </label>
+                        </div>
                     </div>
 
                     <div class="dock-effect-section">
                         <span class="dock-effect-heading">Comfort</span>
+
+                        <div class="dock-effect-row" id="effect-row-spotlight">
+                            <label class="dock-effect-label" for="toggle-spotlight">
+                                <i class="fas fa-circle-dot" aria-hidden="true"></i> Cursor Spotlight
+                            </label>
+                            <label class="dock-toggle">
+                                <input type="checkbox" id="toggle-spotlight">
+                                <span class="dock-toggle-slider"></span>
+                            </label>
+                        </div>
 
                         <div class="dock-effect-row" id="effect-row-cursor">
                             <label class="dock-effect-label" for="toggle-cursor">
@@ -1093,7 +1242,7 @@
 
                 <button class="dock-btn" type="button" id="dock-effects" aria-label="Visual effects" aria-haspopup="dialog"
                     aria-controls="dock-effects-popup" aria-expanded="false" title="Visual effects">
-                    <i class="fas fa-sparkles" aria-hidden="true"></i>
+                    <i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i>
                     <span class="dock-label">Effects</span>
                 </button>
 
@@ -1119,6 +1268,33 @@
         <div class="loading-spinner">
             <div class="spinner"></div>
             <p id="loading-text">Loading...</p>
+        </div>
+    </div>
+
+    <!-- ===== BACK TO TOP ===== -->
+    <button type="button" id="back-to-top" class="back-to-top" aria-label="Back to top" title="Back to top">
+        <i class="fas fa-arrow-up" aria-hidden="true"></i>
+    </button>
+
+    <!-- ===== KEYBOARD SHORTCUTS ===== -->
+    <div class="shortcuts-overlay hidden" id="shortcuts-overlay" role="dialog" aria-modal="true"
+        aria-labelledby="shortcuts-title">
+        <div class="shortcuts-card">
+            <div class="shortcuts-head">
+                <h3 id="shortcuts-title"><i class="fas fa-keyboard" aria-hidden="true"></i> Keyboard shortcuts</h3>
+                <button type="button" class="shortcuts-close" id="shortcuts-close" aria-label="Close shortcuts">
+                    <i class="fas fa-times" aria-hidden="true"></i>
+                </button>
+            </div>
+            <dl class="shortcuts-list">
+                <div><dt><kbd>?</kbd></dt><dd>Open this shortcut list</dd></div>
+                <div><dt><kbd>Alt</kbd> + <kbd>T</kbd></dt><dd>Open themes</dd></div>
+                <div><dt><kbd>Alt</kbd> + <kbd>E</kbd></dt><dd>Open effects</dd></div>
+                <div><dt><kbd>Alt</kbd> + <kbd>M</kbd></dt><dd>Toggle music pop-up</dd></div>
+                <div><dt><kbd>Alt</kbd> + <kbd>Q</kbd></dt><dd>Toggle Quiet Mode</dd></div>
+                <div><dt><kbd>Esc</kbd></dt><dd>Close the dock or this dialog</dd></div>
+            </dl>
+            <p class="shortcuts-note">Shortcuts are ignored while typing in a form field.</p>
         </div>
     </div>
 
@@ -1170,202 +1346,13 @@
 
     <!-- App Scripts -->
     <script src="firebase-config.js?v=6"></script>
-    <script src="app.js?v=13"></script>
+    <script src="app.js?v=14"></script>
 
     <!-- ===== NOW PLAYING WIDGET ===== -->
     <script src="now-playing-widget.js?v=4"></script>
 
-    <!-- ===== BLEACH EASTER EGG ===== -->
-    <script>
-(function BleachEasterEgg() {
-    var CONFIG = {
-        initialDelay: 1000,    // First peek 1s after page load
-        interval: 9000,        // Every 9s next character peeks
-        stayDuration: 3000,    // Stay for exactly 3 seconds as requested
-        charSize: 92,          // Small size sticking to edge
-        charSizeMobile: 68,
-        zIndex: 999999
-    };
-
-    var CHARACTERS = [
-        {
-            id: 'orihime',
-            name: 'Orihime',
-            src: 'orihime.gif',
-            fallbackSrc: 'orihime.webp',
-            bubbleBg: 'linear-gradient(135deg,#fff0f6 0%,#ffe4f0 100%)',
-            bubbleBorder: '#f472b6',
-            textColor: '#9d174d',
-            dialogues: ['KAWAIII~! \u2665', 'Hewwooo! \u2728', 'Ehehe~ \uD83D\uDC97', 'Haiii! \u2665', 'Ganbatte! \u2728']
-        },
-        {
-            id: 'ichigo',
-            name: 'Ichigo',
-            src: 'ichigo.gif',
-            fallbackSrc: 'ichigo.gif',
-            bubbleBg: 'linear-gradient(135deg,#fff7ed 0%,#ffedd5 100%)',
-            bubbleBorder: '#fb923c',
-            textColor: '#7c2d12',
-            dialogues: ['Heh, studying? \uD83D\uDC4A', 'BANKAI!! \u26A1', 'Not bad! \uD83D\uDE01', 'Keep it up! \uD83D\uDD25', 'Oi, focus! \uD83D\uDC4B']
-        },
-        {
-            id: 'miku',
-            name: 'Miku',
-            src: 'miku.gif',
-            fallbackSrc: 'miku.gif',
-            bubbleBg: 'linear-gradient(135deg,#f0fdfa 0%,#ccfbf1 100%)',
-            bubbleBorder: '#2dd4bf',
-            textColor: '#134e4a',
-            dialogues: ['Miku Miku~! \u2665', 'Let\u2019s study! \uD83C\uDFB5', 'Ganbare ne~! \u2728', 'Hatsune Miku desu! \uD83C\uDFB6', 'Yay yay~! \uD83D\uDC97']
-        }
-    ];
-
-    var nextSide = 'left'; // Alternates 'left' -> 'right' -> 'left'
-    var charIndex = 0;
-    var isAnimating = false;
-    var container = null;
-
-    // Respect the dock's character toggle, quiet mode and reduced-motion setting
-    var prefersReducedMotion = window.matchMedia &&
-        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var enabled = !prefersReducedMotion &&
-        !document.body.classList.contains('quiet-mode') &&
-        localStorage.getItem('character_popups') !== 'false';
-
-    function getSize() {
-        return window.innerWidth <= 600 ? CONFIG.charSizeMobile : CONFIG.charSize;
-    }
-
-    function injectStyles() {
-        if (document.getElementById('bee-styles')) return;
-        var style = document.createElement('style');
-        style.id = 'bee-styles';
-        style.textContent =
-            '#bee-container { position: fixed; inset: 0; pointer-events: none; z-index: 999999; }' +
-            '.bee-wrap { position: fixed; pointer-events: auto; z-index: 999999; cursor: pointer; ' +
-            'transition: transform 0.38s cubic-bezier(0.34, 1.4, 0.64, 1), opacity 0.3s ease; will-change: transform, opacity; }' +
-            '.bee-wrap.bee-left { left: 0; transform: translateX(-100%); opacity: 0; }' +
-            '.bee-wrap.bee-left.bee-active { transform: translateX(0) !important; opacity: 1 !important; }' +
-            '.bee-wrap.bee-right { right: 0; transform: translateX(100%); opacity: 0; }' +
-            '.bee-wrap.bee-right.bee-active { transform: translateX(0) !important; opacity: 1 !important; }' +
-            '.bee-img { display: block; object-fit: contain; pointer-events: none; filter: drop-shadow(0 4px 14px rgba(0,0,0,0.22)); user-select: none; }' +
-            '.bee-bubble { position: absolute; bottom: calc(100% + 6px); padding: 5px 12px; border-radius: 12px; border: 2px solid; ' +
-            'font-family: Inter, system-ui, sans-serif; font-size: 11px; font-weight: 700; white-space: nowrap; ' +
-            'box-shadow: 0 4px 16px rgba(0,0,0,0.16); opacity: 0; transform: scale(0.6) translateY(6px); ' +
-            'transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); pointer-events: none; }' +
-            '.bee-bubble.bee-bubble-left { left: 4px; }' +
-            '.bee-bubble.bee-bubble-right { right: 4px; }' +
-            '.bee-bubble.bee-show { opacity: 1; transform: scale(1) translateY(0); }';
-        document.head.appendChild(style);
-    }
-
-    function showCharacter() {
-        if (!enabled) return;
-        if (isAnimating) return;
-        isAnimating = true;
-
-        var char = CHARACTERS[charIndex % CHARACTERS.length];
-        charIndex++;
-
-        var side = nextSide;
-        nextSide = (nextSide === 'left') ? 'right' : 'left'; // Alternate for next time!
-
-        var size = getSize();
-        var dialogue = char.dialogues[Math.floor(Math.random() * char.dialogues.length)];
-
-        var wrap = document.createElement('div');
-        wrap.className = 'bee-wrap ' + (side === 'left' ? 'bee-left' : 'bee-right');
-
-        // Mid-screen vertical positioning
-        var vh = window.innerHeight;
-        var topPos = Math.round(vh * 0.45);
-        wrap.style.top = Math.max(100, Math.min(vh - size - 60, topPos)) + 'px';
-
-        var img = document.createElement('img');
-        img.className = 'bee-img';
-        img.src = char.src;
-        img.alt = char.name;
-        img.style.width = size + 'px';
-        img.style.height = size + 'px';
-        img.onerror = function() {
-            if (char.fallbackSrc && img.src.indexOf(char.fallbackSrc) === -1) {
-                img.src = char.fallbackSrc;
-            }
-        };
-
-        var bubble = document.createElement('div');
-        bubble.className = 'bee-bubble ' + (side === 'left' ? 'bee-bubble-left' : 'bee-bubble-right');
-        bubble.style.background = char.bubbleBg;
-        bubble.style.borderColor = char.bubbleBorder;
-        bubble.style.color = char.textColor;
-        bubble.textContent = dialogue;
-
-        wrap.appendChild(bubble);
-        wrap.appendChild(img);
-        (container || document.body).appendChild(wrap);
-
-        // Slide in
-        setTimeout(function() {
-            wrap.classList.add('bee-active');
-
-            // Bubble pops open
-            setTimeout(function() {
-                bubble.classList.add('bee-show');
-            }, 250);
-
-            // Stays for 3 seconds, then retreats
-            setTimeout(function() {
-                bubble.classList.remove('bee-show');
-                setTimeout(function() {
-                    wrap.classList.remove('bee-active');
-                    // Clean up DOM after slide-out
-                    setTimeout(function() {
-                        if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
-                        isAnimating = false;
-                    }, 400);
-                }, 150);
-            }, CONFIG.stayDuration);
-        }, 30);
-    }
-
-    window.triggerBleachEasterEgg = function() {
-        if (!enabled) return;
-        isAnimating = false;
-        showCharacter();
-    };
-
-    // Small public API so the floating dock can pause/resume decorative pop-ups
-    window.__bleachCharacters = {
-        setEnabled: function(value) {
-            enabled = !!value;
-            if (!enabled && container) {
-                container.innerHTML = '';
-                isAnimating = false;
-            }
-        },
-        isEnabled: function() {
-            return enabled;
-        }
-    };
-
-    function init() {
-        injectStyles();
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'bee-container';
-            (document.body || document.documentElement).appendChild(container);
-        }
-        setTimeout(showCharacter, CONFIG.initialDelay);
-        setInterval(showCharacter, CONFIG.interval);
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init, { once: true });
-    } else {
-        init();
-    }
-})();
-    </script>
+    <!-- ===== ANIME CHARACTER COMPANIONS ===== -->
+    <script src="bleach-easter-egg.js?v=2" defer></script>
 </body>
 
 </html>

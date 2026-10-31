@@ -1,95 +1,163 @@
 /* ===================================================
-   SLEDGE CLASSROOM — Bleach Character Easter Egg
-   Characters: Orihime, Soi Fon, Rangiku
+   SLEDGE CLASSROOM — Anime character companions
+   Single controller for the decorative character pop-ups.
+   - One character on screen at a time
+   - Randomised cooldown based on the visitor's preference
+   - Pauses when the tab is hidden, Quiet Mode is on, or motion is reduced
+   - Never blocks content: pointer-events only on the character itself
    =================================================== */
-
 (function BleachEasterEgg() {
     'use strict';
 
-    // ─── Configuration ────────────────────────────────────────────────────────
     var CONFIG = {
-        initialDelay:    3000,   // ms before first appearance
-        interval:        20000,  // ms between recurring appearances
-        visibleDuration: 4200,   // ms the character stays visible
-        charSize:        180,    // px — desktop
-        charSizeMobile:  120,    // px — <= 600 px viewport width
-        zIndex:          9999,
+        initialDelay: 1800,
+        charSize: 92,
+        charSizeMobile: 68,
+        stayDuration: 3600,
+        zIndex: 1500
     };
 
-    // ─── Character definitions ─────────────────────────────────────────────────
+    // Cadence presets share the same assets as the rest of the site.
+    var FREQUENCY = {
+        rare: { delay: 65000, jitter: 26000, first: 6000 },
+        normal: { delay: 26000, jitter: 14000, first: 1800 },
+        frequent: { delay: 12000, jitter: 7000, first: 900 }
+    };
+
     var CHARACTERS = [
         {
             id: 'orihime',
             name: 'Orihime',
-            src: 'orihime.png',
-            bubbleBg:     'linear-gradient(135deg,#fff0f6 0%,#ffe4f0 100%)',
-            bubbleBorder: '#f9a8d4',
-            textColor:    '#9d174d',
-            dialogues:    ['KAWAIII~! \u2665','Hewwooo! \u2728','Ehehe~ \uD83D\uDC97','Haiii! \u2665','Yoo-hoo~ \u2728'],
-            animIn:       'bee-bounce-in',
-            animOut:      'bee-bounce-out',
-            inDur:        550,
-            outDur:       480,
+            src: 'orihime.gif',
+            fallbackSrc: 'orihime.webp',
+            theme: {
+                bg: 'linear-gradient(135deg,#fff0f6 0%,#ffe4f0 100%)',
+                border: '#f472b6',
+                text: '#9d174d'
+            },
+            dialogues: [
+                'KAWAIII~! \u2665',
+                'Hewwooo! \u2728',
+                'Ehehe~ \uD83D\uDC97',
+                'Haiii! \u2665',
+                'Ganbatte! \u2728'
+            ]
+        },
+        {
+            id: 'ichigo',
+            name: 'Ichigo',
+            src: 'ichigo.gif',
+            fallbackSrc: 'ichigo.gif',
+            theme: {
+                bg: 'linear-gradient(135deg,#fff7ed 0%,#ffedd5 100%)',
+                border: '#fb923c',
+                text: '#7c2d12'
+            },
+            dialogues: [
+                'Heh, studying? \uD83D\uDC4A',
+                'BANKAI!! \u26A1',
+                'Not bad! \uD83D\uDE01',
+                'Keep it up! \uD83D\uDD25',
+                'Oi, focus! \uD83D\uDC4B'
+            ]
+        },
+        {
+            id: 'miku',
+            name: 'Miku',
+            src: 'miku.gif',
+            fallbackSrc: 'miku.gif',
+            theme: {
+                bg: 'linear-gradient(135deg,#f0fdfa 0%,#ccfbf1 100%)',
+                border: '#2dd4bf',
+                text: '#134e4a'
+            },
+            dialogues: [
+                'Miku Miku~! \u2665',
+                'Let\u2019s study! \uD83C\uDFB5',
+                'Ganbare ne~! \u2728',
+                'Hatsune Miku desu! \uD83C\uDFB6',
+                'Yay yay~! \uD83D\uDC97'
+            ]
         },
         {
             id: 'soifon',
-            name: 'Soi Fon',
+            name: 'Soifon',
             src: 'soifon.jpg',
-            bubbleBg:     'linear-gradient(135deg,#eef2ff 0%,#e0e7ff 100%)',
-            bubbleBorder: '#a5b4fc',
-            textColor:    '#3730a3',
-            dialogues:    ['What are you doing? \uD83D\uDC40','Peekaboo! \uD83D\uDC41\uFE0F','I was never here... \u2728','Hmph. Carry on. \uD83D\uDC40'],
-            animIn:       'bee-sneak-in',
-            animOut:      'bee-sneak-out',
-            inDur:        380,
-            outDur:       300,
+            fallbackSrc: 'soifon.jpg',
+            theme: {
+                bg: 'linear-gradient(135deg,#f5f3ff 0%,#ede9fe 100%)',
+                border: '#8b5cf6',
+                text: '#4c1d95'
+            },
+            dialogues: [
+                'Suzumebachi! \uD83D\uDC1D',
+                'Silence. Focus. \uD83E\uDD77',
+                'Your speed is lacking.',
+                'Two strikes. That is all.',
+                'Flash step! \u26A1'
+            ]
         },
         {
             id: 'rangiku',
             name: 'Rangiku',
             src: 'rangiku.jpg',
-            bubbleBg:     'linear-gradient(135deg,#fffbeb 0%,#fef3c7 100%)',
-            bubbleBorder: '#fcd34d',
-            textColor:    '#92400e',
-            dialogues:    ['Hellooo~ \u2665','Boo! \uD83D\uDC97','Looking good~ \u2728','Hehe~ \uD83D\uDE0F',"Don't mind me~ \u2728"],
-            animIn:       'bee-lean-in',
-            animOut:      'bee-lean-out',
-            inDur:        550,
-            outDur:       480,
-        },
+            fallbackSrc: 'rangiku.jpg',
+            theme: {
+                bg: 'linear-gradient(135deg,#fefce8 0%,#fef9c3 100%)',
+                border: '#eab308',
+                text: '#713f12'
+            },
+            dialogues: [
+                'Hado #31: Shakkaho! \uD83D\uDD25',
+                'Take a break, okay? \uD83C\uDF7A',
+                'Haineko, scatter! \u2728',
+                'You work too hard.',
+                'Growl, Haineko! \uD83D\uDC31'
+            ]
+        }
     ];
 
-    var DIRECTIONS = ['left', 'right', 'bottom'];
+    var container = null;
+    var nextSide = 'left';
+    var charIndex = 0;
+    var isAnimating = false;
+    var currentWrap = null;
+    var timer = null;
+    var hideTimer = null;
+    var enabled = localStorage.getItem('character_popups') !== 'false';
+    var frequency = readFrequency();
 
-    var lastCharIndex  = -1;
-    var isAnimating    = false;
-    var initialTimer   = null;
-    var recurringTimer = null;
-    var container      = null;
-
-    function prefersReducedMotion() {
-        return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function readFrequency() {
+        var stored = localStorage.getItem('sledge_character_freq');
+        return Object.prototype.hasOwnProperty.call(FREQUENCY, stored) ? stored : 'normal';
     }
 
-    function pickCharacter() {
-        var candidates = CHARACTERS.filter(function(_, i) { return i !== lastCharIndex; });
-        if (!candidates.length) candidates = CHARACTERS;
-        var char = candidates[Math.floor(Math.random() * candidates.length)];
-        lastCharIndex = CHARACTERS.indexOf(char);
-        return char;
+    function reducedMotion() {
+        return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
     }
 
-    function pickDirection() {
-        return DIRECTIONS[Math.floor(Math.random() * DIRECTIONS.length)];
+    function animationOff() {
+        return document.documentElement.getAttribute('data-animation') === 'off';
     }
 
-    function pickDialogue(char) {
-        var d = char.dialogues;
-        return d[Math.floor(Math.random() * d.length)];
+    function quietMode() {
+        return document.body.classList.contains('quiet-mode');
+    }
+
+    function hiddenTab() {
+        return document.hidden;
+    }
+
+    function isAllowed() {
+        return enabled
+            && !reducedMotion()
+            && !animationOff()
+            && !quietMode()
+            && !hiddenTab();
     }
 
     function getSize() {
-        return window.innerWidth <= 600 ? CONFIG.charSizeMobile : CONFIG.charSize;
+        return window.innerWidth <= 640 ? CONFIG.charSizeMobile : CONFIG.charSize;
     }
 
     function injectStyles() {
@@ -97,160 +165,213 @@
         var style = document.createElement('style');
         style.id = 'bee-styles';
         style.textContent = [
-            '#bee-container{position:fixed;inset:0;pointer-events:none;z-index:9999;overflow:hidden;}',
-            '.bee-wrap{position:absolute;pointer-events:none;will-change:transform,opacity;}',
-            '.bee-img{display:block;object-fit:contain;object-position:top center;filter:drop-shadow(0 8px 24px rgba(0,0,0,.3));user-select:none;-webkit-user-drag:none;}',
-            '.bee-img.bee-white{mix-blend-mode:multiply;}',
-            '.bee-bubble{position:absolute;padding:8px 14px;border-radius:18px;border:2px solid transparent;',
-              'font-family:Inter,system-ui,sans-serif;font-size:clamp(11px,2vw,14px);font-weight:600;',
-              'white-space:nowrap;max-width:210px;text-align:center;line-height:1.4;',
-              'box-shadow:0 4px 20px rgba(0,0,0,.18),0 1px 4px rgba(0,0,0,.10);',
-              'opacity:0;transform:translateX(-50%) scale(.6) translateY(8px);',
-              'transition:opacity 320ms ease,transform 320ms cubic-bezier(.34,1.56,.64,1);}',
-            '.bee-bubble.show{opacity:1;transform:translateX(-50%) scale(1) translateY(0);}',
-            '.bee-tail{position:absolute;width:11px;height:11px;border-radius:0 0 2px 0;',
-              'transform:rotate(45deg);bottom:-7px;left:50%;margin-left:-6px;}',
-            /* Keyframes */
-            '@keyframes bee-bounce-in{0%{transform:var(--bee-off);opacity:0}',
-              '60%{transform:var(--bee-on) translateY(-14px);opacity:1}',
-              '80%{transform:var(--bee-on) translateY(4px)}100%{transform:var(--bee-on);opacity:1}}',
-            '@keyframes bee-bounce-out{0%{transform:var(--bee-on);opacity:1}',
-              '30%{transform:var(--bee-on) translateY(-10px)}100%{transform:var(--bee-off);opacity:0}}',
-            '@keyframes bee-sneak-in{0%{transform:var(--bee-off);opacity:0}100%{transform:var(--bee-on);opacity:1}}',
-            '@keyframes bee-sneak-out{0%{transform:var(--bee-on);opacity:1}100%{transform:var(--bee-off);opacity:0}}',
-            '@keyframes bee-lean-in{0%{transform:var(--bee-off) rotate(var(--bee-rf));opacity:0}',
-              '70%{transform:var(--bee-on) rotate(var(--bee-rt));opacity:1}100%{transform:var(--bee-on) rotate(0deg);opacity:1}}',
-            '@keyframes bee-lean-out{0%{transform:var(--bee-on) rotate(0deg);opacity:1}',
-              '30%{transform:var(--bee-on) rotate(var(--bee-rt))}100%{transform:var(--bee-off);opacity:0}}',
-            '@keyframes bee-idle{0%,100%{transform:var(--bee-on) translateY(0)}',
-              '30%{transform:var(--bee-on) translateY(-6px)}70%{transform:var(--bee-on) translateY(3px)}}',
+            '#bee-container{position:fixed;inset:0;pointer-events:none;z-index:' + CONFIG.zIndex + ';overflow:hidden}',
+            '.bee-wrap{position:fixed;pointer-events:auto;cursor:pointer;',
+            'transition:transform .42s cubic-bezier(.34,1.35,.64,1),opacity .3s ease;will-change:transform,opacity}',
+            '.bee-wrap:focus-visible{outline:2px solid var(--accent-color,#3b82f6);outline-offset:4px;border-radius:14px}',
+            '.bee-left{transform:translateX(-110%);opacity:0}',
+            '.bee-left.bee-active{transform:translateX(0);opacity:1}',
+            '.bee-right{transform:translateX(110%);opacity:0}',
+            '.bee-right.bee-active{transform:translateX(0);opacity:1}',
+            '.bee-img{display:block;object-fit:cover;object-position:top center;pointer-events:none;border-radius:14px;',
+            'filter:drop-shadow(0 6px 16px rgba(0,0,0,.24));user-select:none;-webkit-user-drag:none;background:transparent}',
+            '.bee-bubble{position:absolute;bottom:calc(100% + 8px);padding:6px 12px;border-radius:12px;border:2px solid;',
+            'font-family:var(--ui-font,Inter,system-ui,sans-serif);font-size:11px;font-weight:700;line-height:1.25;',
+            'max-width:210px;box-shadow:0 6px 18px rgba(0,0,0,.18);opacity:0;transform:scale(.6) translateY(6px);',
+            'transition:opacity .25s ease,transform .25s cubic-bezier(.34,1.56,.64,1);pointer-events:none}',
+            '.bee-bubble-left{left:2px}',
+            '.bee-bubble-right{right:2px}',
+            '.bee-bubble.bee-show{opacity:1;transform:scale(1) translateY(0)}',
+            '@media (prefers-reduced-motion:reduce){.bee-wrap{transition:none}.bee-bubble{transition:none}}'
         ].join('');
         document.head.appendChild(style);
     }
 
+    function ensureContainer() {
+        if (container && container.isConnected) return container;
+        container = document.createElement('div');
+        container.id = 'bee-container';
+        container.setAttribute('aria-hidden', 'true');
+        (document.body || document.documentElement).appendChild(container);
+        return container;
+    }
+
+    function clearTimers() {
+        if (timer) { clearTimeout(timer); timer = null; }
+        if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+    }
+
+    function schedule(delay) {
+        clearTimers();
+        if (!isAllowed()) return;
+        var preset = FREQUENCY[frequency] || FREQUENCY.normal;
+        var next = typeof delay === 'number' ? delay : preset.delay + Math.random() * preset.jitter;
+        timer = setTimeout(function () {
+            timer = null;
+            showCharacter();
+        }, next);
+    }
+
+    function dismiss(character) {
+        if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+        var wrap = character || currentWrap;
+        if (!wrap) return;
+        var bubble = wrap.querySelector('.bee-bubble');
+        if (bubble) bubble.classList.remove('bee-show');
+        wrap.classList.remove('bee-active');
+        setTimeout(function () {
+            if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
+            if (currentWrap === wrap) currentWrap = null;
+            isAnimating = false;
+        }, 420);
+    }
+
     function showCharacter() {
-        if (isAnimating || prefersReducedMotion()) return;
+        if (!isAllowed() || isAnimating) return;
+
+        var char = CHARACTERS[charIndex % CHARACTERS.length];
+        charIndex++;
         isAnimating = true;
 
-        var char = pickCharacter();
-        var dir  = pickDirection();
-        var size = getSize();
-        var text = pickDialogue(char);
+        var side = nextSide;
+        nextSide = nextSide === 'left' ? 'right' : 'left';
 
-        /* --- Wrapper --- */
         var wrap = document.createElement('div');
-        wrap.className = 'bee-wrap';
+        wrap.className = 'bee-wrap ' + (side === 'left' ? 'bee-left' : 'bee-right');
+        wrap.title = char.name + ' says hello';
+        wrap.style.zIndex = String(CONFIG.zIndex);
 
-        /* CSS vars for keyframes */
-        var offX, onX, rf, rt;
-        if (dir === 'left')   { offX = -(size+20); onX = 0; rf = '-15deg'; rt = '-4deg'; }
-        if (dir === 'right')  { offX = (size+20);  onX = 0; rf = '15deg';  rt = '4deg';  }
-        if (dir === 'bottom') { offX = 0; onX = 0; rf = '8deg'; rt = '3deg'; }
+        var size = getSize();
+        var viewportHeight = window.innerHeight;
+        var top = Math.round(viewportHeight * (0.36 + Math.random() * 0.22));
+        var maxTop = Math.max(90, viewportHeight - size - 96);
+        wrap.style.top = Math.max(96, Math.min(maxTop, top)) + 'px';
 
-        var offTransform, onTransform;
-        if (dir === 'left' || dir === 'right') {
-            offTransform = 'translateX(' + offX + 'px)';
-            onTransform  = 'translateX(0px)';
-        } else {
-            offTransform = 'translateY(' + (size+20) + 'px)';
-            onTransform  = 'translateY(0px)';
-        }
-
-        wrap.style.setProperty('--bee-off', offTransform);
-        wrap.style.setProperty('--bee-on',  onTransform);
-        wrap.style.setProperty('--bee-rf',  rf);
-        wrap.style.setProperty('--bee-rt',  rt);
-
-        /* Initial position (starts off-screen) */
-        var vw = window.innerWidth, vh = window.innerHeight;
-        if (dir === 'left') {
-            wrap.style.left   = '0px';
-            wrap.style.top    = Math.max(vh * 0.30, 100) + 'px';
-        } else if (dir === 'right') {
-            wrap.style.right  = '0px';
-            wrap.style.top    = Math.max(vh * 0.30, 100) + 'px';
-        } else {
-            wrap.style.bottom = '0px';
-            var safeLeft = 20 + Math.random() * Math.max(vw - size - 40, 10);
-            wrap.style.left = safeLeft + 'px';
-        }
-        wrap.style.transform = offTransform;
-        wrap.style.opacity   = '0';
-
-        /* --- Image --- */
         var img = document.createElement('img');
         img.className = 'bee-img';
-        if (char.src.match(/\.jpe?g$/i)) img.classList.add('bee-white');
         img.src = char.src;
         img.alt = char.name;
-        img.style.width  = size + 'px';
+        img.width = size;
+        img.height = size;
+        img.loading = 'lazy';
+        img.decoding = 'async';
+        img.style.width = size + 'px';
         img.style.height = size + 'px';
-        img.draggable    = false;
-
-        /* --- Bubble --- */
-        var bubble = document.createElement('div');
-        bubble.className = 'bee-bubble';
-        bubble.textContent = text;
-        bubble.style.background   = char.bubbleBg;
-        bubble.style.borderColor  = char.bubbleBorder;
-        bubble.style.color        = char.textColor;
-        /* Bubble position: above the image */
-        bubble.style.bottom = (size + 12) + 'px';
-        bubble.style.left   = '50%';
-
-        /* Tail */
-        var tail = document.createElement('div');
-        tail.className = 'bee-tail';
-        tail.style.background = char.bubbleBorder;
-        bubble.appendChild(tail);
-
-        wrap.appendChild(img);
-        wrap.appendChild(bubble);
-        container.appendChild(wrap);
-
-        /* --- Entrance animation --- */
-        requestAnimationFrame(function() {
-            wrap.style.animation = char.animIn + ' ' + char.inDur + 'ms cubic-bezier(.34,1.3,.64,1) forwards';
-
-            /* Show bubble after entrance finishes */
-            setTimeout(function() {
-                bubble.classList.add('show');
-                /* Switch to idle wobble */
-                wrap.style.animation = 'bee-idle 2.6s ease-in-out infinite';
-            }, char.inDur + 60);
-
-            /* Exit */
-            var exitAt = CONFIG.visibleDuration - char.outDur - 220;
-            if (exitAt < char.inDur + 300) exitAt = char.inDur + 500;
-
-            setTimeout(function() {
-                /* Hide bubble */
-                bubble.classList.remove('show');
-                bubble.style.transition = 'opacity 200ms ease, transform 200ms ease';
-                setTimeout(function() {
-                    wrap.style.animation = char.animOut + ' ' + char.outDur + 'ms cubic-bezier(.4,0,.8,1) forwards';
-                    setTimeout(function() {
-                        wrap.remove();
-                        isAnimating = false;
-                    }, char.outDur + 80);
-                }, 180);
-            }, exitAt);
+        img.addEventListener('error', function () {
+            if (char.fallbackSrc && img.src.indexOf(char.fallbackSrc) === -1) {
+                img.src = char.fallbackSrc;
+            }
         });
+
+        var bubble = document.createElement('div');
+        bubble.className = 'bee-bubble ' + (side === 'left' ? 'bee-bubble-left' : 'bee-bubble-right');
+        bubble.style.background = char.theme.bg;
+        bubble.style.borderColor = char.theme.border;
+        bubble.style.color = char.theme.text;
+        bubble.textContent = char.dialogues[Math.floor(Math.random() * char.dialogues.length)];
+
+        wrap.appendChild(bubble);
+        wrap.appendChild(img);
+        ensureContainer().appendChild(wrap);
+        currentWrap = wrap;
+
+        // A gentle "hello" reaction keeps the interaction discoverable.
+        wrap.addEventListener('click', function () {
+            if (!isAllowed()) { dismiss(wrap); return; }
+            bubble.textContent = char.dialogues[Math.floor(Math.random() * char.dialogues.length)];
+            bubble.classList.add('bee-show');
+            wrap.style.transform = side === 'left' ? 'translateX(14%)' : 'translateX(-14%)';
+            setTimeout(function () {
+                if (wrap.isConnected) wrap.style.transform = '';
+            }, 220);
+            if (hideTimer) clearTimeout(hideTimer);
+            hideTimer = setTimeout(function () { dismiss(wrap); }, 1400);
+        });
+
+        requestAnimationFrame(function () {
+            wrap.classList.add('bee-active');
+            setTimeout(function () {
+                if (wrap.isConnected) bubble.classList.add('bee-show');
+            }, 240);
+        });
+
+        hideTimer = setTimeout(function () {
+            dismiss(wrap);
+        }, CONFIG.stayDuration);
+    }
+
+    function handleVisibility() {
+        if (document.hidden) {
+            clearTimers();
+            dismiss();
+        } else if (isAllowed()) {
+            schedule();
+        }
+    }
+
+    // Public API used by the floating dock and the customization panel.
+    window.__bleachCharacters = {
+        setEnabled: function (value) {
+            enabled = !!value;
+            if (!enabled) {
+                clearTimers();
+                dismiss();
+            } else if (isAllowed() && FREQUENCY[frequency]) {
+                schedule(FREQUENCY[frequency].first);
+            }
+        },
+        setFrequency: function (value) {
+            frequency = Object.prototype.hasOwnProperty.call(FREQUENCY, value) ? value : 'normal';
+            if (frequency === 'off') {
+                clearTimers();
+                dismiss();
+                return;
+            }
+            schedule(FREQUENCY[frequency].first);
+        },
+        isEnabled: function () {
+            return enabled;
+        },
+        getFrequency: function () {
+            return frequency;
+        },
+        showNow: function () {
+            if (!isAllowed()) return;
+            showCharacter();
+        }
+    };
+
+    window.triggerBleachEasterEgg = function () {
+        if (window.__bleachCharacters) window.__bleachCharacters.showNow();
+    };
+
+    function gridSafePosition() {
+        // Keep at least one viewport-safe margin and never overlap the dock's
+        // bottom-right corner. Characters live in the middle band only.
+        return Math.min(
+            window.innerHeight - getSize() - 90,
+            Math.max(96, window.innerHeight * 0.42)
+        );
     }
 
     function init() {
         injectStyles();
-        container = document.createElement('div');
-        container.id = 'bee-container';
-        document.body.appendChild(container);
-
-        initialTimer   = setTimeout(showCharacter, CONFIG.initialDelay);
-        recurringTimer = setInterval(showCharacter, CONFIG.interval);
-
-        window.addEventListener('beforeunload', function() {
-            clearTimeout(initialTimer);
-            clearInterval(recurringTimer);
-        }, { once: true });
+        ensureContainer();
+        document.addEventListener('visibilitychange', handleVisibility);
+        window.addEventListener('resize', function () {
+            if (currentWrap) {
+                currentWrap.style.top = gridSafePosition() + 'px';
+            }
+        }, { passive: true });
+        document.addEventListener('sledge:settingschanged', function () {
+            var freq = readFrequency();
+            if (freq !== frequency) {
+                frequency = freq;
+                if (FREQUENCY[frequency]) schedule(FREQUENCY[frequency].first);
+                else { clearTimers(); dismiss(); }
+            }
+        });
+        if (isAllowed()) schedule(FREQUENCY[frequency].first);
     }
 
     if (document.readyState === 'loading') {
