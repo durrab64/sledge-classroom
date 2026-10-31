@@ -3666,7 +3666,10 @@ html[data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] #dock-shell {
     bottom: calc(100% + 12px);
     width: 280px;
     min-width: 250px;
+    /* Never grow up under the fixed navbar: 84px is the dock gap below and
+       80px is the navbar plus breathing room. */
     max-height: min(72vh, 540px);
+    max-height: min(72vh, 540px, calc(100vh - 164px));
     overflow-y: auto;
     overscroll-behavior: contain;
     scrollbar-width: thin;
@@ -3701,6 +3704,51 @@ html[data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] #dock-shell {
     /* Fits every toggle, the intensity presets and Clear all on a normal
        desktop window. Shorter windows still scroll inside the panel. */
     max-height: min(84vh, 640px);
+    max-height: min(84vh, 640px, calc(100vh - 164px));
+}
+
+/* The global 8px gray scrollbar reads as a hard edge on the dark glass panel,
+   so give both popovers a thin accent thumb that sits inside the radius. */
+#dock-theme-popup::-webkit-scrollbar,
+#dock-effects-popup::-webkit-scrollbar {
+    width: 6px;
+}
+
+#dock-theme-popup::-webkit-scrollbar-track,
+#dock-effects-popup::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 14px 0;
+}
+
+#dock-theme-popup::-webkit-scrollbar-thumb,
+#dock-effects-popup::-webkit-scrollbar-thumb {
+    background: rgba(var(--dock-accent-rgb), 0.34);
+    border-radius: 999px;
+}
+
+#dock-theme-popup::-webkit-scrollbar-thumb:hover,
+#dock-effects-popup::-webkit-scrollbar-thumb:hover {
+    background: rgba(var(--dock-accent-rgb), 0.58);
+}
+
+/* The popovers take focus when opened so screen readers land inside them.
+   Chrome then draws its default ring around the whole sheet as soon as the
+   pointer moves, which reads as a stray white border; the controls inside keep
+   their own focus styles. */
+#dock-theme-popup:focus,
+#dock-effects-popup:focus {
+    outline: none;
+}
+
+/* Browsers without backdrop blur (older Android WebViews, some Firefox
+   configs) get an opaque sheet so the page never shows through the menu. */
+@supports not ((backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px))) {
+    #dock-theme-popup,
+    #dock-effects-popup {
+        background:
+            linear-gradient(150deg, rgba(var(--dock-accent-rgb), 0.12) 0%, transparent 55%),
+            #0b0b10;
+    }
 }
 
 #dock-theme-popup.open,
@@ -4132,13 +4180,14 @@ body.blood-rain-on #blood-rain-aura {
         width: min(300px, calc(100vw - 36px));
         min-width: 0;
         max-height: min(76vh, 640px);
+        max-height: min(76vh, 640px, calc(100dvh - 165px));
         transform-origin: bottom right;
-        /* Phone browsers drop backdrop-filter more often than not, so make the
-           sheet nearly opaque here; the accent gradient and border keep the
-           theme tint. */
+        /* Phone browsers drop or mis-composite backdrop-filter often enough
+           that the sheet is solid here; the accent gradient and border keep
+           the theme tint. */
         background:
             linear-gradient(150deg, rgba(var(--dock-accent-rgb), 0.12) 0%, transparent 55%),
-            rgba(9, 9, 13, 0.97);
+            #0a0a0e;
     }
 
     .footer {
@@ -5000,16 +5049,35 @@ html[data-look="void"] .hero {
     box-shadow: inset 0 0 120px rgba(255, 255, 255, 0.015);
 }
 
-/* Keep the destructive clear action reachable in the scrollable effects sheet. */
+/* Keep the destructive clear action reachable in the scrollable effects sheet.
+   It reads as a footer bar: full-bleed, opaque, with the panel's own bottom
+   padding filled in so scrolled content never peeks out underneath. */
 #dock-effects-popup .dock-clear-btn {
     position: sticky;
     bottom: 0;
     z-index: 2;
-    margin-top: 10px;
-    background: rgba(12, 12, 16, 0.96);
+    margin: 10px -14px 0;
+    width: calc(100% + 28px);
+    min-height: 44px;
+    padding: 11px 14px;
+    border: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0;
+    background: #0c0c10;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    box-shadow: 0 -10px 18px rgba(0, 0, 0, 0.28);
+    box-shadow:
+        0 15px 0 0 #0c0c10,
+        0 -12px 20px rgba(0, 0, 0, 0.3);
+}
+
+#dock-effects-popup .dock-clear-btn:hover {
+    background: #28131a;
+    color: #fca5a5;
+}
+
+#dock-effects-popup .dock-clear-btn:focus-visible {
+    outline-offset: -3px;
 }
 
 /* ---------- Dock presets and fine-tune ---------- */
