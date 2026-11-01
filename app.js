@@ -2050,6 +2050,15 @@ function drawGold(dt) {
     }
 }
 
+// Cached reusable Path2D for Sakura petal rendering (zero per-frame path allocations)
+const SAKURA_PETAL_PATH = (typeof Path2D !== 'undefined') ? (() => {
+    const path = new Path2D();
+    path.moveTo(0, 0);
+    path.bezierCurveTo(0.5, -0.5, 1, -0.25, 1, 0);
+    path.bezierCurveTo(1, 0.25, 0.5, 0.5, 0, 0);
+    return path;
+})() : null;
+
 function drawSakura(dt) {
     for (let i = 0; i < particleList.length; i++) {
         const p = particleList[i];
@@ -2065,17 +2074,22 @@ function drawSakura(dt) {
         if (p.x < -20) p.x = particleWidth + 20;
         if (p.x > particleWidth + 20) p.x = -20;
 
-        particleCtx.save();
-        particleCtx.translate(p.x, p.y);
-        particleCtx.rotate(p.angle);
+        const cos = Math.cos(p.angle) * p.size;
+        const sin = Math.sin(p.angle) * p.size;
+        particleCtx.setTransform(cos, sin, -sin, cos, p.x, p.y);
         particleCtx.fillStyle = p.color;
-        particleCtx.beginPath();
-        particleCtx.moveTo(0, 0);
-        particleCtx.bezierCurveTo(p.size / 2, -p.size / 2, p.size, -p.size / 4, p.size, 0);
-        particleCtx.bezierCurveTo(p.size, p.size / 4, p.size / 2, p.size / 2, 0, 0);
-        particleCtx.fill();
-        particleCtx.restore();
+
+        if (SAKURA_PETAL_PATH) {
+            particleCtx.fill(SAKURA_PETAL_PATH);
+        } else {
+            particleCtx.beginPath();
+            particleCtx.moveTo(0, 0);
+            particleCtx.bezierCurveTo(0.5, -0.5, 1, -0.25, 1, 0);
+            particleCtx.bezierCurveTo(1, 0.25, 0.5, 0.5, 0, 0);
+            particleCtx.fill();
+        }
     }
+    particleCtx.setTransform(1, 0, 0, 1, 0, 0);
 }
 
 function drawFlames(dt) {
@@ -2151,32 +2165,49 @@ function drawReiatsu(dt) {
         if (p.x < -20) p.x = particleWidth + 20;
         if (p.x > particleWidth + 20) p.x = -20;
 
-        particleCtx.save();
-        particleCtx.translate(p.x, p.y);
-        if (isBloodMoon) {
-            particleCtx.fillStyle = p.isBladeShard
-                ? `rgba(255, 30, 45, ${alpha})`
-                : `rgba(220, 20, 30, ${alpha * 0.85})`;
-            particleCtx.shadowColor = '#ff0033';
-            particleCtx.shadowBlur = 10;
-        } else {
-            particleCtx.fillStyle = p.isBladeShard
-                ? `rgba(${accentRgb}, ${alpha})`
-                : `rgba(${accentRgb}, ${alpha * 0.7})`;
-            particleCtx.shadowColor = `rgb(${accentRgb})`;
-            particleCtx.shadowBlur = 6;
-        }
         if (p.isBladeShard) {
+            // Crescent spirit slash fragment
+            const cos = 0.7071; // cos(-45deg)
+            const sin = -0.7071; // sin(-45deg)
+            particleCtx.setTransform(cos, sin, -sin, cos, p.x, p.y);
+
+            // Outer spirit aura
+            particleCtx.fillStyle = isBloodMoon
+                ? `rgba(255, 30, 45, ${alpha * 0.35})`
+                : `rgba(${accentRgb}, ${alpha * 0.3})`;
             particleCtx.beginPath();
-            particleCtx.ellipse(0, 0, p.size * 1.8, p.size * 0.6, -Math.PI / 4, 0, Math.PI * 2);
+            particleCtx.ellipse(0, 0, p.size * 2.5, p.size * 1.1, 0, 0, Math.PI * 2);
+            particleCtx.fill();
+
+            // Inner razor shard
+            particleCtx.fillStyle = isBloodMoon
+                ? `rgba(255, 120, 130, ${alpha})`
+                : `rgba(255, 255, 255, ${alpha * 0.9})`;
+            particleCtx.beginPath();
+            particleCtx.ellipse(0, 0, p.size * 1.8, p.size * 0.6, 0, 0, Math.PI * 2);
             particleCtx.fill();
         } else {
+            // Glowing spirit ember (additive dual-arc glow, zero shadowBlur)
+            particleCtx.setTransform(1, 0, 0, 1, 0, 0);
+
+            // Outer spiritual pressure halo
+            particleCtx.fillStyle = isBloodMoon
+                ? `rgba(255, 30, 45, ${alpha * 0.28})`
+                : `rgba(${accentRgb}, ${alpha * 0.22})`;
             particleCtx.beginPath();
-            particleCtx.arc(0, 0, p.size, 0, Math.PI * 2);
+            particleCtx.arc(p.x, p.y, p.size * 2.2, 0, Math.PI * 2);
+            particleCtx.fill();
+
+            // Core bright spiritual ember
+            particleCtx.fillStyle = isBloodMoon
+                ? `rgba(255, 220, 220, ${alpha * 0.95})`
+                : `rgba(255, 255, 255, ${alpha * 0.9})`;
+            particleCtx.beginPath();
+            particleCtx.arc(p.x, p.y, p.size * 0.85, 0, Math.PI * 2);
             particleCtx.fill();
         }
-        particleCtx.restore();
     }
+    particleCtx.setTransform(1, 0, 0, 1, 0, 0);
 }
 
 function drawParticles(dt) {
@@ -2697,8 +2728,8 @@ function setCharacterFrequency(value, persist = true) {
 
 let spotlightEnabled = localStorage.getItem('sledge_spotlight') === 'true';
 let spotlightRafId = null;
-let spotlightX = 0;
-let spotlightY = 0;
+let spotlightX = -9999;
+let spotlightY = -9999;
 let spotlightBound = false;
 
 function refreshSpotlight() {
@@ -2708,8 +2739,7 @@ function refreshSpotlight() {
         el.classList.remove('active');
         return;
     }
-    el.style.setProperty('--spot-x', `${spotlightX}px`);
-    el.style.setProperty('--spot-y', `${spotlightY}px`);
+    el.style.transform = `translate3d(${Math.round(spotlightX - 210)}px, ${Math.round(spotlightY - 210)}px, 0)`;
     el.classList.add('active');
 }
 
@@ -3191,11 +3221,6 @@ function initRevealAnimations() {
             }
         });
     }
-    let sweepTimer = null;
-    window.addEventListener('scroll', () => {
-        if (sweepTimer) return;
-        sweepTimer = setTimeout(() => { sweepTimer = null; sweep(); }, 180);
-    }, { passive: true });
     document.addEventListener('sledge:settingschanged', () => setTimeout(sweep, 60));
     setTimeout(sweep, 2200);
 

@@ -28,8 +28,8 @@
         {
             id: 'orihime',
             name: 'Orihime',
-            src: 'orihime.gif',
-            fallbackSrc: 'orihime.webp',
+            src: 'orihime.webp',
+            fallbackSrc: 'orihime.gif',
             theme: {
                 bg: 'linear-gradient(135deg,#fff0f6 0%,#ffe4f0 100%)',
                 border: '#f472b6',
@@ -166,7 +166,7 @@
         style.id = 'bee-styles';
         style.textContent = [
             '#bee-container{position:fixed;inset:0;pointer-events:none;z-index:' + CONFIG.zIndex + ';overflow:hidden}',
-            '.bee-wrap{position:fixed;pointer-events:auto;cursor:pointer;',
+            '.bee-wrap{position:fixed;pointer-events:auto;cursor:pointer;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.22);',
             'transition:transform .42s cubic-bezier(.34,1.35,.64,1),opacity .3s ease;will-change:transform,opacity}',
             '.bee-wrap:focus-visible{outline:2px solid var(--accent-color,#3b82f6);outline-offset:4px;border-radius:14px}',
             '.bee-left{transform:translateX(-110%);opacity:0}',
@@ -174,7 +174,7 @@
             '.bee-right{transform:translateX(110%);opacity:0}',
             '.bee-right.bee-active{transform:translateX(0);opacity:1}',
             '.bee-img{display:block;object-fit:cover;object-position:top center;pointer-events:none;border-radius:14px;',
-            'filter:drop-shadow(0 6px 16px rgba(0,0,0,.24));user-select:none;-webkit-user-drag:none;background:transparent}',
+            'user-select:none;-webkit-user-drag:none;background:transparent}',
             '.bee-bubble{position:absolute;bottom:calc(100% + 8px);padding:6px 12px;border-radius:12px;border:2px solid;',
             'font-family:var(--ui-font,Inter,system-ui,sans-serif);font-size:11px;font-weight:700;line-height:1.25;',
             'max-width:210px;box-shadow:0 6px 18px rgba(0,0,0,.18);opacity:0;transform:scale(.6) translateY(6px);',

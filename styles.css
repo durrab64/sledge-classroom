@@ -718,7 +718,7 @@ img {
     border-radius: var(--radius-lg);
     padding: 28px;
     cursor: pointer;
-    transition: all var(--transition-base);
+    transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
     position: relative;
     overflow: hidden;
     box-shadow: var(--shadow-card);
@@ -732,7 +732,8 @@ img {
     right: 0;
     height: 4px;
     background: var(--card-accent);
-    transition: height var(--transition-base);
+    transform-origin: top;
+    transition: transform var(--transition-base);
 }
 
 .course-card:hover {
@@ -742,7 +743,7 @@ img {
 }
 
 .course-card:hover::before {
-    height: 5px;
+    transform: scaleY(1.25);
 }
 
 .card-icon {
@@ -4724,7 +4725,7 @@ html[data-theme="light"][data-zanpakuto="hogyoku"] .about-card {
     justify-content: space-between;
     text-decoration: none;
     color: inherit;
-    transition: all var(--transition-fast);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
 }
 
 .curriculum-card:hover {
@@ -4929,10 +4930,15 @@ html:not([data-atmosphere="mist"]) #ambient-mist .mist-blob {
     width: 85vw;
     height: 55vh;
     border-radius: 50%;
-    filter: blur(64px);
-    mix-blend-mode: screen;
-    opacity: 0.5;
-    background: radial-gradient(ellipse at center, rgba(var(--accent-rgb), 0.62), transparent 68%);
+    opacity: 0.52;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(var(--accent-rgb), 0.54) 0%,
+        rgba(var(--accent-rgb), 0.38) 22%,
+        rgba(var(--accent-rgb), 0.18) 45%,
+        rgba(var(--accent-rgb), 0.05) 64%,
+        transparent 76%
+    );
     animation: auroraDrift 34s ease-in-out infinite alternate;
     will-change: transform;
 }
@@ -4945,7 +4951,13 @@ html:not([data-atmosphere="mist"]) #ambient-mist .mist-blob {
 .aurora-band-2 {
     top: 18vh;
     right: -26vw;
-    background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.3), transparent 66%);
+    background: radial-gradient(
+        ellipse at center,
+        rgba(255, 255, 255, 0.28) 0%,
+        rgba(255, 255, 255, 0.16) 24%,
+        rgba(255, 255, 255, 0.05) 48%,
+        transparent 70%
+    );
     animation-duration: 46s;
     animation-direction: alternate-reverse;
 }
@@ -4953,7 +4965,13 @@ html:not([data-atmosphere="mist"]) #ambient-mist .mist-blob {
 .aurora-band-3 {
     bottom: -28vh;
     left: 12vw;
-    background: radial-gradient(ellipse at center, rgba(var(--accent-rgb), 0.42), transparent 70%);
+    background: radial-gradient(
+        ellipse at center,
+        rgba(var(--accent-rgb), 0.38) 0%,
+        rgba(var(--accent-rgb), 0.22) 26%,
+        rgba(var(--accent-rgb), 0.08) 50%,
+        transparent 72%
+    );
     animation-duration: 56s;
 }
 
@@ -4963,9 +4981,15 @@ html:not([data-atmosphere="mist"]) #ambient-mist .mist-blob {
     width: 62vw;
     height: 42vh;
     border-radius: 50%;
-    filter: blur(72px);
-    opacity: 0.44;
-    background: radial-gradient(circle at center, rgba(var(--accent-rgb), 0.48), transparent 70%);
+    opacity: 0.46;
+    background: radial-gradient(
+        circle at center,
+        rgba(var(--accent-rgb), 0.44) 0%,
+        rgba(var(--accent-rgb), 0.28) 25%,
+        rgba(var(--accent-rgb), 0.12) 50%,
+        rgba(var(--accent-rgb), 0.03) 68%,
+        transparent 76%
+    );
     animation: mistDrift 42s ease-in-out infinite alternate;
     will-change: transform;
 }
@@ -4978,7 +5002,13 @@ html:not([data-atmosphere="mist"]) #ambient-mist .mist-blob {
 .mist-blob-2 {
     bottom: 2vh;
     right: -20vw;
-    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.28), transparent 72%);
+    background: radial-gradient(
+        circle at center,
+        rgba(255, 255, 255, 0.24) 0%,
+        rgba(255, 255, 255, 0.14) 28%,
+        rgba(255, 255, 255, 0.04) 54%,
+        transparent 74%
+    );
     animation-duration: 58s;
     animation-direction: alternate-reverse;
 }
@@ -5018,15 +5048,22 @@ body.effects-suspended .mist-blob {
 /* ---------- Mouse-follow spotlight ---------- */
 #cursor-spotlight {
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
+    width: 420px;
+    height: 420px;
+    border-radius: 50%;
     z-index: 994;
     pointer-events: none;
     opacity: 0;
+    transform: translate3d(-9999px, -9999px, 0);
+    will-change: transform;
     transition: opacity 0.35s ease;
     background: radial-gradient(
-        420px circle at var(--spot-x, 50%) var(--spot-y, 50%),
-        rgba(var(--accent-rgb), 0.1),
-        transparent 66%
+        circle at center,
+        rgba(var(--accent-rgb), 0.14) 0%,
+        rgba(var(--accent-rgb), 0.06) 40%,
+        transparent 72%
     );
 }
 
