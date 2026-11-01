@@ -161,7 +161,7 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="styles.css?v=15">
+    <link rel="stylesheet" href="styles.css?v=16">
     <link rel="stylesheet" href="now-playing-widget.css?v=4">
 </head>
 
@@ -322,6 +322,16 @@
 
             <!-- About Sledge Classroom -->
             <div class="section" id="about-section">
+                <!-- Hōgyoku theme only: section-anchored 3D crystal orb.
+                     Absolutely positioned inside this section, behind the copy
+                     and cards, and never interactive. -->
+                <div class="hogyoku-stage" id="hogyoku-stage" aria-hidden="true">
+                    <div class="hogyoku-aura"></div>
+                    <canvas class="hogyoku-canvas" id="hogyoku-canvas"></canvas>
+                    <div class="hogyoku-fallback">
+                        <span class="hogyoku-fallback-core"></span>
+                    </div>
+                </div>
                 <div class="section-header">
                     <h2 class="section-title">
                         <i class="fas fa-graduation-cap"></i> About Sledge Classroom
@@ -963,6 +973,9 @@
                         <button type="button" class="dock-preset-btn" data-preset="void" aria-pressed="false">
                             <span>Void Mode</span><small>AMOLED dark</small>
                         </button>
+                        <button type="button" class="dock-preset-btn" data-preset="hogyoku" aria-pressed="false">
+                            <span>Hōgyoku</span><small>Awakened crystal</small>
+                        </button>
                     </div>
                 </div>
 
@@ -995,6 +1008,11 @@
                     <button class="dock-theme-item" type="button" data-dock-theme="tensa-zangetsu" id="dock-t-tensa">
                         <span class="dock-theme-swatch swatch-tensa" aria-hidden="true"></span>
                         <span>Tensa Zangetsu</span>
+                        <i class="fas fa-check dock-check" aria-hidden="true"></i>
+                    </button>
+                    <button class="dock-theme-item" type="button" data-dock-theme="hogyoku" id="dock-t-hogyoku">
+                        <span class="dock-theme-swatch swatch-hogyoku" aria-hidden="true"></span>
+                        <span>Hōgyoku</span>
                         <i class="fas fa-check dock-check" aria-hidden="true"></i>
                     </button>
                 </div>
@@ -1346,10 +1364,13 @@
 
     <!-- App Scripts -->
     <script src="firebase-config.js?v=6"></script>
-    <script src="app.js?v=14"></script>
+    <script src="app.js?v=16"></script>
 
     <!-- ===== NOW PLAYING WIDGET ===== -->
     <script src="now-playing-widget.js?v=4"></script>
+
+    <!-- ===== HŌGYOKU CRYSTAL (theme-only, lazily loaded) ===== -->
+    <script src="hogyoku.js?v=1" defer></script>
 
     <!-- ===== ANIME CHARACTER COMPANIONS ===== -->
     <script src="bleach-easter-egg.js?v=2" defer></script>

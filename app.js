@@ -1710,17 +1710,20 @@ function initZanpakutoThemes() {
 }
 
 // Restore the default (non-Zanpakuto) theme.
-function resetZanpakutoTheme(showNotification = true) {
+function resetZanpakutoTheme(showNotification = true, options = {}) {
     document.documentElement.removeAttribute('data-zanpakuto');
     document.documentElement.removeAttribute('data-blood-moon');
     localStorage.removeItem('zanpakuto_theme');
     if (showNotification) {
         showToast('Zanpakuto spiritual pressure sealed (Default Theme).', 'info');
     }
+    document.dispatchEvent(new CustomEvent('sledge:themechange', {
+        detail: { theme: 'default', userInitiated: !!options.userInitiated }
+    }));
 }
 
-function applyZanpakutoTheme(themeName, showNotification = true) {
-    const validThemes = ['getsuga-tensho', 'nozarashi', 'senbonzakura', 'kyoka-suigetsu', 'tensa-zangetsu'];
+function applyZanpakutoTheme(themeName, showNotification = true, options = {}) {
+    const validThemes = ['getsuga-tensho', 'nozarashi', 'senbonzakura', 'kyoka-suigetsu', 'tensa-zangetsu', 'hogyoku'];
     if (!validThemes.includes(themeName)) return;
 
     document.documentElement.setAttribute('data-zanpakuto', themeName);
@@ -1739,10 +1742,19 @@ function applyZanpakutoTheme(themeName, showNotification = true) {
             'nozarashi': 'Nozarashi (野晒) — Yellow & Black Theme with Fire',
             'senbonzakura': 'Senbonzakura (千本桜) — Sakura Pink Theme with Flower Petals',
             'kyoka-suigetsu': 'Kyoka Suigetsu (鏡花水月) — Purple & Black Theme',
-            'tensa-zangetsu': 'Tensa Zangetsu (天鎖斬月) — Crimson Bankai + Blood Moon'
+            'tensa-zangetsu': 'Tensa Zangetsu (天鎖斬月) — Crimson Bankai + Blood Moon',
+            'hogyoku': 'Hōgyoku (崩玉) — Awakened Crystal Theme'
         };
         showToast(`Awakened: ${themeTitles[themeName] || themeName}!`, 'success');
     }
+
+    // One event, one source of truth. The Hōgyoku module (and anything else
+    // that cares) reacts to the attribute without keeping its own theme state.
+    // userInitiated is only true for real clicks, so page loads never replay
+    // the glass-shatter reveal.
+    document.dispatchEvent(new CustomEvent('sledge:themechange', {
+        detail: { theme: themeName, userInitiated: !!options.userInitiated }
+    }));
 }
 
 // Signature visual effect awarded to each Zanpakuto. Clicking a theme in the
@@ -1755,7 +1767,10 @@ const THEME_SIGNATURE_EFFECTS = {
     'nozarashi': 'nozarashi',
     'senbonzakura': 'sakura',
     'kyoka-suigetsu': 'reiatsu',
-    'tensa-zangetsu': 'rain'
+    'tensa-zangetsu': 'rain',
+    // Hōgyoku's signature effect is the section-anchored crystal, not a
+    // full-page particle layer; keep the rest of the page calm.
+    'hogyoku': null
 };
 
 function applyThemeSignatureEffect(themeName) {
@@ -2655,6 +2670,9 @@ function applyAnimationSetting(value, persist = true) {
         );
     }
     syncDecorationPauseState();
+    // Tell every visual subsystem (including the Hōgyoku orb) that the
+    // animation level changed, so motion can pause/resume live.
+    document.dispatchEvent(new CustomEvent('sledge:settingschanged'));
     updateVisualControls();
 }
 
@@ -2881,6 +2899,21 @@ const VISUAL_PRESETS = {
         animation: 'low',
         cards: 'original',
         characters: 'rare'
+    },
+    hogyoku: {
+        label: 'Hōgyoku Awakening',
+        theme: 'hogyoku',
+        mode: 'dark',
+        look: '',
+        particle: null,
+        atmosphere: null,
+        intensity: 'subtle',
+        accent: '#c084fc',
+        font: 'outfit',
+        cursor: 'theme',
+        animation: 'low',
+        cards: 'original',
+        characters: 'rare'
     }
 };
 
@@ -2888,8 +2921,8 @@ function applyPreset(name) {
     const preset = VISUAL_PRESETS[name];
     if (!preset) return;
 
-    if (preset.theme === 'default') resetZanpakutoTheme(false);
-    else applyZanpakutoTheme(preset.theme, false);
+    if (preset.theme === 'default') resetZanpakutoTheme(false, { userInitiated: true });
+    else applyZanpakutoTheme(preset.theme, false, { userInitiated: true });
 
     document.documentElement.setAttribute('data-theme', preset.mode);
     localStorage.setItem('theme', preset.mode);
@@ -3371,10 +3404,18 @@ function initFloatingDock() {
     themePopup.querySelectorAll('.dock-theme-item').forEach(item => {
         item.addEventListener('click', () => {
             const theme = item.dataset.dockTheme;
+            // Hōgyoku is a dark-first cinematic theme: selecting it from the
+            // dock also switches the existing colour mode, rather than
+            // introducing a second theme state.
+            if (theme === 'hogyoku' && document.documentElement.getAttribute('data-theme') !== 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                updateThemeIcon('dark');
+            }
             if (theme === 'default') {
-                resetZanpakutoTheme(true);
+                resetZanpakutoTheme(true, { userInitiated: true });
             } else {
-                applyZanpakutoTheme(theme, true);
+                applyZanpakutoTheme(theme, true, { userInitiated: true });
             }
             // Choosing a Zanpakuto awakens its signature effect (user can turn
             // it off afterwards from the dock).

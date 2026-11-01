@@ -36,7 +36,7 @@
     --bg-tertiary: var(--gray-100);
     --bg-card: #ffffff;
     --bg-card-hover: var(--blue-50);
-    --bg-nav: rgba(255, 255, 255, 0.85);
+    --bg-nav: rgba(255, 255, 255, 0.94);
     --bg-modal: #ffffff;
     --bg-overlay: rgba(15, 23, 42, 0.5);
     --bg-input: #ffffff;
@@ -102,7 +102,7 @@
     --bg-tertiary: var(--gray-800);
     --bg-card: var(--gray-900);
     --bg-card-hover: rgba(59, 130, 246, 0.08);
-    --bg-nav: rgba(2, 6, 23, 0.9);
+    --bg-nav: rgba(2, 6, 23, 0.94);
     --bg-modal: var(--gray-900);
     --bg-overlay: rgba(0, 0, 0, 0.7);
     --bg-input: var(--gray-800);
@@ -207,8 +207,6 @@ img {
     right: 0;
     height: var(--nav-height);
     background: var(--bg-nav);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
     border-bottom: 1px solid var(--border-color);
     z-index: 1000;
     transition: background var(--transition-base), border-color var(--transition-base);
@@ -3149,6 +3147,80 @@ html[data-theme="dark"][data-zanpakuto="tensa-zangetsu"] .btn-primary {
 }
 
 /* ---------------------------------------------------
+   6. HŌGYOKU (Aizen's Orb - Deep Violet & Crimson)
+   Dark-first, with a light variant for the day toggle.
+   --------------------------------------------------- */
+html[data-zanpakuto="hogyoku"] {
+    --blue-50: #fdf4ff;
+    --blue-100: #fae8ff;
+    --blue-200: #f5d0fe;
+    --blue-300: #f0abfc;
+    --blue-400: #d946ef;
+    --blue-500: #a21caf;
+    --blue-600: #86198f;
+    --blue-700: #701a75;
+    --blue-800: #581c87;
+    --blue-900: #3b0764;
+
+    --bg-primary: #fbf7ff;
+    --bg-secondary: #f6ecff;
+    --bg-tertiary: #edd9ff;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f6ecff;
+    --bg-hero: linear-gradient(135deg, #14021f 0%, #3b0764 52%, #7f1d3a 100%);
+    --text-primary: #2b0a3d;
+    --text-secondary: #6b21a8;
+    --text-tertiary: #86198f;
+    --text-inverse: #fdf4ff;
+    --text-link: #a21caf;
+    --border-color: #edd9ff;
+    --border-color-hover: #a21caf;
+    --shadow-card-hover: 0 10px 30px rgba(162, 28, 175, 0.24);
+}
+
+html[data-theme="dark"][data-zanpakuto="hogyoku"] {
+    --bg-primary: #06020c;
+    --bg-secondary: #0c0418;
+    --bg-tertiary: #150727;
+    --bg-card: #0b0316;
+    --bg-card-hover: rgba(192, 132, 252, 0.12);
+    --bg-nav: rgba(6, 2, 12, 0.96);
+    --bg-modal: #0c0418;
+    --bg-input: #150727;
+    --bg-hero: linear-gradient(135deg, #06020c 0%, #1b0533 48%, #3b0620 100%);
+    --text-primary: #f8f1ff;
+    --text-secondary: #d8b4fe;
+    --text-tertiary: #c084fc;
+    --text-inverse: #06020c;
+    --text-link: #e879f9;
+    --border-color: #2b0f42;
+    --border-color-hover: #c084fc;
+    --blue-400: #d8b4fe;
+    --blue-500: #c084fc;
+    --blue-600: #a855f7;
+    --blue-700: #9333ea;
+    --shadow-card-hover: 0 10px 34px rgba(192, 132, 252, 0.34);
+}
+
+html[data-zanpakuto="hogyoku"] .btn-primary {
+    background: linear-gradient(135deg, #a21caf, #7f1d3a) !important;
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"][data-zanpakuto="hogyoku"] .btn-primary {
+    background: linear-gradient(135deg, #c084fc, #be123c) !important;
+    color: #0b0316 !important;
+    box-shadow: 0 0 22px rgba(192, 132, 252, 0.38) !important;
+}
+
+html[data-zanpakuto="hogyoku"] #dock-shell {
+    --dock-accent: #c084fc;
+    --dock-accent-rgb: 192, 132, 252;
+    --dock-glow: rgba(192, 132, 252, 0.4);
+    --dock-border: rgba(192, 132, 252, 0.36);
+    --dock-surface: rgba(12, 4, 22, 0.94);
+}
+/* ---------------------------------------------------
    TENSA ZANGETSU BLOOD MOON MODE (Sharp Red & Black/White)
    Triggered on Moon Click:
    - Day: Pure white & deep black with sharp blood-red accents
@@ -3474,8 +3546,6 @@ html[data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] #dock-shell {
         var(--dock-surface);
     color: var(--dock-accent);
     cursor: pointer;
-    backdrop-filter: blur(18px) saturate(180%);
-    -webkit-backdrop-filter: blur(18px) saturate(180%);
     box-shadow:
         0 8px 28px rgba(0, 0, 0, 0.45),
         0 0 18px var(--dock-glow),
@@ -3550,8 +3620,6 @@ html[data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] #dock-shell {
     background:
         linear-gradient(135deg, rgba(var(--dock-accent-rgb), 0.13) 0%, transparent 58%),
         var(--dock-surface);
-    backdrop-filter: blur(18px) saturate(180%);
-    -webkit-backdrop-filter: blur(18px) saturate(180%);
     box-shadow:
         0 10px 34px rgba(0, 0, 0, 0.48),
         0 2px 8px rgba(0, 0, 0, 0.32),
@@ -3680,8 +3748,6 @@ html[data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] #dock-shell {
     background:
         linear-gradient(150deg, rgba(var(--dock-accent-rgb), 0.12) 0%, transparent 55%),
         var(--dock-surface);
-    backdrop-filter: blur(22px) saturate(180%);
-    -webkit-backdrop-filter: blur(22px) saturate(180%);
     box-shadow:
         0 20px 50px rgba(0, 0, 0, 0.55),
         0 4px 16px rgba(0, 0, 0, 0.3),
@@ -3851,6 +3917,7 @@ html[data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] #dock-shell {
 .swatch-senbonzakura { background: linear-gradient(135deg, #db2777 0%, #fbcfe8 52%, #ec4899 100%); }
 .swatch-kyoka { background: linear-gradient(135deg, #9333ea 0%, #312e81 52%, #1e1b4b 100%); }
 .swatch-tensa { background: linear-gradient(135deg, #ef4444 0%, #18181b 52%, #7f1d1d 100%); }
+.swatch-hogyoku { background: linear-gradient(135deg, #e879f9 0%, #7e22ce 46%, #9f1239 100%); }
 
 /* Effects popup content */
 #dock-effects-list {
@@ -4480,6 +4547,165 @@ body.blood-rain-on #blood-rain-aura {
     line-height: 1.6;
 }
 
+/* ===================================================
+   HŌGYOKU STAGE — section-anchored 3D crystal orb
+   The canvas lives inside #about-section (the middle
+   section of the homepage) and scrolls with it. It is
+   never fixed, never follows the pointer and never
+   receives pointer events.
+   =================================================== */
+#about-section {
+    position: relative;
+    isolation: isolate;
+}
+
+#about-section > .section-header,
+#about-section > .about-grid {
+    position: relative;
+    z-index: 2;
+}
+
+/* Only the middle section's lighting shifts toward violet/crimson. */
+html[data-zanpakuto="hogyoku"] #about-section {
+    background:
+        radial-gradient(58% 66% at 50% 60%, rgba(126, 34, 206, 0.26) 0%, rgba(159, 18, 57, 0.13) 46%, transparent 76%),
+        radial-gradient(90% 100% at 50% 50%, rgba(76, 5, 110, 0.16) 0%, transparent 74%);
+    border-radius: 34px;
+}
+
+html[data-theme="light"][data-zanpakuto="hogyoku"] #about-section {
+    background:
+        radial-gradient(58% 66% at 50% 60%, rgba(168, 85, 247, 0.16) 0%, rgba(190, 24, 93, 0.08) 48%, transparent 76%);
+}
+
+.hogyoku-stage {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    contain: paint;
+    transition: opacity 0.8s ease, visibility 0s linear 0.8s;
+}
+
+html[data-zanpakuto="hogyoku"] .hogyoku-stage {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.8s ease, visibility 0s;
+}
+
+.hogyoku-aura {
+    position: absolute;
+    inset: -8%;
+    background:
+        radial-gradient(36% 40% at 50% 61%, rgba(168, 85, 247, 0.34) 0%, transparent 72%),
+        radial-gradient(28% 32% at 56% 66%, rgba(190, 18, 60, 0.24) 0%, transparent 74%);
+    pointer-events: none;
+}
+
+.hogyoku-canvas {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 1.1s ease;
+    pointer-events: none;
+}
+
+.hogyoku-stage.is-awake .hogyoku-canvas {
+    opacity: 1;
+}
+
+/* CSS crystal used only when WebGL/Three.js cannot start. */
+.hogyoku-fallback {
+    position: absolute;
+    left: 50%;
+    top: 58%;
+    display: none;
+    width: min(42vh, 330px);
+    aspect-ratio: 1 / 1;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at 36% 30%, rgba(255, 255, 255, 0.9) 0%, transparent 20%),
+        radial-gradient(circle at 50% 50%, rgba(232, 121, 249, 0.5) 0%, rgba(126, 34, 206, 0.34) 44%, rgba(159, 18, 57, 0.3) 68%, transparent 74%);
+    box-shadow:
+        inset 0 0 44px rgba(216, 180, 254, 0.5),
+        0 0 90px rgba(168, 85, 247, 0.35);
+}
+
+.hogyoku-fallback-core {
+    position: absolute;
+    inset: 27%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 42% 36%, #ffffff 0%, #f0abfc 26%, #a21caf 60%, #9f1239 100%);
+    box-shadow: 0 0 62px rgba(232, 121, 249, 0.58);
+    opacity: 0.9;
+}
+
+.hogyoku-stage.is-fallback .hogyoku-fallback {
+    display: block;
+}
+
+.hogyoku-stage.is-fallback .hogyoku-canvas {
+    display: none;
+}
+
+@keyframes hogyokuFallbackPulse {
+    0%, 100% { transform: scale(1); opacity: 0.86; }
+    50% { transform: scale(1.06); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .hogyoku-stage.is-fallback .hogyoku-fallback-core {
+        animation: hogyokuFallbackPulse 6s ease-in-out infinite;
+    }
+}
+
+html[data-animation="off"] .hogyoku-fallback-core {
+    animation: none !important;
+}
+
+/* Hōgyoku cards read as dark glass so the orb can glow behind them. */
+html[data-theme="dark"][data-zanpakuto="hogyoku"] .about-card {
+    background: linear-gradient(155deg, rgba(30, 12, 52, 0.8) 0%, rgba(12, 3, 22, 0.88) 100%);
+    border-color: rgba(192, 132, 252, 0.22);
+    box-shadow: 0 18px 46px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+html[data-theme="dark"][data-zanpakuto="hogyoku"] .about-card:hover {
+    border-color: rgba(232, 121, 249, 0.55);
+    box-shadow: 0 20px 54px rgba(88, 28, 135, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme="light"][data-zanpakuto="hogyoku"] .about-card {
+    background: rgba(255, 255, 255, 0.8);
+    border-color: rgba(168, 85, 247, 0.24);
+}
+
+/* Glass-shatter veil: self-cleaning, non-interactive canvas. */
+.hogyoku-shatter {
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hogyoku-stage,
+    .hogyoku-canvas,
+    .hogyoku-fallback-core {
+        transition: none !important;
+        animation: none !important;
+    }
+}
+
 /* Curriculum Grid */
 .curriculum-grid {
     display: grid;
@@ -4640,6 +4866,10 @@ html[data-zanpakuto="tensa-zangetsu"] {
     --zan-cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj48cGF0aCBkPSJNMyAzIEw2LjUgNC41IEwyOSAyNiBMMjYgMjkgTDQuNSA3IFoiIGZpbGw9IiMwOTA5MGIiIHN0cm9rZT0iI2VmNDQ0NCIgc3Ryb2tlLXdpZHRoPSIxLjciIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48cGF0aCBkPSJNNiA5IEw5IDYiIHN0cm9rZT0iI2ZlY2FjYSIgc3Ryb2tlLXdpZHRoPSIxLjYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxjaXJjbGUgY3g9IjI2IiBjeT0iMjYiIHI9IjEuOCIgZmlsbD0iI2VmNDQ0NCIvPjwvc3ZnPg==") 3 3, auto;
 }
 
+html[data-zanpakuto="hogyoku"] {
+    --zan-cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj48cGF0aCBkPSJNMyAzIEw5IDUgTDI5IDI1IEwyNSAyOSBMNSA5IFoiIGZpbGw9IiM3ZTIyY2UiIHN0cm9rZT0iI2Y1ZDBmZSIgc3Ryb2tlLXdpZHRoPSIxLjYiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48cGF0aCBkPSJNNyAxMSBMNCAxNCIgc3Ryb2tlPSIjZmJjZmU4IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxjaXJjbGUgY3g9IjI1IiBjeT0iMjUiIHI9IjMiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2U4NzlmOSIgc3Ryb2tlLXdpZHRoPSIxLjgiLz48L3N2Zz4=") 3 3, auto;
+}
+
 html body,
 html body * {
     cursor: var(--zan-cursor) !important;
@@ -4670,15 +4900,27 @@ html body button:disabled {
     overflow: hidden;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 0.7s ease;
+    visibility: hidden;
+    transition: opacity 0.7s ease, visibility 0s linear 0.7s;
 }
 
 html[data-atmosphere="aurora"] #ambient-aurora {
     opacity: var(--ambient-opacity);
+    visibility: visible;
+    transition: opacity 0.7s ease, visibility 0s;
 }
 
 html[data-atmosphere="mist"] #ambient-mist {
     opacity: var(--ambient-opacity);
+    visibility: visible;
+    transition: opacity 0.7s ease, visibility 0s;
+}
+
+/* Hidden atmosphere layers should not keep three huge blurred gradients
+   compositing forever. Pausing the keyframes also stops repaint work. */
+html:not([data-atmosphere="aurora"]) #ambient-aurora .aurora-band,
+html:not([data-atmosphere="mist"]) #ambient-mist .mist-blob {
+    animation-play-state: paused;
 }
 
 .aurora-band {
@@ -4832,15 +5074,13 @@ body.quiet-mode #cursor-spotlight {
     justify-content: center;
     border-radius: 50%;
     border: 1px solid rgba(var(--accent-rgb), 0.4);
-    background: rgba(10, 12, 18, 0.82);
+    background: rgba(10, 12, 18, 0.94);
     color: #ffffff;
     cursor: pointer;
     z-index: 998;
     opacity: 0;
     visibility: hidden;
     transform: translateY(10px);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
     transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s linear 0.25s;
 }
