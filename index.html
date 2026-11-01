@@ -161,8 +161,8 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="styles.css?v=16">
-    <link rel="stylesheet" href="now-playing-widget.css?v=4">
+    <link rel="stylesheet" href="styles.css?v=9">
+    <link rel="stylesheet" href="now-playing-widget.css?v=2">
 </head>
 
 <body>
@@ -190,11 +190,6 @@
                 </a>
             </div>
             <div class="nav-actions">
-                <div class="pkt-clock" id="pkt-clock" title="Pakistan Standard Time (Asia/Karachi)">
-                    <i class="fas fa-clock" aria-hidden="true"></i>
-                    <span id="pkt-time">--:--</span>
-                    <span class="pkt-zone">PKT</span>
-                </div>
                 <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">
                     <i class="fas fa-moon" id="theme-icon"></i>
                 </button>
@@ -240,15 +235,16 @@
                 </div>
                 <div class="hero-content">
                     <div class="hero-badge">
-                        <i class="fas fa-wand-magic-sparkles"></i> Open & Free for Everyone
+                        <i class="fas fa-sparkles"></i> Open & Free for Everyone
                     </div>
-                    <p class="hero-greeting" id="pkt-greeting">Welcome, scholars.</p>
                     <h1 class="hero-title">
                         Sledge Classroom<br>
                         <span class="gradient-text">NUML BSCS Learning Hub</span>
                     </h1>
                     <p class="hero-subtitle">
-                        Explore computer science study materials, programming labs, course notes, and past papers for NUML BSCS students through Sledge Classroom. 100% free with direct downloads and zero login barriers.
+                        Explore computer science study materials, programming labs, course notes, and past papers for
+                        NUML BSCS students through Sledge Classroom. 100% free with direct downloads and zero login
+                        barriers.
                     </p>
                     <div class="hero-actions">
                         <button class="btn btn-primary btn-lg" id="hero-explore-btn">
@@ -322,16 +318,6 @@
 
             <!-- About Sledge Classroom -->
             <div class="section" id="about-section">
-                <!-- Hōgyoku theme only: section-anchored 3D crystal orb.
-                     Absolutely positioned inside this section, behind the copy
-                     and cards, and never interactive. -->
-                <div class="hogyoku-stage" id="hogyoku-stage" aria-hidden="true">
-                    <div class="hogyoku-aura"></div>
-                    <canvas class="hogyoku-canvas" id="hogyoku-canvas"></canvas>
-                    <div class="hogyoku-fallback">
-                        <span class="hogyoku-fallback-core"></span>
-                    </div>
-                </div>
                 <div class="section-header">
                     <h2 class="section-title">
                         <i class="fas fa-graduation-cap"></i> About Sledge Classroom
@@ -342,22 +328,26 @@
                     <div class="about-card">
                         <div class="about-card-icon"><i class="fas fa-chalkboard-teacher"></i></div>
                         <h3>NUML BSCS Curated Notes</h3>
-                        <p>Comprehensive lecture slides and presentations for core Computer Science semester subjects, neatly organized by topic and lecture number.</p>
+                        <p>Comprehensive lecture slides and presentations for core Computer Science semester subjects,
+                            neatly organized by topic and lecture number.</p>
                     </div>
                     <div class="about-card">
                         <div class="about-card-icon"><i class="fas fa-scroll"></i></div>
                         <h3>Past Papers &amp; Exam Prep</h3>
-                        <p>Midterm and final exam past papers with solution guidelines, marking schemes, and revision keys to help university students excel.</p>
+                        <p>Midterm and final exam past papers with solution guidelines, marking schemes, and revision
+                            keys to help university students excel.</p>
                     </div>
                     <div class="about-card">
                         <div class="about-card-icon"><i class="fas fa-laptop-code"></i></div>
                         <h3>Practical Programming Labs</h3>
-                        <p>Lab manuals, code templates, viva questions, and hands-on exercises for practical subjects like Operating Systems, Web Engineering, and Computer Architecture.</p>
+                        <p>Lab manuals, code templates, viva questions, and hands-on exercises for practical subjects
+                            like Operating Systems, Web Engineering, and Computer Architecture.</p>
                     </div>
                     <div class="about-card">
                         <div class="about-card-icon"><i class="fas fa-unlock-alt"></i></div>
                         <h3>100% Free &amp; Open Access</h3>
-                        <p>Created by Muhammad Durrab (Sledge) with zero paywalls, mandatory registrations, or subscription fees. Click, preview online, and download directly.</p>
+                        <p>Created by Muhammad Durrab (Sledge) with zero paywalls, mandatory registrations, or
+                            subscription fees. Click, preview online, and download directly.</p>
                     </div>
                 </div>
             </div>
@@ -378,9 +368,11 @@
                                 <span class="curriculum-badge">Theory</span>
                             </div>
                             <h3>Theory of Automata</h3>
-                            <p>Finite state automata, regular expressions, context-free grammars, pushdown automata, Turing machines, and decidability.</p>
+                            <p>Finite state automata, regular expressions, context-free grammars, pushdown automata,
+                                Turing machines, and decidability.</p>
                         </div>
-                        <span class="curriculum-link">View Notes &amp; Past Papers <i class="fas fa-arrow-right"></i></span>
+                        <span class="curriculum-link">View Notes &amp; Past Papers <i
+                                class="fas fa-arrow-right"></i></span>
                     </a>
                     <a href="#courses" class="curriculum-card" data-course="os" id="course-os">
                         <div>
@@ -389,9 +381,11 @@
                                 <span class="curriculum-badge">Theory &amp; Lab</span>
                             </div>
                             <h3>Operating Systems</h3>
-                            <p>Processes, CPU scheduling, thread synchronization, semaphores, deadlock handling, virtual memory, and Linux CLI lab tasks.</p>
+                            <p>Processes, CPU scheduling, thread synchronization, semaphores, deadlock handling, virtual
+                                memory, and Linux CLI lab tasks.</p>
                         </div>
-                        <span class="curriculum-link">View Notes &amp; Lab Manuals <i class="fas fa-arrow-right"></i></span>
+                        <span class="curriculum-link">View Notes &amp; Lab Manuals <i
+                                class="fas fa-arrow-right"></i></span>
                     </a>
                     <a href="#courses" class="curriculum-card" data-course="web" id="course-web">
                         <div>
@@ -400,9 +394,11 @@
                                 <span class="curriculum-badge">Theory &amp; Lab</span>
                             </div>
                             <h3>Web Engineering</h3>
-                            <p>Modern frontend &amp; backend web development, DOM manipulation, responsive CSS, JavaScript, REST APIs, and database integration.</p>
+                            <p>Modern frontend &amp; backend web development, DOM manipulation, responsive CSS,
+                                JavaScript, REST APIs, and database integration.</p>
                         </div>
-                        <span class="curriculum-link">View Notes &amp; Code Samples <i class="fas fa-arrow-right"></i></span>
+                        <span class="curriculum-link">View Notes &amp; Code Samples <i
+                                class="fas fa-arrow-right"></i></span>
                     </a>
                     <a href="#courses" class="curriculum-card" data-course="arch" id="course-arch">
                         <div>
@@ -411,9 +407,11 @@
                                 <span class="curriculum-badge">Theory &amp; Lab</span>
                             </div>
                             <h3>Computer Architecture</h3>
-                            <p>Von Neumann architecture, instruction set architectures, instruction-level parallelism, pipelining, hazards, and memory hierarchy.</p>
+                            <p>Von Neumann architecture, instruction set architectures, instruction-level parallelism,
+                                pipelining, hazards, and memory hierarchy.</p>
                         </div>
-                        <span class="curriculum-link">View Notes &amp; Past Papers <i class="fas fa-arrow-right"></i></span>
+                        <span class="curriculum-link">View Notes &amp; Past Papers <i
+                                class="fas fa-arrow-right"></i></span>
                     </a>
                     <a href="#courses" class="curriculum-card" data-course="stats" id="course-stats">
                         <div>
@@ -422,9 +420,11 @@
                                 <span class="curriculum-badge">Theory</span>
                             </div>
                             <h3>Statistics &amp; Probability</h3>
-                            <p>Descriptive statistics, discrete &amp; continuous probability distributions, Bayes theorem, hypothesis testing, and regression analysis.</p>
+                            <p>Descriptive statistics, discrete &amp; continuous probability distributions, Bayes
+                                theorem, hypothesis testing, and regression analysis.</p>
                         </div>
-                        <span class="curriculum-link">View Notes &amp; Past Papers <i class="fas fa-arrow-right"></i></span>
+                        <span class="curriculum-link">View Notes &amp; Past Papers <i
+                                class="fas fa-arrow-right"></i></span>
                     </a>
                     <a href="#courses" class="curriculum-card" data-course="calculus" id="course-calculus">
                         <div>
@@ -433,9 +433,11 @@
                                 <span class="curriculum-badge">Theory</span>
                             </div>
                             <h3>Multivariable Calculus</h3>
-                            <p>Partial derivatives, chain rule in multiple variables, double &amp; triple integration, vector fields, divergence, curl, and Green's theorem.</p>
+                            <p>Partial derivatives, chain rule in multiple variables, double &amp; triple integration,
+                                vector fields, divergence, curl, and Green's theorem.</p>
                         </div>
-                        <span class="curriculum-link">View Notes &amp; Past Papers <i class="fas fa-arrow-right"></i></span>
+                        <span class="curriculum-link">View Notes &amp; Past Papers <i
+                                class="fas fa-arrow-right"></i></span>
                     </a>
                 </div>
             </div>
@@ -455,7 +457,10 @@
                             <i class="fas fa-chevron-down"></i>
                         </button>
                         <div class="faq-answer">
-                            <p>Sledge Classroom is an open, student-focused educational platform and resource hub created by Muhammad Durrab (Sledge) specifically for NUML Computer Science (BSCS) students. It organizes university lecture notes, past papers, lab manuals, and academic calendars in one accessible place.</p>
+                            <p>Sledge Classroom is an open, student-focused educational platform and resource hub
+                                created by Muhammad Durrab (Sledge) specifically for NUML Computer Science (BSCS)
+                                students. It organizes university lecture notes, past papers, lab manuals, and academic
+                                calendars in one accessible place.</p>
                         </div>
                     </div>
                     <div class="faq-item">
@@ -464,7 +469,8 @@
                             <i class="fas fa-chevron-down"></i>
                         </button>
                         <div class="faq-answer">
-                            <p>Yes, 100% free! All students can view online previews and download lecture slides, past exams, and lab resources directly without paying or creating an account.</p>
+                            <p>Yes, 100% free! All students can view online previews and download lecture slides, past
+                                exams, and lab resources directly without paying or creating an account.</p>
                         </div>
                     </div>
                     <div class="faq-item">
@@ -473,7 +479,10 @@
                             <i class="fas fa-chevron-down"></i>
                         </button>
                         <div class="faq-answer">
-                            <p>Sledge Classroom currently hosts course materials for Theory of Automata (CS 311), Operating Systems (CS 321), Web Engineering (CS 341), Computer Architecture (CS 331), Statistics &amp; Probability (STAT 301), and Multivariable Calculus (MATH 201), including dedicated practical lab sections.</p>
+                            <p>Sledge Classroom currently hosts course materials for Theory of Automata (CS 311),
+                                Operating Systems (CS 321), Web Engineering (CS 341), Computer Architecture (CS 331),
+                                Statistics &amp; Probability (STAT 301), and Multivariable Calculus (MATH 201),
+                                including dedicated practical lab sections.</p>
                         </div>
                     </div>
                     <div class="faq-item">
@@ -482,7 +491,8 @@
                             <i class="fas fa-chevron-down"></i>
                         </button>
                         <div class="faq-answer">
-                            <p>No login is required for students. Login access is strictly reserved for the administrator to upload and manage educational resources.</p>
+                            <p>No login is required for students. Login access is strictly reserved for the
+                                administrator to upload and manage educational resources.</p>
                         </div>
                     </div>
                 </div>
@@ -881,20 +891,23 @@
             </div>
             <div class="bleach-modal-content">
                 <div class="bleach-avatar-wrapper">
-                    <img src="orihime.png" alt="Orihime Inoue" class="bleach-orihime-img" width="160" height="240" loading="lazy">
+                    <img src="orihime.png" alt="Orihime Inoue" class="bleach-orihime-img" width="160" height="240"
+                        loading="lazy">
                     <div class="bleach-halo"></div>
                 </div>
                 <div class="bleach-dialog-card">
                     <div class="bleach-speaker-name">Orihime Inoue <span>(Senkaimon Gatekeeper)</span></div>
                     <h3 class="bleach-question">"Is Bleach better than One Piece?"</h3>
-                    <p class="bleach-subtext">You are trying to enter <strong>Multivariable Calculus (MVC)</strong>. Orihime requires your confession before opening the Senkaimon!</p>
+                    <p class="bleach-subtext">You are trying to enter <strong>Multivariable Calculus (MVC)</strong>.
+                        Orihime requires your confession before opening the Senkaimon!</p>
                 </div>
-                
+
                 <div id="bleach-rejection-msg" class="bleach-alert bleach-alert-error hidden">
                     <div class="bleach-alert-icon"><i class="fas fa-shield-halved"></i></div>
                     <div>
                         <strong>ACCESS DENIED!</strong>
-                        <p>Orihime blocked you with <em>Santen Kesshun</em>! Only true Soul Reapers who acknowledge Bleach can unlock Multivariable Calculus. Repent and choose wisely!</p>
+                        <p>Orihime blocked you with <em>Santen Kesshun</em>! Only true Soul Reapers who acknowledge
+                            Bleach can unlock Multivariable Calculus. Repent and choose wisely!</p>
                     </div>
                 </div>
 
@@ -908,7 +921,7 @@
 
                 <div class="bleach-actions" id="bleach-actions-row">
                     <button class="btn btn-primary bleach-btn-yes" id="bleach-gate-yes">
-                        <i class="fas fa-fire" aria-hidden="true"></i> Yes! Bleach is Peak 🔥
+                        <i class="fas fa-fire"></i> Yes! Bleach is Peak 🔥
                     </button>
                     <button class="btn btn-outline bleach-btn-no" id="bleach-gate-no">
                         <i class="fas fa-skull-crossbones"></i> No, One Piece is better 👒
@@ -918,401 +931,304 @@
         </div>
     </div>
 
+    <!-- ===== ZANPAKUTO THEMES EASTER EGG (RIGHT SIDEBAR) ===== -->
+    <!-- Floating Edge Trigger -->
+    <button class="zanpakuto-floating-btn" id="zanpakuto-floating-btn" title="Awaken Zanpakuto Themes"
+        aria-label="Zanpakuto Themes">
+        <span class="sword-badge-icon">⚔️</span>
+        <span class="zanpakuto-btn-text">ZANPAKUTO</span>
+    </button>
 
-    <!-- Decorative particle layers -->
-    <div id="scroll-progress" aria-hidden="true"><span></span></div>
-    <div id="blood-rain-aura" aria-hidden="true"></div>
-    <div id="ambient-aurora" class="ambient-layer" aria-hidden="true">
-        <span class="aurora-band aurora-band-1"></span>
-        <span class="aurora-band aurora-band-2"></span>
-        <span class="aurora-band aurora-band-3"></span>
-    </div>
-    <div id="ambient-mist" class="ambient-layer" aria-hidden="true">
-        <span class="mist-blob mist-blob-1"></span>
-        <span class="mist-blob mist-blob-2"></span>
-        <span class="mist-blob mist-blob-3"></span>
-    </div>
-    <div id="cursor-spotlight" aria-hidden="true"></div>
-    <canvas id="sakura-canvas" class="sakura-canvas hidden" aria-hidden="true"></canvas>
-    <canvas id="cursor-trail-canvas" class="cursor-trail-canvas hidden" aria-hidden="true"></canvas>
+    <!-- Slide-out Sidebar Overlay & Drawer -->
+    <div class="zanpakuto-backdrop hidden" id="zanpakuto-backdrop"></div>
+    <aside class="zanpakuto-drawer" id="zanpakuto-drawer">
+        <div class="zanpakuto-drawer-header">
+            <div class="drawer-header-left">
+                <div class="zanpakuto-flame-icon"><i class="fas fa-khanda"></i></div>
+                <div>
+                    <h3>Zanpakuto Archives</h3>
+                    <span class="drawer-subtitle">Bleach Spiritual Energy Themes</span>
+                </div>
+            </div>
+            <button class="btn btn-ghost btn-sm" id="zanpakuto-close-btn" aria-label="Close Zanpakuto Drawer">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="zanpakuto-drawer-body">
+            <p class="zanpakuto-intro">Select an awakened Zanpakuto release to infuse the website with its spiritual
+                pressure. Works across both Light and Dark modes!</p>
+
+            <div class="zanpakuto-card-list">
+                <!-- 1. Getsuga Tensho -->
+                <button class="zanpakuto-card" data-zanpakuto="getsuga-tensho" id="card-getsuga">
+                    <div class="zan-icon-box zan-getsuga">
+                        <svg viewBox="0 0 64 64" class="zan-svg" fill="currentColor">
+                            <!-- Ichigo Zangetsu Cleaver Slash & Crescent Moon -->
+                            <path d="M10 54 L32 10 L44 14 L24 54 Z" opacity="0.9" />
+                            <path d="M26 8 Q56 20 48 52 Q36 34 26 8 Z" fill="none" stroke="currentColor"
+                                stroke-width="3" />
+                            <circle cx="20" cy="48" r="3" />
+                        </svg>
+                    </div>
+                    <div class="zan-card-info">
+                        <div class="zan-name-row">
+                            <span class="zan-name">Getsuga Tensho</span>
+                            <span class="zan-kanji">月牙天衝</span>
+                        </div>
+                        <span class="zan-wielder">Ichigo Kurosaki</span>
+                        <span class="zan-desc">Monochrome Black & White spirit slash</span>
+                    </div>
+                    <div class="zan-palette-preview palette-getsuga">
+                        <span class="dot dot-black"></span>
+                        <span class="dot dot-white"></span>
+                    </div>
+                </button>
+
+                <!-- 2. Nozarashi -->
+                <button class="zanpakuto-card" data-zanpakuto="nozarashi" id="card-nozarashi">
+                    <div class="zan-icon-box zan-nozarashi">
+                        <svg viewBox="0 0 64 64" class="zan-svg" fill="currentColor">
+                            <!-- Zaraki Kenpachi Savage Axe/Cleaver & Battle Notches -->
+                            <path d="M12 50 L34 12 L50 18 L36 30 L44 38 L24 54 Z" />
+                            <line x1="20" y1="36" x2="28" y2="32" stroke="#111" stroke-width="2.5"
+                                stroke-linecap="round" />
+                            <line x1="24" y1="44" x2="32" y2="40" stroke="#111" stroke-width="2.5"
+                                stroke-linecap="round" />
+                        </svg>
+                    </div>
+                    <div class="zan-card-info">
+                        <div class="zan-name-row">
+                            <span class="zan-name">Nozarashi</span>
+                            <span class="zan-kanji">野晒</span>
+                        </div>
+                        <span class="zan-wielder">Zaraki Kenpachi</span>
+                        <span class="zan-desc">Fierce Yellow & Black berserker energy</span>
+                    </div>
+                    <div class="zan-palette-preview palette-nozarashi">
+                        <span class="dot dot-yellow"></span>
+                        <span class="dot dot-dark"></span>
+                    </div>
+                </button>
+
+                <!-- 3. Senbonzakura -->
+                <button class="zanpakuto-card" data-zanpakuto="senbonzakura" id="card-senbonzakura">
+                    <div class="zan-icon-box zan-senbonzakura">
+                        <svg viewBox="0 0 64 64" class="zan-svg" fill="currentColor">
+                            <!-- Four-petal Cherry Blossom Crossguard & Petals -->
+                            <circle cx="32" cy="32" r="5" />
+                            <path d="M32 12 C28 20 28 24 32 24 C36 24 36 20 32 12 Z" />
+                            <path d="M32 52 C28 44 28 40 32 40 C36 40 36 44 32 52 Z" />
+                            <path d="M12 32 C20 28 24 28 24 32 C24 36 20 36 12 32 Z" />
+                            <path d="M52 32 C44 28 40 28 40 32 C40 36 44 36 52 32 Z" />
+                        </svg>
+                    </div>
+                    <div class="zan-card-info">
+                        <div class="zan-name-row">
+                            <span class="zan-name">Senbonzakura</span>
+                            <span class="zan-kanji">千本桜</span>
+                        </div>
+                        <span class="zan-wielder">Byakuya Kuchiki</span>
+                        <span class="zan-desc">Pink Sakura theme + Falling Petal effect</span>
+                    </div>
+                    <div class="zan-palette-preview palette-senbonzakura">
+                        <span class="dot dot-pink"></span>
+                        <span class="dot dot-sakura"></span>
+                    </div>
+                </button>
+
+                <!-- 4. Kyoka Suigetsu -->
+                <button class="zanpakuto-card" data-zanpakuto="kyoka-suigetsu" id="card-kyoka">
+                    <div class="zan-icon-box zan-kyoka">
+                        <svg viewBox="0 0 64 64" class="zan-svg" fill="currentColor">
+                            <!-- Hexagonal Mirror & Hypnotic Eye Illusion -->
+                            <polygon points="32,10 50,20 50,44 32,54 14,44 14,20" fill="none" stroke="currentColor"
+                                stroke-width="3" />
+                            <circle cx="32" cy="32" r="7" />
+                            <circle cx="32" cy="32" r="3" fill="#ffffff" />
+                            <line x1="14" y1="20" x2="50" y2="44" stroke="currentColor" stroke-width="1.5"
+                                stroke-dasharray="3,3" />
+                        </svg>
+                    </div>
+                    <div class="zan-card-info">
+                        <div class="zan-name-row">
+                            <span class="zan-name">Kyoka Suigetsu</span>
+                            <span class="zan-kanji">鏡花水月</span>
+                        </div>
+                        <span class="zan-wielder">Sosuke Aizen</span>
+                        <span class="zan-desc">Hypnotic Purple & Black Complete Illusion</span>
+                    </div>
+                    <div class="zan-palette-preview palette-kyoka">
+                        <span class="dot dot-purple"></span>
+                        <span class="dot dot-black"></span>
+                    </div>
+                </button>
+                <!-- 5. Tensa Zangetsu -->
+                <button class="zanpakuto-card" data-zanpakuto="tensa-zangetsu" id="card-tensa">
+                    <div class="zan-icon-box zan-tensa">
+                        <svg viewBox="0 0 64 64" class="zan-svg" fill="currentColor">
+                            <!-- Tensa Zangetsu - thin black blade & crescent moon -->
+                            <path d="M30 8 L34 8 L36 56 L28 56 Z" opacity="0.95" />
+                            <path d="M18 14 Q42 20 38 46 Q28 30 18 14 Z" fill="none" stroke="currentColor"
+                                stroke-width="2.5" />
+                            <circle cx="20" cy="12" r="4" opacity="0.7" />
+                        </svg>
+                    </div>
+                    <div class="zan-card-info">
+                        <div class="zan-name-row">
+                            <span class="zan-name">Tensa Zangetsu</span>
+                            <span class="zan-kanji">天鎖斬月</span>
+                        </div>
+                        <span class="zan-wielder">Ichigo Kurosaki (Bankai)</span>
+                        <span class="zan-desc">Crimson & Black — Blood Moon effect</span>
+                    </div>
+                    <div class="zan-palette-preview palette-tensa">
+                        <span class="dot dot-red"></span>
+                        <span class="dot dot-black"></span>
+                    </div>
+                </button>
+            </div>
+
+            <div class="zanpakuto-actions">
+                <button class="btn btn-outline btn-block" id="zanpakuto-reset-btn">
+                    <i class="fas fa-undo"></i> Reset to Default Theme
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Canvas for Senbonzakura Falling Sakura Petals & Leaves -->
+    <canvas id="sakura-canvas" class="sakura-canvas hidden"></canvas>
 
     <!-- ===== TENSA ZANGETSU MOON ===== -->
-    <div id="tensa-moon" role="button" tabindex="0" aria-label="Tensa Zangetsu Moon — click to activate Blood Moon" title="Tensō Zangetsu — Click to awaken Blood Moon">
+    <div id="tensa-moon" role="button" tabindex="0" aria-label="Tensa Zangetsu Moon — click to activate Blood Moon"
+        title="Tensō Zangetsu — Click to awaken Blood Moon">
         <div class="moon-crescent"></div>
     </div>
+    <div id="tensa-slash-overlay" aria-hidden="true"></div>
 
-    <!-- ===== FLOATING QUICK-CONTROLS DOCK ===== -->
-    <div id="dock-shell">
-        <button class="dock-toggle-btn" type="button" id="dock-toggle"
-            aria-label="Open quick controls" aria-expanded="false" aria-controls="sledge-dock"
-            title="Open quick controls">
-            <i class="fas fa-bolt" aria-hidden="true"></i>
-            <span class="dock-toggle-pulse" aria-hidden="true"></span>
+    <!-- ===== FLOATING DOCK ===== -->
+    <nav id="sledge-dock" role="navigation" aria-label="Quick controls dock">
+        <!-- Theme popup (anchored to dock) -->
+        <div id="dock-theme-popup" role="dialog" aria-label="Choose theme" aria-hidden="true">
+            <h4><i class="fas fa-palette" style="margin-right:6px"></i>Choose Theme</h4>
+            <div class="dock-theme-list">
+                <button class="dock-theme-item" data-dock-theme="default" id="dock-t-default">
+                    <span class="dock-theme-swatch swatch-default"></span>
+                    <span>Sledge Default</span>
+                    <i class="fas fa-check dock-check"></i>
+                </button>
+                <button class="dock-theme-item" data-dock-theme="getsuga-tensho" id="dock-t-getsuga">
+                    <span class="dock-theme-swatch swatch-getsuga"></span>
+                    <span>Getsuga Tensho</span>
+                    <i class="fas fa-check dock-check"></i>
+                </button>
+                <button class="dock-theme-item" data-dock-theme="nozarashi" id="dock-t-nozarashi">
+                    <span class="dock-theme-swatch swatch-nozarashi"></span>
+                    <span>Nozarashi</span>
+                    <i class="fas fa-check dock-check"></i>
+                </button>
+                <button class="dock-theme-item" data-dock-theme="senbonzakura" id="dock-t-senbonzakura">
+                    <span class="dock-theme-swatch swatch-senbonzakura"></span>
+                    <span>Senbonzakura</span>
+                    <i class="fas fa-check dock-check"></i>
+                </button>
+                <button class="dock-theme-item" data-dock-theme="kyoka-suigetsu" id="dock-t-kyoka">
+                    <span class="dock-theme-swatch swatch-kyoka"></span>
+                    <span>Kyoka Suigetsu</span>
+                    <i class="fas fa-check dock-check"></i>
+                </button>
+                <button class="dock-theme-item" data-dock-theme="tensa-zangetsu" id="dock-t-tensa">
+                    <span class="dock-theme-swatch swatch-tensa"></span>
+                    <span>Tensa Zangetsu</span>
+                    <i class="fas fa-check dock-check"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Effects popup (anchored to dock) -->
+        <div id="dock-effects-popup" role="dialog" aria-label="Visual effects" aria-hidden="true">
+            <h4><i class="fas fa-sparkles" style="margin-right:6px"></i>Visual Effects</h4>
+            <div id="dock-effects-list">
+                <!-- Populated dynamically based on active theme -->
+                <div class="dock-effects-empty" id="dock-effects-empty">No effects for current theme</div>
+                <!-- Sakura petals row — shown only when senbonzakura is active -->
+                <div class="dock-effect-row" id="effect-row-sakura" style="display:none">
+                    <label class="dock-effect-label" for="toggle-sakura">
+                        <i class="fas fa-fan"></i> Sakura Petals
+                    </label>
+                    <label class="dock-toggle" aria-label="Toggle sakura petal effect">
+                        <input type="checkbox" id="toggle-sakura" checked>
+                        <span class="dock-toggle-slider"></span>
+                    </label>
+                </div>
+                <!-- Bankai Reiatsu Embers row — shown only when tensa-zangetsu is active -->
+                <div class="dock-effect-row" id="effect-row-reiatsu" style="display:none">
+                    <label class="dock-effect-label" for="toggle-reiatsu">
+                        <i class="fas fa-fire"></i> Bankai Reiatsu Embers
+                    </label>
+                    <label class="dock-toggle" aria-label="Toggle Bankai reiatsu embers effect">
+                        <input type="checkbox" id="toggle-reiatsu" checked>
+                        <span class="dock-toggle-slider"></span>
+                    </label>
+                </div>
+                <!-- Blood Moon toggle row — shown only when tensa-zangetsu is active -->
+                <div class="dock-effect-row" id="effect-row-bloodmoon" style="display:none">
+                    <label class="dock-effect-label" for="toggle-bloodmoon">
+                        <i class="fas fa-moon"></i> Blood Moon Mode
+                    </label>
+                    <label class="dock-toggle" aria-label="Toggle Blood Moon mode">
+                        <input type="checkbox" id="toggle-bloodmoon">
+                        <span class="dock-toggle-slider"></span>
+                    </label>
+                </div>
+                <!-- Character pop-ups row -->
+                <div class="dock-effect-row" id="effect-row-chars">
+                    <label class="dock-effect-label" for="toggle-chars">
+                        <i class="fas fa-ghost"></i> Character Pop-ups
+                    </label>
+                    <label class="dock-toggle" aria-label="Toggle character pop-ups">
+                        <input type="checkbox" id="toggle-chars" checked>
+                        <span class="dock-toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dock buttons -->
+        <button class="dock-btn" id="dock-themes" aria-label="Change theme" aria-haspopup="true" aria-expanded="false">
+            <i class="fas fa-palette"></i>
+            <span class="dock-label">Themes</span>
         </button>
 
-        <nav id="sledge-dock" aria-label="Quick controls dock" aria-hidden="true" inert>
-            <!-- Theme popup (anchored to dock) -->
-            <div id="dock-theme-popup" role="dialog" aria-label="Choose theme" aria-hidden="true" inert>
-                <h4><i class="fas fa-palette"></i>Choose Theme</h4>
+        <div class="dock-sep" role="separator"></div>
 
-                <div class="dock-presets" id="dock-presets" role="group" aria-label="Appearance presets">
-                    <span class="dock-effect-heading">Presets</span>
-                    <div class="dock-preset-grid">
-                        <button type="button" class="dock-preset-btn" data-preset="classic" aria-pressed="false">
-                            <span>Classic Sledge</span><small>Black &amp; gold</small>
-                        </button>
-                        <button type="button" class="dock-preset-btn" data-preset="anime" aria-pressed="false">
-                            <span>Anime Dream</span><small>Sakura &amp; pink</small>
-                        </button>
-                        <button type="button" class="dock-preset-btn" data-preset="soul" aria-pressed="false">
-                            <span>Soul Society</span><small>Crimson rain</small>
-                        </button>
-                        <button type="button" class="dock-preset-btn" data-preset="golden" aria-pressed="false">
-                            <span>Golden Hour</span><small>Warm glow</small>
-                        </button>
-                        <button type="button" class="dock-preset-btn" data-preset="void" aria-pressed="false">
-                            <span>Void Mode</span><small>AMOLED dark</small>
-                        </button>
-                        <button type="button" class="dock-preset-btn" data-preset="hogyoku" aria-pressed="false">
-                            <span>Hōgyoku</span><small>Awakened crystal</small>
-                        </button>
-                    </div>
-                </div>
+        <button class="dock-btn" id="dock-effects" aria-label="Visual effects" aria-haspopup="true"
+            aria-expanded="false">
+            <i class="fas fa-sparkles"></i>
+            <span class="dock-label">Effects</span>
+        </button>
 
-                <div class="dock-theme-list" role="group" aria-label="Available themes">
-                    <button class="dock-theme-item" type="button" data-dock-theme="default" id="dock-t-default">
-                        <span class="dock-theme-swatch swatch-default" aria-hidden="true"></span>
-                        <span>Sledge Default</span>
-                        <i class="fas fa-check dock-check" aria-hidden="true"></i>
-                    </button>
-                    <button class="dock-theme-item" type="button" data-dock-theme="getsuga-tensho" id="dock-t-getsuga">
-                        <span class="dock-theme-swatch swatch-getsuga" aria-hidden="true"></span>
-                        <span>Getsuga Tensho</span>
-                        <i class="fas fa-check dock-check" aria-hidden="true"></i>
-                    </button>
-                    <button class="dock-theme-item" type="button" data-dock-theme="nozarashi" id="dock-t-nozarashi">
-                        <span class="dock-theme-swatch swatch-nozarashi" aria-hidden="true"></span>
-                        <span>Nozarashi</span>
-                        <i class="fas fa-check dock-check" aria-hidden="true"></i>
-                    </button>
-                    <button class="dock-theme-item" type="button" data-dock-theme="senbonzakura" id="dock-t-senbonzakura">
-                        <span class="dock-theme-swatch swatch-senbonzakura" aria-hidden="true"></span>
-                        <span>Senbonzakura</span>
-                        <i class="fas fa-check dock-check" aria-hidden="true"></i>
-                    </button>
-                    <button class="dock-theme-item" type="button" data-dock-theme="kyoka-suigetsu" id="dock-t-kyoka">
-                        <span class="dock-theme-swatch swatch-kyoka" aria-hidden="true"></span>
-                        <span>Kyoka Suigetsu</span>
-                        <i class="fas fa-check dock-check" aria-hidden="true"></i>
-                    </button>
-                    <button class="dock-theme-item" type="button" data-dock-theme="tensa-zangetsu" id="dock-t-tensa">
-                        <span class="dock-theme-swatch swatch-tensa" aria-hidden="true"></span>
-                        <span>Tensa Zangetsu</span>
-                        <i class="fas fa-check dock-check" aria-hidden="true"></i>
-                    </button>
-                    <button class="dock-theme-item" type="button" data-dock-theme="hogyoku" id="dock-t-hogyoku">
-                        <span class="dock-theme-swatch swatch-hogyoku" aria-hidden="true"></span>
-                        <span>Hōgyoku</span>
-                        <i class="fas fa-check dock-check" aria-hidden="true"></i>
-                    </button>
-                </div>
+        <div class="dock-sep" role="separator"></div>
 
-                <details class="dock-customize" id="dock-customize">
-                    <summary><i class="fas fa-sliders" aria-hidden="true"></i> Fine-tune appearance</summary>
-                    <div class="dock-customize-body">
-                        <div class="dock-custom-row">
-                            <label for="custom-accent">Accent</label>
-                            <div class="dock-accent-picker">
-                                <input type="color" id="custom-accent" value="#6366f1" aria-label="Custom accent color">
-                                <button type="button" id="reset-accent" class="dock-mini-btn">Theme</button>
-                            </div>
-                        </div>
+        <button class="dock-btn" id="dock-music" aria-label="Show music pop-up" aria-pressed="false">
+            <i class="fas fa-music"></i>
+            <span class="dock-label">Music</span>
+        </button>
 
-                        <div class="dock-custom-row">
-                            <label for="custom-font">Font</label>
-                            <select id="custom-font">
-                                <option value="site">Site default (Inter)</option>
-                                <option value="inter">Inter</option>
-                                <option value="poppins">Poppins</option>
-                                <option value="outfit">Outfit</option>
-                            </select>
-                        </div>
+        <div class="dock-sep" role="separator"></div>
 
-                        <div class="dock-custom-row">
-                            <label for="custom-cursor">Cursor</label>
-                            <select id="custom-cursor">
-                                <option value="theme">Zanpakuto cursor</option>
-                                <option value="system">System cursor</option>
-                            </select>
-                        </div>
-
-                        <div class="dock-custom-row">
-                            <label for="custom-animation">Animation</label>
-                            <select id="custom-animation">
-                                <option value="off">Off</option>
-                                <option value="low">Low</option>
-                                <option value="medium">Medium</option>
-                                <option value="high">High</option>
-                            </select>
-                        </div>
-
-                        <div class="dock-custom-row">
-                            <label for="custom-cards">Cards</label>
-                            <select id="custom-cards">
-                                <option value="original">Original</option>
-                                <option value="glass">Glass</option>
-                                <option value="glow">Subtle glow</option>
-                            </select>
-                        </div>
-
-                        <div class="dock-custom-row">
-                            <label for="character-frequency">Characters</label>
-                            <select id="character-frequency">
-                                <option value="off">Off</option>
-                                <option value="rare">Rare</option>
-                                <option value="normal">Normal</option>
-                                <option value="frequent">Frequent</option>
-                            </select>
-                        </div>
-
-                        <p class="dock-custom-hint">Optional overrides. Your theme stays in charge of the base look.</p>
-                        <button type="button" id="reset-customization" class="dock-clear-btn dock-reset-btn">
-                            <i class="fas fa-rotate-left" aria-hidden="true"></i> Reset overrides
-                        </button>
-                    </div>
-                </details>
-            </div>
-
-            <!-- Effects popup (anchored to dock) -->
-            <div id="dock-effects-popup" role="dialog" aria-label="Visual effects" aria-hidden="true" inert>
-                <h4><i class="fas fa-wand-magic-sparkles"></i>Visual Effects</h4>
-                <div id="dock-effects-list">
-                    <div class="dock-effects-note" id="dock-effects-note" hidden></div>
-
-                    <div class="dock-effect-section">
-                        <span class="dock-effect-heading">Particles <em>one at a time</em></span>
-
-                        <div class="dock-effect-row">
-                            <label class="dock-effect-label" for="toggle-rain">
-                                <i class="fas fa-cloud-rain" aria-hidden="true"></i> Blood Rain
-                            </label>
-                            <label class="dock-toggle">
-                                <input type="checkbox" id="toggle-rain">
-                                <span class="dock-toggle-slider"></span>
-                            </label>
-                        </div>
-
-                        <div class="dock-effect-row">
-                            <label class="dock-effect-label" for="toggle-gold">
-                                <i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i> Gold Dust
-                            </label>
-                            <label class="dock-toggle">
-                                <input type="checkbox" id="toggle-gold">
-                                <span class="dock-toggle-slider"></span>
-                            </label>
-                        </div>
-
-                        <div class="dock-effect-row">
-                            <label class="dock-effect-label" for="toggle-sakura">
-                                <i class="fas fa-fan" aria-hidden="true"></i> Sakura Petals
-                            </label>
-                            <label class="dock-toggle">
-                                <input type="checkbox" id="toggle-sakura">
-                                <span class="dock-toggle-slider"></span>
-                            </label>
-                        </div>
-
-                        <div class="dock-effect-row">
-                            <label class="dock-effect-label" for="toggle-fire">
-                                <i class="fas fa-fire" aria-hidden="true"></i> Nozarashi Flames
-                            </label>
-                            <label class="dock-toggle">
-                                <input type="checkbox" id="toggle-fire">
-                                <span class="dock-toggle-slider"></span>
-                            </label>
-                        </div>
-
-                        <div class="dock-effect-row">
-                            <label class="dock-effect-label" for="toggle-reiatsu">
-                                <i class="fas fa-bolt" aria-hidden="true"></i> Reiatsu Embers
-                            </label>
-                            <label class="dock-toggle">
-                                <input type="checkbox" id="toggle-reiatsu">
-                                <span class="dock-toggle-slider"></span>
-                            </label>
-                        </div>
-
-                        <div class="dock-effect-row">
-                            <label class="dock-effect-label" for="toggle-starfield">
-                                <i class="fas fa-star" aria-hidden="true"></i> Starfield
-                            </label>
-                            <label class="dock-toggle">
-                                <input type="checkbox" id="toggle-starfield">
-                                <span class="dock-toggle-slider"></span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="dock-effect-section">
-                        <span class="dock-effect-heading">Atmosphere <em>one at a time</em></span>
-
-                        <div class="dock-effect-row">
-                            <label class="dock-effect-label" for="toggle-aurora">
-                                <i class="fas fa-wind" aria-hidden="true"></i> Aurora
-                            </label>
-                            <label class="dock-toggle">
-                                <input type="checkbox" id="toggle-aurora">
-                                <span class="dock-toggle-slider"></span>
-                            </label>
-                        </div>
-
-                        <div class="dock-effect-row">
-                            <label class="dock-effect-label" for="toggle-mist">
-                                <i class="fas fa-cloud" aria-hidden="true"></i> Ambient Mist
-                            </label>
-                            <label class="dock-toggle">
-                                <input type="checkbox" id="toggle-mist">
-                                <span class="dock-toggle-slider"></span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="dock-effect-section">
-                        <span class="dock-effect-heading">Comfort</span>
-
-                        <div class="dock-effect-row" id="effect-row-spotlight">
-                            <label class="dock-effect-label" for="toggle-spotlight">
-                                <i class="fas fa-circle-dot" aria-hidden="true"></i> Cursor Spotlight
-                            </label>
-                            <label class="dock-toggle">
-                                <input type="checkbox" id="toggle-spotlight">
-                                <span class="dock-toggle-slider"></span>
-                            </label>
-                        </div>
-
-                        <div class="dock-effect-row" id="effect-row-cursor">
-                            <label class="dock-effect-label" for="toggle-cursor">
-                                <i class="fas fa-arrow-pointer" aria-hidden="true"></i> Cursor Trail
-                            </label>
-                            <label class="dock-toggle">
-                                <input type="checkbox" id="toggle-cursor">
-                                <span class="dock-toggle-slider"></span>
-                            </label>
-                        </div>
-
-                        <div class="dock-effect-row">
-                            <label class="dock-effect-label" for="toggle-reduced">
-                                <i class="fas fa-circle-pause" aria-hidden="true"></i> Reduced motion
-                            </label>
-                            <label class="dock-toggle">
-                                <input type="checkbox" id="toggle-reduced">
-                                <span class="dock-toggle-slider"></span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="dock-effect-section">
-                        <span class="dock-effect-heading">Theme extras</span>
-
-                        <div class="dock-effect-row" id="effect-row-bloodmoon" hidden>
-                            <label class="dock-effect-label" for="toggle-bloodmoon">
-                                <i class="fas fa-moon" aria-hidden="true"></i> Blood Moon Mode
-                            </label>
-                            <label class="dock-toggle">
-                                <input type="checkbox" id="toggle-bloodmoon">
-                                <span class="dock-toggle-slider"></span>
-                            </label>
-                        </div>
-
-                        <div class="dock-effect-row" id="effect-row-chars">
-                            <label class="dock-effect-label" for="toggle-chars">
-                                <i class="fas fa-ghost" aria-hidden="true"></i> Character Pop-ups
-                            </label>
-                            <label class="dock-toggle">
-                                <input type="checkbox" id="toggle-chars" checked>
-                                <span class="dock-toggle-slider"></span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="dock-intensity-block">
-                        <span class="dock-effect-heading" id="dock-intensity-label">Particle intensity</span>
-                        <div class="dock-intensity" role="radiogroup" aria-labelledby="dock-intensity-label">
-                            <button type="button" role="radio" aria-checked="false" data-intensity="subtle">Subtle</button>
-                            <button type="button" role="radio" aria-checked="true" data-intensity="medium">Medium</button>
-                            <button type="button" role="radio" aria-checked="false" data-intensity="intense">Intense</button>
-                        </div>
-                    </div>
-
-                    <button type="button" id="dock-clear-effects" class="dock-clear-btn">
-                        <i class="fas fa-broom" aria-hidden="true"></i> Clear all effects
-                    </button>
-                </div>
-            </div>
-
-            <!-- Dock actions -->
-            <div class="dock-actions">
-                <button class="dock-btn" type="button" id="dock-themes" aria-label="Change theme" aria-haspopup="dialog"
-                    aria-controls="dock-theme-popup" aria-expanded="false" title="Change theme">
-                    <i class="fas fa-palette" aria-hidden="true"></i>
-                    <span class="dock-label">Themes</span>
-                </button>
-
-                <button class="dock-btn" type="button" id="dock-effects" aria-label="Visual effects" aria-haspopup="dialog"
-                    aria-controls="dock-effects-popup" aria-expanded="false" title="Visual effects">
-                    <i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i>
-                    <span class="dock-label">Effects</span>
-                </button>
-
-                <button class="dock-btn" type="button" id="dock-music" aria-label="Show or hide music pop-up"
-                    aria-haspopup="dialog" aria-controls="now-playing-widget" aria-pressed="false"
-                    title="Show or hide music pop-up">
-                    <i class="fas fa-music" aria-hidden="true"></i>
-                    <span class="dock-label">Music</span>
-                </button>
-
-                <button class="dock-btn" type="button" id="dock-quiet"
-                    aria-label="Quiet mode: hide decorative pop-ups and effects" aria-pressed="false"
-                    title="Quiet mode: hide decorative pop-ups and effects">
-                    <i class="fas fa-eye-slash" aria-hidden="true"></i>
-                    <span class="dock-label">Quiet</span>
-                </button>
-            </div>
-        </nav>
-    </div>
+        <button class="dock-btn" id="dock-quiet" aria-label="Quiet mode — hide decorative effects" aria-pressed="false">
+            <i class="fas fa-eye-slash"></i>
+            <span class="dock-label">Quiet</span>
+        </button>
+    </nav>
 
     <!-- ===== LOADING OVERLAY ===== -->
     <div class="loading-overlay hidden" id="loading-overlay">
         <div class="loading-spinner">
             <div class="spinner"></div>
             <p id="loading-text">Loading...</p>
-        </div>
-    </div>
-
-    <!-- ===== BACK TO TOP ===== -->
-    <button type="button" id="back-to-top" class="back-to-top" aria-label="Back to top" title="Back to top">
-        <i class="fas fa-arrow-up" aria-hidden="true"></i>
-    </button>
-
-    <!-- ===== KEYBOARD SHORTCUTS ===== -->
-    <div class="shortcuts-overlay hidden" id="shortcuts-overlay" role="dialog" aria-modal="true"
-        aria-labelledby="shortcuts-title">
-        <div class="shortcuts-card">
-            <div class="shortcuts-head">
-                <h3 id="shortcuts-title"><i class="fas fa-keyboard" aria-hidden="true"></i> Keyboard shortcuts</h3>
-                <button type="button" class="shortcuts-close" id="shortcuts-close" aria-label="Close shortcuts">
-                    <i class="fas fa-times" aria-hidden="true"></i>
-                </button>
-            </div>
-            <dl class="shortcuts-list">
-                <div><dt><kbd>?</kbd></dt><dd>Open this shortcut list</dd></div>
-                <div><dt><kbd>Alt</kbd> + <kbd>T</kbd></dt><dd>Open themes</dd></div>
-                <div><dt><kbd>Alt</kbd> + <kbd>E</kbd></dt><dd>Open effects</dd></div>
-                <div><dt><kbd>Alt</kbd> + <kbd>M</kbd></dt><dd>Toggle music pop-up</dd></div>
-                <div><dt><kbd>Alt</kbd> + <kbd>Q</kbd></dt><dd>Toggle Quiet Mode</dd></div>
-                <div><dt><kbd>Esc</kbd></dt><dd>Close the dock or this dialog</dd></div>
-            </dl>
-            <p class="shortcuts-note">Shortcuts are ignored while typing in a form field.</p>
         </div>
     </div>
 
@@ -1344,7 +1260,8 @@
             </div>
         </div>
         <div class="footer-bottom">
-            <p>Made by <a href="https://github.com/durrab64" class="author-link" target="_blank" rel="noopener noreferrer"><strong>Muhammad Durrab</strong></a>
+            <p>Made by <a href="https://github.com/durrab64" class="author-link" target="_blank"
+                    rel="noopener noreferrer"><strong>Muhammad Durrab</strong></a>
                 aka
                 <strong>Sledge</strong>
             </p>
@@ -1364,16 +1281,180 @@
 
     <!-- App Scripts -->
     <script src="firebase-config.js?v=6"></script>
-    <script src="app.js?v=16"></script>
+    <script src="app.js?v=9"></script>
 
     <!-- ===== NOW PLAYING WIDGET ===== -->
-    <script src="now-playing-widget.js?v=4"></script>
+    <script src="now-playing-widget.js?v=2"></script>
 
-    <!-- ===== HŌGYOKU CRYSTAL (theme-only, lazily loaded) ===== -->
-    <script src="hogyoku.js?v=1" defer></script>
 
-    <!-- ===== ANIME CHARACTER COMPANIONS ===== -->
-    <script src="bleach-easter-egg.js?v=2" defer></script>
+    <!-- ===== BLEACH EASTER EGG ===== -->
+    <script>
+        (function BleachEasterEgg() {
+            var CONFIG = {
+                initialDelay: 1000,    // First peek 1s after page load
+                interval: 9000,        // Every 9s next character peeks
+                stayDuration: 3000,    // Stay for exactly 3 seconds as requested
+                charSize: 92,          // Small size sticking to edge
+                charSizeMobile: 68,
+                zIndex: 999999
+            };
+
+            var CHARACTERS = [
+                {
+                    id: 'orihime',
+                    name: 'Orihime',
+                    src: 'orihime.gif',
+                    fallbackSrc: 'orihime.webp',
+                    bubbleBg: 'linear-gradient(135deg,#fff0f6 0%,#ffe4f0 100%)',
+                    bubbleBorder: '#f472b6',
+                    textColor: '#9d174d',
+                    dialogues: ['KAWAIII~! \u2665', 'Hewwooo! \u2728', 'Ehehe~ \uD83D\uDC97', 'Haiii! \u2665', 'Ganbatte! \u2728']
+                },
+                {
+                    id: 'ichigo',
+                    name: 'Ichigo',
+                    src: 'ichigo.gif',
+                    fallbackSrc: 'ichigo.gif',
+                    bubbleBg: 'linear-gradient(135deg,#fff7ed 0%,#ffedd5 100%)',
+                    bubbleBorder: '#fb923c',
+                    textColor: '#7c2d12',
+                    dialogues: ['Heh, studying? \uD83D\uDC4A', 'BANKAI!! \u26A1', 'Not bad! \uD83D\uDE01', 'Keep it up! \uD83D\uDD25', 'Oi, focus! \uD83D\uDC4B']
+                },
+                {
+                    id: 'miku',
+                    name: 'Miku',
+                    src: 'miku.gif',
+                    fallbackSrc: 'miku.gif',
+                    bubbleBg: 'linear-gradient(135deg,#f0fdfa 0%,#ccfbf1 100%)',
+                    bubbleBorder: '#2dd4bf',
+                    textColor: '#134e4a',
+                    dialogues: ['Miku Miku~! \u2665', 'Let\u2019s study! \uD83C\uDFB5', 'Ganbare ne~! \u2728', 'Hatsune Miku desu! \uD83C\uDFB6', 'Yay yay~! \uD83D\uDC97']
+                }
+            ];
+
+            var nextSide = 'left'; // Alternates 'left' -> 'right' -> 'left'
+            var charIndex = 0;
+            var isAnimating = false;
+            var container = null;
+
+            function getSize() {
+                return window.innerWidth <= 600 ? CONFIG.charSizeMobile : CONFIG.charSize;
+            }
+
+            function injectStyles() {
+                if (document.getElementById('bee-styles')) return;
+                var style = document.createElement('style');
+                style.id = 'bee-styles';
+                style.textContent =
+                    '#bee-container { position: fixed; inset: 0; pointer-events: none; z-index: 999999; }' +
+                    '.bee-wrap { position: fixed; pointer-events: auto; z-index: 999999; cursor: pointer; ' +
+                    'transition: transform 0.38s cubic-bezier(0.34, 1.4, 0.64, 1), opacity 0.3s ease; will-change: transform, opacity; }' +
+                    '.bee-wrap.bee-left { left: 0; transform: translateX(-100%); opacity: 0; }' +
+                    '.bee-wrap.bee-left.bee-active { transform: translateX(0) !important; opacity: 1 !important; }' +
+                    '.bee-wrap.bee-right { right: 0; transform: translateX(100%); opacity: 0; }' +
+                    '.bee-wrap.bee-right.bee-active { transform: translateX(0) !important; opacity: 1 !important; }' +
+                    '.bee-img { display: block; object-fit: contain; pointer-events: none; filter: drop-shadow(0 4px 14px rgba(0,0,0,0.22)); user-select: none; }' +
+                    '.bee-bubble { position: absolute; bottom: calc(100% + 6px); padding: 5px 12px; border-radius: 12px; border: 2px solid; ' +
+                    'font-family: Inter, system-ui, sans-serif; font-size: 11px; font-weight: 700; white-space: nowrap; ' +
+                    'box-shadow: 0 4px 16px rgba(0,0,0,0.16); opacity: 0; transform: scale(0.6) translateY(6px); ' +
+                    'transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); pointer-events: none; }' +
+                    '.bee-bubble.bee-bubble-left { left: 4px; }' +
+                    '.bee-bubble.bee-bubble-right { right: 4px; }' +
+                    '.bee-bubble.bee-show { opacity: 1; transform: scale(1) translateY(0); }';
+                document.head.appendChild(style);
+            }
+
+            function showCharacter() {
+                if (isAnimating) return;
+                isAnimating = true;
+
+                var char = CHARACTERS[charIndex % CHARACTERS.length];
+                charIndex++;
+
+                var side = nextSide;
+                nextSide = (nextSide === 'left') ? 'right' : 'left'; // Alternate for next time!
+
+                var size = getSize();
+                var dialogue = char.dialogues[Math.floor(Math.random() * char.dialogues.length)];
+
+                var wrap = document.createElement('div');
+                wrap.className = 'bee-wrap ' + (side === 'left' ? 'bee-left' : 'bee-right');
+
+                // Mid-screen vertical positioning
+                var vh = window.innerHeight;
+                var topPos = Math.round(vh * 0.45);
+                wrap.style.top = Math.max(100, Math.min(vh - size - 60, topPos)) + 'px';
+
+                var img = document.createElement('img');
+                img.className = 'bee-img';
+                img.src = char.src;
+                img.alt = char.name;
+                img.style.width = size + 'px';
+                img.style.height = size + 'px';
+                img.onerror = function () {
+                    if (char.fallbackSrc && img.src.indexOf(char.fallbackSrc) === -1) {
+                        img.src = char.fallbackSrc;
+                    }
+                };
+
+                var bubble = document.createElement('div');
+                bubble.className = 'bee-bubble ' + (side === 'left' ? 'bee-bubble-left' : 'bee-bubble-right');
+                bubble.style.background = char.bubbleBg;
+                bubble.style.borderColor = char.bubbleBorder;
+                bubble.style.color = char.textColor;
+                bubble.textContent = dialogue;
+
+                wrap.appendChild(bubble);
+                wrap.appendChild(img);
+                (container || document.body).appendChild(wrap);
+
+                // Slide in
+                setTimeout(function () {
+                    wrap.classList.add('bee-active');
+
+                    // Bubble pops open
+                    setTimeout(function () {
+                        bubble.classList.add('bee-show');
+                    }, 250);
+
+                    // Stays for 3 seconds, then retreats
+                    setTimeout(function () {
+                        bubble.classList.remove('bee-show');
+                        setTimeout(function () {
+                            wrap.classList.remove('bee-active');
+                            // Clean up DOM after slide-out
+                            setTimeout(function () {
+                                if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
+                                isAnimating = false;
+                            }, 400);
+                        }, 150);
+                    }, CONFIG.stayDuration);
+                }, 30);
+            }
+
+            window.triggerBleachEasterEgg = function () {
+                isAnimating = false;
+                showCharacter();
+            };
+
+            function init() {
+                injectStyles();
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = 'bee-container';
+                    (document.body || document.documentElement).appendChild(container);
+                }
+                setTimeout(showCharacter, CONFIG.initialDelay);
+                setInterval(showCharacter, CONFIG.interval);
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init, { once: true });
+            } else {
+                init();
+            }
+        })();
+    </script>
 </body>
 
 </html>
