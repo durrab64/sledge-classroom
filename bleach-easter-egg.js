@@ -78,42 +78,6 @@
                 'Hatsune Miku desu! \uD83C\uDFB6',
                 'Yay yay~! \uD83D\uDC97'
             ]
-        },
-        {
-            id: 'soifon',
-            name: 'Soifon',
-            src: 'soifon.jpg',
-            fallbackSrc: 'soifon.jpg',
-            theme: {
-                bg: 'linear-gradient(135deg,#f5f3ff 0%,#ede9fe 100%)',
-                border: '#8b5cf6',
-                text: '#4c1d95'
-            },
-            dialogues: [
-                'Suzumebachi! \uD83D\uDC1D',
-                'Silence. Focus. \uD83E\uDD77',
-                'Your speed is lacking.',
-                'Two strikes. That is all.',
-                'Flash step! \u26A1'
-            ]
-        },
-        {
-            id: 'rangiku',
-            name: 'Rangiku',
-            src: 'rangiku.jpg',
-            fallbackSrc: 'rangiku.jpg',
-            theme: {
-                bg: 'linear-gradient(135deg,#fefce8 0%,#fef9c3 100%)',
-                border: '#eab308',
-                text: '#713f12'
-            },
-            dialogues: [
-                'Hado #31: Shakkaho! \uD83D\uDD25',
-                'Take a break, okay? \uD83C\uDF7A',
-                'Haineko, scatter! \u2728',
-                'You work too hard.',
-                'Growl, Haineko! \uD83D\uDC31'
-            ]
         }
     ];
 
