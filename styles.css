@@ -4940,7 +4940,6 @@ html:not([data-atmosphere="mist"]) #ambient-mist .mist-blob {
         transparent 76%
     );
     animation: auroraDrift 34s ease-in-out infinite alternate;
-    will-change: transform;
 }
 
 .aurora-band-1 {
@@ -4962,6 +4961,8 @@ html:not([data-atmosphere="mist"]) #ambient-mist .mist-blob {
     animation-direction: alternate-reverse;
 }
 
+/* Third band stays put: it keeps the palette and the layered depth, but two
+   animating compositor layers are cheaper than three. */
 .aurora-band-3 {
     bottom: -28vh;
     left: 12vw;
@@ -4972,7 +4973,7 @@ html:not([data-atmosphere="mist"]) #ambient-mist .mist-blob {
         rgba(var(--accent-rgb), 0.08) 50%,
         transparent 72%
     );
-    animation-duration: 56s;
+    animation: none;
 }
 
 .mist-blob {
@@ -5042,6 +5043,13 @@ html[data-animation="off"] .ambient-layer {
 
 body.effects-suspended .aurora-band,
 body.effects-suspended .mist-blob {
+    animation-play-state: paused;
+}
+
+/* Hidden layers should stop compositing too, not just fade to zero. */
+body.quiet-mode #ambient-aurora .aurora-band,
+body.effects-paused #ambient-aurora .aurora-band,
+html[data-animation="off"] #ambient-aurora .aurora-band {
     animation-play-state: paused;
 }
 
@@ -5234,15 +5242,94 @@ html[data-custom-accent] #dock-shell {
     --dock-accent-rgb: var(--custom-accent-rgb);
 }
 
+/* Glass mode is faked with layered translucency instead of backdrop-filter.
+   A real blur on every resting card forced the compositor to sample the page
+   behind ~45 elements; the look is reproduced with a tinted gradient, a top
+   highlight and an inner shadow painted straight onto the card. */
 html[data-cards="glass"] .course-card,
 html[data-cards="glass"] .about-card,
 html[data-cards="glass"] .curriculum-card,
 html[data-cards="glass"] .file-item,
 html[data-cards="glass"] .event-card {
-    background: color-mix(in srgb, var(--bg-card) 76%, transparent);
-    backdrop-filter: blur(14px) saturate(150%);
-    -webkit-backdrop-filter: blur(14px) saturate(150%);
-    border-color: rgba(var(--accent-rgb), 0.18);
+    position: relative;
+    isolation: isolate;
+    background-color: var(--bg-card);
+    background:
+        linear-gradient(
+            155deg,
+            rgba(255, 255, 255, 0.10) 0%,
+            rgba(255, 255, 255, 0.028) 42%,
+            rgba(255, 255, 255, 0.065) 100%
+        ),
+        color-mix(in srgb, var(--bg-card) 64%, transparent);
+    border-color: rgba(var(--accent-rgb), 0.22);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.11),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.20),
+        0 8px 26px rgba(0, 0, 0, 0.26);
+}
+
+/* Sheen lives behind the card content, so text contrast is untouched.
+   Only opacity changes on hover, which the compositor can do alone. */
+html[data-cards="glass"] .course-card::after,
+html[data-cards="glass"] .about-card::after,
+html[data-cards="glass"] .curriculum-card::after,
+html[data-cards="glass"] .file-item::after,
+html[data-cards="glass"] .event-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    background:
+        radial-gradient(
+            120% 90% at 12% 0%,
+            rgba(255, 255, 255, 0.18) 0%,
+            rgba(255, 255, 255, 0.05) 34%,
+            transparent 64%
+        ),
+        linear-gradient(115deg, transparent 58%, rgba(var(--accent-rgb), 0.11) 100%);
+    opacity: 0.75;
+    transition: opacity 0.28s ease;
+}
+
+html[data-cards="glass"] .course-card:hover,
+html[data-cards="glass"] .about-card:hover,
+html[data-cards="glass"] .curriculum-card:hover,
+html[data-cards="glass"] .file-item:hover,
+html[data-cards="glass"] .event-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(var(--accent-rgb), 0.46);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.16),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.20),
+        0 14px 34px rgba(0, 0, 0, 0.32),
+        0 0 0 1px rgba(var(--accent-rgb), 0.18);
+}
+
+html[data-cards="glass"] .course-card:hover::after,
+html[data-cards="glass"] .about-card:hover::after,
+html[data-cards="glass"] .curriculum-card:hover::after,
+html[data-cards="glass"] .file-item:hover::after,
+html[data-cards="glass"] .event-card:hover::after {
+    opacity: 1;
+}
+
+/* `transition: all` also watched padding/font/height, so hover recalculated
+   layout. Only the properties that actually change are listed now. */
+.file-item {
+    transition:
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast),
+        border-color var(--transition-fast);
+}
+
+.event-card {
+    transition:
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast),
+        border-color var(--transition-fast);
 }
 
 html[data-cards="glow"] .course-card:hover,
@@ -5728,4 +5815,1450 @@ kbd {
         transform: none !important;
         transition: none !important;
     }
+}
+
+/* ===================================================
+   PHASE 3 — HOMEPAGE REDESIGN
+   Cinematic academy hero, editorial gateway, archive
+   cards, transmission feed, about composition,
+   curriculum, FAQ and colophon.
+   Scoped to homepage sections and home-only variants.
+   =================================================== */
+
+/* ---------- Shared editorial labels ---------- */
+.section-flag {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+}
+
+.section-flag .flag-num {
+    color: var(--accent-color);
+    letter-spacing: 0.1em;
+}
+
+.section-flag::after {
+    content: '';
+    width: 34px;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.4;
+}
+
+.page-home .section {
+    padding-top: 64px;
+    padding-bottom: 64px;
+}
+
+.page-home .section-header {
+    margin-bottom: 32px;
+}
+
+.page-home .section-title {
+    font-family: 'Bebas Neue', 'Oswald', 'Arial Narrow', sans-serif;
+    font-size: clamp(1.9rem, 3vw, 2.5rem);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.page-home .section-title i {
+    display: none;
+}
+
+#archive-section,
+#transmissions-section,
+#curriculum-section,
+#faq-section {
+    border-top: 1px solid var(--border-color);
+}
+
+/* ===================================================
+   HERO — THE ACADEMY
+   =================================================== */
+.page-home .hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    min-height: min(760px, calc(100vh - var(--nav-height)));
+    padding: clamp(56px, 6vw, 88px) 24px clamp(68px, 6vw, 88px);
+    background:
+        radial-gradient(120% 90% at 82% 4%, rgba(120, 53, 15, 0.22) 0%, transparent 56%),
+        radial-gradient(90% 85% at 8% 94%, rgba(76, 29, 149, 0.24) 0%, transparent 60%),
+        linear-gradient(162deg, #08070b 0%, #0d0a13 48%, #070709 100%);
+    border-bottom: 1px solid rgba(215, 179, 95, 0.2);
+}
+
+.page-home .hero-content {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 1320px;
+    margin: 0 auto;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.hero-atmosphere {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 76px 76px;
+    -webkit-mask-image: radial-gradient(ellipse 88% 76% at 68% 42%, #000 0%, transparent 72%);
+    mask-image: radial-gradient(ellipse 88% 76% at 68% 42%, #000 0%, transparent 72%);
+    opacity: 0.55;
+}
+
+.hero-orbit {
+    position: absolute;
+    border: 1px solid rgba(215, 179, 95, 0.16);
+    border-radius: 50%;
+}
+
+.hero-orbit-1 {
+    width: min(64vw, 760px);
+    aspect-ratio: 1 / 1;
+    top: -22%;
+    right: -9%;
+}
+
+.hero-orbit-2 {
+    width: min(42vw, 480px);
+    aspect-ratio: 1 / 1;
+    bottom: -26%;
+    right: 18%;
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.hero-kanji {
+    position: absolute;
+    right: clamp(-24px, 1vw, 36px);
+    bottom: -10%;
+    font-family: 'Yu Mincho', 'Hiragino Mincho ProN', 'Noto Serif JP', serif;
+    font-size: clamp(260px, 38vw, 560px);
+    line-height: 0.8;
+    letter-spacing: -0.06em;
+    color: rgba(255, 255, 255, 0.035);
+    user-select: none;
+}
+
+.hero-vertical {
+    position: absolute;
+    top: clamp(90px, 16vh, 200px);
+    right: clamp(22px, 4vw, 64px);
+    writing-mode: vertical-rl;
+    font-family: 'Yu Mincho', 'Hiragino Mincho ProN', serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.5em;
+    color: rgba(215, 179, 95, 0.48);
+}
+
+.hero-kicker {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 13px;
+    margin-bottom: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.52);
+}
+
+.hero-chapter {
+    color: #d8b45f;
+    letter-spacing: 0.14em;
+}
+
+.hero-kicker-rule {
+    width: 36px;
+    height: 1px;
+    background: rgba(215, 179, 95, 0.42);
+}
+
+.hero-open {
+    padding: 3px 9px;
+    border: 1px solid rgba(215, 179, 95, 0.4);
+    color: #e7cf94;
+    letter-spacing: 0.14em;
+}
+
+.page-home .hero-greeting {
+    display: block;
+    max-width: none;
+    margin: 0 0 14px;
+    padding: 0;
+    font-size: 0.78rem;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    color: rgba(255, 255, 255, 0.6);
+    animation: none;
+}
+
+.page-home .hero-title {
+    margin: 0 0 20px;
+    font-family: 'Bebas Neue', 'Oswald', 'Arial Narrow', sans-serif;
+    font-size: clamp(3.6rem, 8.6vw, 7.4rem);
+    font-weight: 400;
+    line-height: 0.88;
+    letter-spacing: 0.015em;
+    text-transform: uppercase;
+    color: #f4f1ea;
+    animation: none;
+}
+
+.hero-title-line {
+    display: block;
+}
+
+.hero-title-gold {
+    color: #d8b45f;
+}
+
+.hero-tagline {
+    max-width: 34ch;
+    margin: 0 0 10px;
+    font-family: 'Yu Mincho', 'Hiragino Mincho ProN', Georgia, serif;
+    font-size: clamp(1rem, 1.5vw, 1.22rem);
+    line-height: 1.55;
+    letter-spacing: 0.01em;
+    color: #ece5d7;
+}
+
+.page-home .hero-subtitle {
+    max-width: 54ch;
+    margin: 0 0 26px;
+    font-size: 0.94rem;
+    line-height: 1.75;
+    text-align: left;
+    color: rgba(255, 255, 255, 0.52);
+    animation: none;
+}
+
+.page-home .hero-actions {
+    justify-content: flex-start;
+    gap: 14px;
+    margin-bottom: 30px;
+    animation: none;
+}
+
+.page-home .hero .hero-cta {
+    padding: 16px 27px;
+    border: 1px solid #d8b45f;
+    border-radius: 2px;
+    background: #d8b45f !important;
+    color: #12100b !important;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    box-shadow: none !important;
+}
+
+.page-home .hero .hero-cta:hover {
+    background: #e7cf94 !important;
+    border-color: #e7cf94;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(215, 179, 95, 0.18) !important;
+}
+
+.hero-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 15px 4px;
+    border: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 0;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.74);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.hero-secondary:hover {
+    color: #ffffff;
+    border-bottom-color: #d8b45f;
+}
+
+.page-home .hero-stats {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 0;
+    margin-top: 4px;
+    animation: none;
+}
+
+.page-home .stat-item {
+    padding: 0 28px;
+    text-align: left;
+    border-left: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.page-home .stat-item:first-child {
+    padding-left: 0;
+    border-left: 0;
+}
+
+.page-home .stat-number {
+    display: block;
+    font-family: 'Bebas Neue', 'Oswald', sans-serif;
+    font-size: 2.1rem;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: 0.03em;
+    color: #efe9db;
+}
+
+.page-home .stat-label {
+    display: block;
+    margin-top: 5px;
+    font-size: 0.62rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.42);
+}
+
+.page-home .stat-divider {
+    display: none;
+}
+
+.hero-foot {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 26px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.28);
+}
+
+.hero-foot-line {
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* ===================================================
+   ACADEMY GATEWAY — ASYMMETRIC BENTO
+   =================================================== */
+.page-home .gateway {
+    padding-top: 72px;
+    padding-bottom: 56px;
+}
+
+.gateway-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 40px;
+    margin-bottom: 26px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.page-home .gateway-title {
+    margin-bottom: 0;
+    font-size: clamp(2.2rem, 3.4vw, 3rem);
+}
+
+.gateway-intro {
+    max-width: 42ch;
+    padding-bottom: 4px;
+    font-size: 0.9rem;
+    line-height: 1.65;
+    color: var(--text-secondary);
+}
+
+.gateway-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-auto-rows: minmax(190px, auto);
+    gap: 14px;
+}
+
+.gateway-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 6px;
+    min-height: 190px;
+    padding: 24px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    transition: transform var(--transition-base), border-color var(--transition-base), background var(--transition-base);
+}
+
+.gateway-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--accent-color);
+    opacity: 0.7;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--transition-base);
+}
+
+.gateway-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--accent-color);
+}
+
+.gateway-card:hover::before {
+    transform: scaleX(1);
+}
+
+.gateway-index {
+    position: absolute;
+    top: 20px;
+    right: 22px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.64rem;
+    letter-spacing: 0.16em;
+    color: var(--text-tertiary);
+}
+
+.gateway-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    margin-bottom: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    color: var(--accent-color);
+    font-size: 0.92rem;
+}
+
+.gateway-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+.gateway-desc {
+    max-width: 42ch;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: var(--text-secondary);
+}
+
+.gateway-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent-color);
+}
+
+.gateway-cta i {
+    transition: transform var(--transition-fast);
+}
+
+.gateway-card:hover .gateway-cta i {
+    transform: translateX(3px);
+}
+
+.gateway-card--archive {
+    grid-column: span 2;
+    grid-row: span 2;
+    justify-content: flex-end;
+    border-color: rgba(215, 179, 95, 0.26);
+    background:
+        radial-gradient(120% 100% at 88% 0%, rgba(120, 53, 15, 0.3) 0%, transparent 58%),
+        linear-gradient(155deg, #14111a 0%, #0a0910 76%);
+    color: #f4f1ea;
+}
+
+.gateway-card--archive::before {
+    background: #d8b45f;
+}
+
+.gateway-card--archive .gateway-index {
+    color: rgba(215, 179, 95, 0.7);
+}
+
+.gateway-card--archive .gateway-icon {
+    position: absolute;
+    right: 20px;
+    bottom: 58px;
+    width: auto;
+    height: auto;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    color: rgba(215, 179, 95, 0.18);
+    font-size: clamp(5rem, 9vw, 8rem);
+    line-height: 1;
+}
+
+.gateway-card--archive .gateway-name {
+    font-family: 'Bebas Neue', 'Oswald', sans-serif;
+    font-size: clamp(2rem, 3.6vw, 3rem);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: #f4f1ea;
+}
+
+.gateway-card--archive .gateway-desc {
+    max-width: 36ch;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.gateway-card--archive .gateway-cta {
+    color: #d8b45f;
+}
+
+.gateway-card--labs {
+    grid-column: span 2;
+}
+
+.gateway-card--calendar,
+.gateway-card--about {
+    grid-column: span 1;
+}
+
+/* ---------- Home archive cards (home-only variant) ---------- */
+#archive-section .course-card--home {
+    padding: 24px;
+    border-radius: 4px;
+}
+
+#archive-section .course-card--home::before {
+    height: 2px;
+}
+
+#archive-section .course-card--home .card-index {
+    margin-bottom: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.64rem;
+    letter-spacing: 0.14em;
+    color: var(--accent-color);
+}
+
+#archive-section .course-card--home .card-icon {
+    width: 46px;
+    height: 46px;
+    margin-bottom: 16px;
+    border-radius: 3px;
+}
+
+#archive-section .course-card--home:hover {
+    transform: translateY(-2px);
+}
+
+/* ===================================================
+   LATEST TRANSMISSIONS — HOME EVENT FEED
+   =================================================== */
+.section-header.transmission-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.section-header.transmission-head > div {
+    min-width: 0;
+}
+
+.section-aside-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    padding-bottom: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent-color);
+    white-space: nowrap;
+}
+
+.section-aside-link i {
+    transition: transform var(--transition-fast);
+}
+
+.section-aside-link:hover i {
+    transform: translateX(3px);
+}
+
+#transmissions-section .events-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: 0;
+}
+
+.event-card--transmission,
+html[data-cards="glass"] .event-card.event-card--transmission {
+    display: grid;
+    grid-template-columns: 84px minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 22px;
+    padding: 22px 0;
+    border: 0;
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    transition: background var(--transition-fast), padding var(--transition-fast);
+}
+
+html[data-cards="glass"] .event-card.event-card--transmission::after {
+    display: none;
+}
+
+.event-card--transmission:hover {
+    background: var(--bg-card-hover);
+    box-shadow: none;
+}
+
+.event-card--transmission .transmission-stamp {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    padding: 11px 6px;
+    border: 1px solid var(--border-color);
+    border-top: 2px solid var(--event-color);
+    border-radius: 2px;
+    background: var(--bg-card);
+    text-align: center;
+}
+
+.transmission-day {
+    display: block;
+    font-family: 'Bebas Neue', 'Oswald', sans-serif;
+    font-size: 2rem;
+    line-height: 0.9;
+    color: var(--text-primary);
+}
+
+.transmission-month {
+    display: block;
+    margin-top: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.18em;
+    color: var(--event-color);
+}
+
+.event-card--transmission .event-info {
+    min-width: 0;
+}
+
+.transmission-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 7px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+.transmission-index {
+    color: var(--text-tertiary);
+}
+
+.transmission-type {
+    font-weight: 500;
+}
+
+.transmission-type::before {
+    content: '·';
+    margin-right: 10px;
+    color: var(--text-tertiary);
+}
+
+.event-card--transmission .event-title {
+    margin-bottom: 6px;
+    font-size: 1.02rem;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.event-card--transmission .event-details {
+    gap: 10px 16px;
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+}
+
+.event-card--transmission .event-description {
+    max-width: 70ch;
+    margin-top: 10px;
+    font-size: 0.84rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+
+.event-card--transmission .event-groups {
+    margin-top: 10px;
+}
+
+.event-card--transmission .event-delete-btn {
+    width: 30px;
+    height: 30px;
+}
+
+.event-card--featured {
+    grid-template-columns: 96px minmax(0, 1fr) auto;
+    padding: 30px 0 32px 20px;
+    border-left: 2px solid var(--event-color);
+}
+
+.event-card--featured .transmission-stamp {
+    width: 96px;
+    padding: 16px 8px;
+    border-top-width: 3px;
+}
+
+.event-card--featured .transmission-day {
+    font-size: 3rem;
+}
+
+.event-card--featured .transmission-month {
+    font-size: 0.64rem;
+}
+
+.event-card--featured .event-title {
+    margin-bottom: 8px;
+    font-family: 'Bebas Neue', 'Oswald', sans-serif;
+    font-size: clamp(1.9rem, 3.2vw, 2.7rem);
+    font-weight: 400;
+    line-height: 0.98;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.event-card--featured .event-description {
+    max-width: 62ch;
+}
+
+#transmissions-section .empty-state {
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-card);
+}
+
+/* ===================================================
+   ABOUT / HŌGYOKU SECTION COMPOSITION
+   =================================================== */
+#about-section {
+    scroll-margin-top: calc(var(--nav-height) + 16px);
+}
+
+#about-section > .section-header {
+    max-width: 760px;
+    margin-bottom: 34px;
+}
+
+#about-section .section-title {
+    font-size: clamp(2.2rem, 3.6vw, 3rem);
+}
+
+#about-section .about-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    counter-reset: about;
+}
+
+#about-section .about-card {
+    position: relative;
+    padding: 26px;
+    border-radius: 4px;
+    counter-increment: about;
+}
+
+#about-section .about-card::before {
+    content: '0' counter(about);
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.64rem;
+    letter-spacing: 0.14em;
+    color: var(--text-tertiary);
+    pointer-events: none;
+}
+
+#about-section .about-card-icon {
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--accent-color);
+    font-size: 1rem;
+}
+
+#about-section .about-card h3 {
+    padding-right: 30px;
+    font-size: 1.08rem;
+}
+
+#about-section .about-card p {
+    font-size: 0.88rem;
+    line-height: 1.65;
+}
+
+#about-section .about-card--lead {
+    grid-column: span 2;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: 4px 22px;
+    padding: 30px;
+}
+
+#about-section .about-card:last-child {
+    grid-column: span 2;
+}
+
+#about-section .about-card--lead .about-card-icon {
+    grid-row: 1 / span 2;
+    margin-bottom: 0;
+}
+
+#about-section .about-card--lead h3 {
+    align-self: end;
+    margin-bottom: 4px;
+    font-size: 1.28rem;
+}
+
+#about-section .about-card--lead p {
+    max-width: 78ch;
+}
+
+/* ===================================================
+   CURRICULUM DIRECTORY
+   =================================================== */
+#curriculum-section .curriculum-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    counter-reset: curriculum;
+}
+
+#curriculum-section .curriculum-card {
+    position: relative;
+    padding: 24px;
+    overflow: hidden;
+    border-radius: 4px;
+    counter-increment: curriculum;
+}
+
+#curriculum-section .curriculum-card::before {
+    content: counter(curriculum, decimal-leading-zero);
+    position: absolute;
+    right: 16px;
+    bottom: 6px;
+    font-family: 'Bebas Neue', 'Oswald', sans-serif;
+    font-size: 3.4rem;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    color: var(--text-primary);
+    opacity: 0.06;
+    pointer-events: none;
+}
+
+#curriculum-section .curriculum-card:hover {
+    border-color: var(--accent-color);
+}
+
+#curriculum-section .curriculum-link {
+    color: var(--accent-color);
+}
+
+/* ===================================================
+   FAQ — EDITORIAL LEDGER
+   =================================================== */
+#faq-section {
+    padding-bottom: 88px;
+}
+
+#faq-section .faq-list {
+    max-width: 100%;
+    gap: 0;
+    margin-top: 0;
+    border-top: 1px solid var(--border-color);
+    counter-reset: faq;
+}
+
+#faq-section .faq-item {
+    counter-increment: faq;
+    border: 0;
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 0;
+    background: transparent;
+    transition: background var(--transition-fast);
+}
+
+#faq-section .faq-item:hover {
+    border-color: var(--border-color);
+    background: var(--bg-card-hover);
+}
+
+#faq-section .faq-question {
+    justify-content: flex-start;
+    gap: 18px;
+    padding: 22px 8px;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+#faq-section .faq-question span {
+    flex: 1;
+}
+
+#faq-section .faq-question::before {
+    content: counter(faq, decimal-leading-zero);
+    flex-shrink: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.64rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    color: var(--accent-color);
+}
+
+#faq-section .faq-question i {
+    color: var(--text-tertiary);
+}
+
+#faq-section .faq-answer {
+    max-width: 82ch;
+    padding: 0 8px 22px 48px;
+    font-size: 0.9rem;
+    line-height: 1.65;
+}
+
+/* ===================================================
+   FOOTER — COLOPHON
+   =================================================== */
+.footer {
+    margin-top: 24px;
+    border-top: 1px solid rgba(215, 179, 95, 0.18);
+    background: #070609;
+    color: rgba(244, 241, 234, 0.55);
+}
+
+[data-theme="dark"] .footer {
+    border-top: 1px solid rgba(215, 179, 95, 0.18);
+    background: #070609;
+}
+
+.footer-masthead {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 26px 24px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(244, 241, 234, 0.38);
+}
+
+.footer-flag {
+    color: #d8b45f;
+}
+
+.footer-masthead-rule {
+    width: 42px;
+    height: 1px;
+    background: rgba(215, 179, 95, 0.35);
+}
+
+.footer-masthead-jp {
+    margin-left: auto;
+    font-family: 'Yu Mincho', 'Hiragino Mincho ProN', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.35em;
+    color: rgba(215, 179, 95, 0.42);
+}
+
+.footer-seal {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid rgba(215, 179, 95, 0.35);
+    border-radius: 50%;
+    font-family: 'Yu Mincho', 'Hiragino Mincho ProN', serif;
+    font-size: 0.88rem;
+    letter-spacing: 0;
+    color: #d8b45f;
+}
+
+.footer .footer-content {
+    padding: 32px 24px 44px;
+}
+
+.footer .footer-logo {
+    font-family: 'Bebas Neue', 'Oswald', sans-serif;
+    font-size: 1.7rem;
+    font-weight: 400;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.footer .footer-logo i {
+    color: #d8b45f;
+}
+
+.footer .footer-tagline {
+    color: rgba(244, 241, 234, 0.52);
+}
+
+.footer-note {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    color: rgba(244, 241, 234, 0.3);
+}
+
+.footer .footer-links-section h3 {
+    color: rgba(244, 241, 234, 0.36);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.64rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+}
+
+.footer .footer-links-section a {
+    color: rgba(244, 241, 234, 0.52);
+}
+
+.footer .footer-links-section a:hover {
+    color: #d8b45f;
+}
+
+.footer .footer-bottom {
+    border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+.footer .footer-bottom p {
+    color: rgba(244, 241, 234, 0.34);
+}
+
+.footer .footer-bottom strong {
+    color: rgba(244, 241, 234, 0.68);
+}
+
+.footer .author-link {
+    color: #d8b45f;
+}
+
+/* ===================================================
+   RESPONSIVE — TABLET
+   =================================================== */
+@media (max-width: 1024px) {
+    .gateway-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-auto-rows: minmax(180px, auto);
+    }
+
+    .gateway-card--archive {
+        grid-column: span 2;
+        grid-row: span 1;
+        min-height: 250px;
+    }
+
+    .gateway-card--labs {
+        grid-column: span 2;
+    }
+
+    #curriculum-section .curriculum-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #about-section .about-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .hero-kanji {
+        opacity: 0.8;
+    }
+
+    .hero-vertical {
+        display: none;
+    }
+}
+
+/* ===================================================
+   RESPONSIVE — MOBILE
+   =================================================== */
+@media (max-width: 768px) {
+    .page-home .hero {
+        align-items: flex-start;
+        min-height: auto;
+        padding: 64px 20px 84px;
+    }
+
+    .page-home .hero-title {
+        font-size: clamp(3.5rem, 15vw, 5.6rem);
+    }
+
+    .hero-kicker {
+        gap: 10px;
+        font-size: 0.58rem;
+        letter-spacing: 0.15em;
+    }
+
+    .hero-kanji {
+        right: -14%;
+        bottom: -4%;
+        font-size: 66vw;
+    }
+
+    .hero-orbit-1 {
+        width: 92vw;
+        top: -8%;
+        right: -32%;
+    }
+
+    .hero-orbit-2 {
+        width: 60vw;
+        right: 6%;
+        bottom: -18%;
+    }
+
+    .hero-tagline {
+        font-size: 1rem;
+    }
+
+    .page-home .hero-subtitle {
+        font-size: 0.9rem;
+    }
+
+    .page-home .hero-actions {
+        margin-bottom: 36px;
+    }
+
+    .page-home .stat-item {
+        padding: 0 20px;
+    }
+
+    .page-home .stat-number {
+        font-size: 1.8rem;
+    }
+
+    .hero-foot {
+        display: none;
+    }
+
+    .page-home .gateway {
+        padding-top: 56px;
+    }
+
+    .gateway-head {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+        margin-bottom: 22px;
+    }
+
+    .gateway-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .gateway-card--archive,
+    .gateway-card--labs,
+    .gateway-card--calendar,
+    .gateway-card--about {
+        grid-column: span 1;
+        grid-row: span 1;
+    }
+
+    .gateway-card {
+        min-height: 186px;
+        padding: 22px;
+    }
+
+    .gateway-card--archive {
+        min-height: 240px;
+    }
+
+    .section-header.transmission-head {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+    }
+
+    .event-card--transmission,
+    html[data-cards="glass"] .event-card.event-card--transmission {
+        grid-template-columns: 66px minmax(0, 1fr) auto;
+        gap: 16px;
+        padding: 20px 0;
+    }
+
+    .event-card--featured {
+        grid-template-columns: 74px minmax(0, 1fr) auto;
+        padding: 24px 0 26px 16px;
+    }
+
+    .event-card--transmission .transmission-stamp {
+        width: 58px;
+    }
+
+    .event-card--featured .transmission-stamp {
+        width: 74px;
+    }
+
+    .event-card--featured .transmission-day {
+        font-size: 2.3rem;
+    }
+
+    .event-card--featured .event-title {
+        font-size: 1.7rem;
+    }
+
+    #about-section > .section-header {
+        margin-bottom: 26px;
+    }
+
+    #about-section .about-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    #about-section .about-card--lead,
+    #about-section .about-card:last-child {
+        grid-column: span 1;
+    }
+
+    #about-section .about-card--lead {
+        display: block;
+        padding: 24px;
+    }
+
+    #about-section .about-card--lead .about-card-icon {
+        margin-bottom: 16px;
+    }
+
+    #about-section .about-card--lead h3 {
+        font-size: 1.15rem;
+    }
+
+    #curriculum-section .curriculum-grid {
+        grid-template-columns: 1fr;
+    }
+
+    #faq-section .faq-question {
+        padding: 20px 4px;
+        font-size: 0.95rem;
+    }
+
+    #faq-section .faq-answer {
+        padding: 0 4px 20px 40px;
+    }
+
+    .footer-masthead-jp {
+        display: none;
+    }
+
+    .footer-masthead {
+        padding-top: 22px;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-home .hero-actions {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+    }
+
+    .page-home .hero .hero-cta,
+    .hero-secondary {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .hero-secondary {
+        padding: 14px 4px;
+    }
+
+    .hero-open {
+        display: none;
+    }
+
+    .page-home .hero-stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        width: 100%;
+    }
+
+    .page-home .stat-item {
+        padding: 0 10px;
+    }
+
+    .page-home .stat-number {
+        font-size: 1.5rem;
+    }
+
+    .page-home .stat-label {
+        font-size: 0.54rem;
+        letter-spacing: 0.12em;
+    }
+
+    .event-card--transmission,
+    html[data-cards="glass"] .event-card.event-card--transmission {
+        grid-template-columns: 56px minmax(0, 1fr) auto;
+        gap: 12px;
+    }
+
+    .event-card--featured {
+        grid-template-columns: 62px minmax(0, 1fr) auto;
+        padding-left: 12px;
+    }
+
+    .event-card--transmission .transmission-stamp {
+        width: 50px;
+        padding: 9px 3px;
+    }
+
+    .event-card--featured .transmission-stamp {
+        width: 62px;
+    }
+
+    .transmission-day {
+        font-size: 1.55rem;
+    }
+
+    .event-card--featured .transmission-day {
+        font-size: 2rem;
+    }
+
+    .transmission-meta {
+        flex-wrap: wrap;
+        gap: 4px 10px;
+        font-size: 0.55rem;
+    }
+
+    .event-card--transmission .event-details {
+        gap: 6px 12px;
+        font-size: 0.7rem;
+    }
+
+    .event-card--transmission .event-delete-btn {
+        width: 26px;
+        height: 26px;
+        font-size: 0.72rem;
+    }
+
+    .gateway-card--archive .gateway-icon {
+        font-size: 5.4rem;
+    }
+
+    .footer-seal {
+        width: 28px;
+        height: 28px;
+        font-size: 0.78rem;
+    }
+}
+
+/* ===================================================
+   REDUCED MOTION / ANIMATION OFF
+   =================================================== */
+@media (prefers-reduced-motion: reduce) {
+    .page-home .hero-greeting,
+    .page-home .hero-title,
+    .page-home .hero-subtitle,
+    .page-home .hero-actions,
+    .page-home .hero-stats {
+        animation: none !important;
+    }
+
+    .gateway-card,
+    .gateway-card::before,
+    .gateway-cta i,
+    .section-aside-link i,
+    .event-card--transmission,
+    #faq-section .faq-item {
+        transition: none !important;
+    }
+
+    .gateway-card:hover {
+        transform: none;
+    }
+}
+
+html[data-animation="off"] .page-home .hero-greeting,
+html[data-animation="off"] .page-home .hero-title,
+html[data-animation="off"] .page-home .hero-subtitle,
+html[data-animation="off"] .page-home .hero-actions,
+html[data-animation="off"] .page-home .hero-stats {
+    animation: none !important;
+}
+
+html[data-animation="off"] .gateway-card,
+html[data-animation="off"] .gateway-card::before,
+html[data-animation="off"] .event-card--transmission {
+    transition: none !important;
 }

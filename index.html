@@ -158,10 +158,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="styles.css?v=20">
+    <link rel="stylesheet" href="styles.css?v=22">
     <link rel="stylesheet" href="now-playing-widget.css?v=4">
 </head>
 
@@ -233,58 +233,116 @@
             <span id="home" class="anchor-target" aria-hidden="true"></span>
             <!-- Hero Section -->
             <div class="hero">
-                <div class="hero-bg-shapes">
-                    <div class="shape shape-1"></div>
-                    <div class="shape shape-2"></div>
-                    <div class="shape shape-3"></div>
+                <div class="hero-atmosphere" aria-hidden="true">
+                    <span class="hero-grid"></span>
+                    <span class="hero-orbit hero-orbit-1"></span>
+                    <span class="hero-orbit hero-orbit-2"></span>
+                    <span class="hero-kanji">学</span>
+                    <span class="hero-vertical">知識は力なり</span>
                 </div>
                 <div class="hero-content">
-                    <div class="hero-badge">
-                        <i class="fas fa-wand-magic-sparkles"></i> Open & Free for Everyone
+                    <div class="hero-kicker">
+                        <span class="hero-chapter">第壱章</span>
+                        <span class="hero-kicker-rule" aria-hidden="true"></span>
+                        <span class="hero-kicker-label">The Academy · NUML BSCS</span>
+                        <span class="hero-open">Open &amp; Free</span>
                     </div>
                     <p class="hero-greeting" id="pkt-greeting">Welcome, scholars.</p>
                     <h1 class="hero-title">
-                        Sledge Classroom<br>
-                        <span class="gradient-text">NUML BSCS Learning Hub</span>
+                        <span class="hero-title-line">Knowledge</span>
+                        <span class="hero-title-line hero-title-gold">is power.</span>
                     </h1>
+                    <p class="hero-tagline">Enter the archive. Discover your resources. Evolve beyond your limits.</p>
                     <p class="hero-subtitle">
-                        Explore computer science study materials, programming labs, course notes, and past papers for NUML BSCS students through Sledge Classroom. 100% free with direct downloads and zero login barriers.
+                        Explore computer science study materials, programming labs, course notes, and past papers for NUML BSCS students. 100% free, with direct downloads and zero login barriers.
                     </p>
                     <div class="hero-actions">
-                        <button class="btn btn-primary btn-lg" id="hero-explore-btn">
-                            <i class="fas fa-compass"></i> Explore Courses
+                        <button class="btn btn-primary btn-lg hero-cta" id="hero-explore-btn">
+                            <span>Enter the Archive</span>
+                            <i class="fas fa-arrow-right" aria-hidden="true"></i>
                         </button>
-                        <button class="btn btn-outline btn-lg" id="hero-calendar-btn">
-                            <i class="fas fa-calendar-check"></i> View Calendar
+                        <button class="hero-secondary" id="hero-calendar-btn" type="button">
+                            <i class="far fa-calendar" aria-hidden="true"></i> View Calendar
                         </button>
                     </div>
                     <div class="hero-stats">
                         <div class="stat-item">
-                            <span class="stat-number">6</span>
-                            <span class="stat-label">Courses</span>
+                            <span class="stat-number">06</span>
+                            <span class="stat-label">Theory Courses</span>
                         </div>
-                        <div class="stat-divider"></div>
+                        <div class="stat-divider" aria-hidden="true"></div>
                         <div class="stat-item">
-                            <span class="stat-number">3</span>
+                            <span class="stat-number">03</span>
                             <span class="stat-label">Lab Sections</span>
                         </div>
-                        <div class="stat-divider"></div>
+                        <div class="stat-divider" aria-hidden="true"></div>
                         <div class="stat-item">
                             <span class="stat-number">∞</span>
-                            <span class="stat-label">Resources</span>
+                            <span class="stat-label">Open Resources</span>
                         </div>
                     </div>
                 </div>
+                <div class="hero-foot" aria-hidden="true">
+                    <span>Sledge Classroom</span>
+                    <span class="hero-foot-line"></span>
+                    <span>Open access · Est. 2026</span>
+                </div>
             </div>
 
-            <!-- Quick Access Cards -->
-            <div class="section">
+            <!-- ===== ACADEMY GATEWAY ===== -->
+            <section class="section gateway" id="gateway" aria-labelledby="gateway-title">
+                <div class="gateway-head">
+                    <div class="gateway-heading">
+                        <span class="section-flag"><span class="flag-num">第弐章</span> The Gateway</span>
+                        <h2 class="section-title gateway-title" id="gateway-title">Choose your path</h2>
+                    </div>
+                    <p class="gateway-intro">Four doors into the academy. Start with the archive, move into the
+                        practical labs, or check the timeline before your next deadline.</p>
+                </div>
+                <div class="gateway-grid">
+                    <a class="gateway-card gateway-card--archive" href="#courses">
+                        <span class="gateway-index" aria-hidden="true">01</span>
+                        <span class="gateway-icon"><i class="fas fa-book-open" aria-hidden="true"></i></span>
+                        <span class="gateway-name">The Archive</span>
+                        <span class="gateway-desc">Lecture slides, past papers and reference material for every
+                            theory course in the BSCS programme.</span>
+                        <span class="gateway-cta">Browse courses <i class="fas fa-arrow-right"
+                                aria-hidden="true"></i></span>
+                    </a>
+                    <a class="gateway-card gateway-card--labs" href="#labs">
+                        <span class="gateway-index" aria-hidden="true">02</span>
+                        <span class="gateway-icon"><i class="fas fa-flask" aria-hidden="true"></i></span>
+                        <span class="gateway-name">The Labs</span>
+                        <span class="gateway-desc">Manuals, tasks and viva preparation for hands-on practical
+                            sections.</span>
+                        <span class="gateway-cta">Enter labs <i class="fas fa-arrow-right" aria-hidden="true"></i></span>
+                    </a>
+                    <a class="gateway-card gateway-card--calendar" href="#calendar">
+                        <span class="gateway-index" aria-hidden="true">03</span>
+                        <span class="gateway-icon"><i class="fas fa-calendar-day" aria-hidden="true"></i></span>
+                        <span class="gateway-name">Timeline</span>
+                        <span class="gateway-desc">Quizzes, assignments and presentations in one calendar.</span>
+                        <span class="gateway-cta">View calendar <i class="fas fa-arrow-right"
+                                aria-hidden="true"></i></span>
+                    </a>
+                    <a class="gateway-card gateway-card--about" href="#about-section">
+                        <span class="gateway-index" aria-hidden="true">04</span>
+                        <span class="gateway-icon"><i class="fas fa-graduation-cap" aria-hidden="true"></i></span>
+                        <span class="gateway-name">The Academy</span>
+                        <span class="gateway-desc">Who built this archive, and why it stays open to everyone.</span>
+                        <span class="gateway-cta">Read the story <i class="fas fa-arrow-right"
+                                aria-hidden="true"></i></span>
+                    </a>
+                </div>
+            </section>
+
+            <!-- Coursework & Labs -->
+            <div class="section" id="archive-section">
                 <div class="section-header">
-                    <h2 class="section-title">
-                        <i class="fas fa-th-large"></i> Coursework & Labs
-                    </h2>
-                    <p class="section-subtitle">Access theory lecture slides, past papers, and practical lab resources
-                    </p>
+                    <span class="section-flag"><span class="flag-num">第参章</span> The Archive</span>
+                    <h2 class="section-title">Coursework &amp; Labs</h2>
+                    <p class="section-subtitle">Theory lecture slides, past papers and practical lab resources,
+                        organised by course.</p>
                 </div>
                 <!-- Filter Pills on Home -->
                 <div class="course-filter-bar" id="home-filter-bar">
@@ -303,13 +361,17 @@
                 </div>
             </div>
 
-            <!-- Upcoming Events Preview -->
-            <div class="section">
-                <div class="section-header">
-                    <h2 class="section-title">
-                        <i class="fas fa-clock"></i> Upcoming Events
-                    </h2>
-                    <p class="section-subtitle">Stay ahead of your deadlines</p>
+            <!-- Latest Transmissions (home event feed) -->
+            <div class="section" id="transmissions-section">
+                <div class="section-header transmission-head">
+                    <div>
+                        <span class="section-flag"><span class="flag-num">第肆章</span> Latest Transmissions</span>
+                        <h2 class="section-title">Upcoming Events</h2>
+                        <p class="section-subtitle">Briefings from the academy calendar — quizzes, assignments and
+                            presentations, ordered by date.</p>
+                    </div>
+                    <a class="section-aside-link" href="#calendar">Full timeline <i class="fas fa-arrow-right"
+                            aria-hidden="true"></i></a>
                 </div>
                 <div class="events-preview" id="home-events-preview">
                     <div class="empty-state" id="home-empty-events">
@@ -333,13 +395,13 @@
                     </div>
                 </div>
                 <div class="section-header">
-                    <h2 class="section-title">
-                        <i class="fas fa-graduation-cap"></i> About Sledge Classroom
-                    </h2>
-                    <p class="section-subtitle">A student-focused open learning management system and resource hub</p>
+                    <span class="section-flag"><span class="flag-num">第伍章</span> The Academy</span>
+                    <h2 class="section-title">About Sledge Classroom</h2>
+                    <p class="section-subtitle">A student-focused open learning archive, built for NUML BSCS and free
+                        for everyone.</p>
                 </div>
                 <div class="about-grid">
-                    <div class="about-card">
+                    <div class="about-card about-card--lead">
                         <div class="about-card-icon"><i class="fas fa-chalkboard-teacher"></i></div>
                         <h3>NUML BSCS Curated Notes</h3>
                         <p>Comprehensive lecture slides and presentations for core Computer Science semester subjects, neatly organized by topic and lecture number.</p>
@@ -365,10 +427,9 @@
             <!-- Core Subjects & Curriculum Directory -->
             <div class="section" id="curriculum-section">
                 <div class="section-header">
-                    <h2 class="section-title">
-                        <i class="fas fa-sitemap"></i> NUML BSCS Course Curriculum
-                    </h2>
-                    <p class="section-subtitle">Explore lecture notes, solved papers, and lab manuals by subject</p>
+                    <span class="section-flag"><span class="flag-num">第陸章</span> Curriculum Directory</span>
+                    <h2 class="section-title">NUML BSCS Course Curriculum</h2>
+                    <p class="section-subtitle">Explore lecture notes, solved papers, and lab manuals by subject.</p>
                 </div>
                 <div class="curriculum-grid">
                     <a href="#courses" class="curriculum-card" data-course="automata" id="course-automata">
@@ -443,10 +504,9 @@
             <!-- Frequently Asked Questions (FAQ) Section -->
             <div class="section" id="faq-section">
                 <div class="section-header">
-                    <h2 class="section-title">
-                        <i class="fas fa-question-circle"></i> Frequently Asked Questions
-                    </h2>
-                    <p class="section-subtitle">Common questions about Sledge Classroom and study materials</p>
+                    <span class="section-flag"><span class="flag-num">第漆章</span> Enquiries</span>
+                    <h2 class="section-title">Frequently Asked Questions</h2>
+                    <p class="section-subtitle">Common questions about Sledge Classroom and the study materials.</p>
                 </div>
                 <div class="faq-list">
                     <div class="faq-item">
@@ -1318,6 +1378,13 @@
 
     <!-- ===== FOOTER ===== -->
     <footer class="footer" id="footer">
+        <div class="footer-masthead">
+            <span class="footer-flag">第漆章</span>
+            <span class="footer-masthead-rule" aria-hidden="true"></span>
+            <span class="footer-masthead-label">Colophon</span>
+            <span class="footer-masthead-jp" aria-hidden="true">知識は力なり</span>
+            <span class="footer-seal" aria-hidden="true">学</span>
+        </div>
         <div class="footer-content">
             <div class="footer-brand">
                 <div class="footer-logo">
@@ -1325,6 +1392,7 @@
                     <span>Sledge<span class="logo-accent">Classroom</span></span>
                 </div>
                 <p class="footer-tagline">Making education accessible for everyone.</p>
+                <p class="footer-note">NUML BSCS · Open access learning archive · Est. 2026</p>
             </div>
             <div class="footer-links-section">
                 <h3>Quick Links</h3>
@@ -1364,7 +1432,7 @@
 
     <!-- App Scripts -->
     <script src="firebase-config.js?v=6"></script>
-    <script src="app.js?v=20"></script>
+    <script src="app.js?v=22"></script>
 
     <!-- ===== NOW PLAYING WIDGET ===== -->
     <script src="now-playing-widget.js?v=4"></script>

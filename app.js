@@ -504,6 +504,9 @@ async function loadAllCourseCards() {
 async function renderCourseCards(containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
+    // The homepage uses an editorial card treatment; other grids keep their
+    // existing markup and styling.
+    const isHome = containerId === 'home-courses-grid';
     container.setAttribute('aria-busy', 'true');
     container.innerHTML = skeletonMarkup(6);
 
@@ -553,11 +556,12 @@ async function renderCourseCards(containerId) {
 
         theoryData.forEach(({ course, counts, eventCount }, index) => {
             const card = document.createElement('div');
-            card.className = 'course-card';
+            card.className = isHome ? 'course-card course-card--home' : 'course-card';
             card.style.setProperty('--card-accent', course.color);
             card.style.animationDelay = `${index * 0.04}s`;
             card.innerHTML = `
                 <span class="course-type-badge theory"><i class="fas fa-book-reader"></i> Theory</span>
+                ${isHome ? `<div class="card-index" aria-hidden="true">TH ${String(index + 1).padStart(2, '0')}</div>` : ''}
                 <div class="card-icon" style="background: ${course.gradient}">
                     <i class="${course.icon}"></i>
                 </div>
@@ -592,11 +596,12 @@ async function renderCourseCards(containerId) {
 
         labData.forEach(({ course, counts, eventCount }, index) => {
             const card = document.createElement('div');
-            card.className = 'course-card';
+            card.className = isHome ? 'course-card course-card--home' : 'course-card';
             card.style.setProperty('--card-accent', '#10b981');
             card.style.animationDelay = `${index * 0.04}s`;
             card.innerHTML = `
                 <span class="course-type-badge lab"><i class="fas fa-flask"></i> Practical Lab</span>
+                ${isHome ? `<div class="card-index" aria-hidden="true">LB ${String(index + 1).padStart(2, '0')}</div>` : ''}
                 <div class="card-icon" style="background: linear-gradient(135deg, #10b981, #059669)">
                     <i class="fas fa-flask"></i>
                 </div>
@@ -1288,15 +1293,20 @@ async function renderCourseEvents() {
     }
 }
 
-function createEventCard(event) {
+function createEventCard(event, options = {}) {
     const typeInfo = EVENT_TYPES[event.type] || EVENT_TYPES.other;
     const course = COURSES.find(c => c.id === event.courseId);
-    const dateStr = new Date(event.date + 'T00:00:00').toLocaleDateString('en-US', {
+    const dateObj = new Date(event.date + 'T00:00:00');
+    const dateStr = dateObj.toLocaleDateString('en-US', {
         weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
     });
+    // Homepage-only editorial treatment. Course detail and calendar feeds keep
+    // the original card untouched.
+    const isTransmission = options.variant === 'transmission';
 
     const card = document.createElement('div');
-    card.className = 'event-card';
+    card.className = 'event-card' + (isTransmission ? ' event-card--transmission' : '');
+    if (isTransmission && options.index === 0) card.classList.add('event-card--featured');
     card.style.setProperty('--event-color', typeInfo.color);
 
     let groupsHTML = '';
@@ -1309,18 +1319,42 @@ function createEventCard(event) {
         descHTML = `<div class="event-description">${escapeHtml(event.description)}</div>`;
     }
 
-    card.innerHTML = `
+    const dateHTML = `
+        <div class="transmission-stamp" aria-hidden="true">
+            <span class="transmission-day">${String(dateObj.getDate()).padStart(2, '0')}</span>
+            <span class="transmission-month">${dateObj.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}</span>
+        </div>`;
+
+    const iconHTML = `
         <div class="event-type-icon" style="background: ${typeInfo.bg}; color: ${typeInfo.color};">
             <i class="${typeInfo.icon}"></i>
-        </div>
+        </div>`;
+
+    const metaHTML = isTransmission ? `
+        <div class="transmission-meta">
+            <span class="transmission-index">Transmission ${String((options.index || 0) + 1).padStart(2, '0')}</span>
+            <span class="transmission-type" style="color: ${typeInfo.color};">${typeInfo.label}</span>
+        </div>` : '';
+
+    const detailsHTML = isTransmission ? `
+        <div class="event-details">
+            <span><i class="fas fa-calendar"></i> ${dateStr}</span>
+            ${event.time ? `<span><i class="fas fa-clock"></i> ${formatTime(event.time)}</span>` : ''}
+            <span><i class="fas fa-book"></i> ${course ? course.name : ''}</span>
+        </div>` : `
+        <div class="event-details">
+            <span><i class="fas fa-calendar"></i> ${dateStr}</span>
+            ${event.time ? `<span><i class="fas fa-clock"></i> ${formatTime(event.time)}</span>` : ''}
+            <span><i class="fas fa-book"></i> ${course ? course.name : ''}</span>
+            <span style="color: ${typeInfo.color}; font-weight: 600;">${typeInfo.label}</span>
+        </div>`;
+
+    card.innerHTML = `
+        ${isTransmission ? dateHTML : iconHTML}
         <div class="event-info">
+            ${metaHTML}
             <div class="event-title">${escapeHtml(event.title)}</div>
-            <div class="event-details">
-                <span><i class="fas fa-calendar"></i> ${dateStr}</span>
-                ${event.time ? `<span><i class="fas fa-clock"></i> ${formatTime(event.time)}</span>` : ''}
-                <span><i class="fas fa-book"></i> ${course ? course.name : ''}</span>
-                <span style="color: ${typeInfo.color}; font-weight: 600;">${typeInfo.label}</span>
-            </div>
+            ${detailsHTML}
             ${descHTML}
             ${groupsHTML}
         </div>
@@ -1384,8 +1418,8 @@ async function loadHomeEvents() {
             return;
         }
 
-        events.forEach(event => {
-            container.appendChild(createEventCard(event));
+        events.forEach((event, index) => {
+            container.appendChild(createEventCard(event, { variant: 'transmission', index }));
         });
     } catch (error) {
         console.error('Error loading home events:', error);
@@ -2354,16 +2388,46 @@ let cursorTrailPoints = [];
 let cursorTrailLastTime = 0;
 let cursorTrailResizeHandler = null;
 let cursorTrailPointerBound = false;
+let cursorTrailCtx = null;
+let cursorTrailAccentCache = null;
+const CURSOR_TRAIL_MAX_POINTS = 10;
 
 function isFinePointer() {
     return !window.matchMedia || window.matchMedia('(pointer: fine)').matches;
 }
 
+// The accent is resolved once and cached; reading getComputedStyle on every
+// animation frame forced a style read 60x per second.
+function readCursorTrailAccent() {
+    const value = getComputedStyle(document.documentElement)
+        .getPropertyValue('--accent-color').trim();
+    return value && value.indexOf('var(') === -1 ? value : '#3b82f6';
+}
+
+function refreshCursorTrailAccent() {
+    cursorTrailAccentCache = readCursorTrailAccent();
+}
+
+function invalidateCursorTrailAccent() {
+    cursorTrailAccentCache = null;
+}
+
 function cursorTrailAccent() {
-    const shell = document.getElementById('dock-shell');
-    if (!shell) return '#3b82f6';
-    const value = getComputedStyle(shell).getPropertyValue('--dock-accent').trim();
-    return value || '#3b82f6';
+    if (!cursorTrailAccentCache) refreshCursorTrailAccent();
+    return cursorTrailAccentCache;
+}
+
+// Theme changes are the only moment the accent can change (custom accents
+// also invalidate the cache from applyAccentSetting).
+document.addEventListener('sledge:themechange', invalidateCursorTrailAccent);
+
+function sizeCursorTrailCanvas(canvas) {
+    // DPR 1 on purpose: the trail is a soft glow, so a full-resolution buffer
+    // only wastes fill rate. CSS stretches this buffer over the viewport.
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    if (canvas.width !== width) canvas.width = width;
+    if (canvas.height !== height) canvas.height = height;
 }
 
 function animateCursorTrail(now) {
@@ -2373,7 +2437,10 @@ function animateCursorTrail(now) {
         cursorTrailRafId = null;
         return;
     }
-    const ctx = canvas.getContext('2d');
+    if (!cursorTrailCtx || cursorTrailCtx.canvas !== canvas) {
+        cursorTrailCtx = canvas.getContext('2d');
+    }
+    const ctx = cursorTrailCtx;
     const elapsed = cursorTrailLastTime ? now - cursorTrailLastTime : 16.667;
     cursorTrailLastTime = now;
     const dt = Math.max(0.25, Math.min(3, elapsed / 16.667));
@@ -2385,34 +2452,43 @@ function animateCursorTrail(now) {
     ctx.lineJoin = 'round';
     ctx.strokeStyle = accent;
     ctx.fillStyle = accent;
-    ctx.shadowColor = accent;
-    ctx.shadowBlur = 8;
 
-    // Draw a dot per sample as well as the connecting segments, so a single
-    // pointer move (one sample) still leaves a visible spark instead of
-    // being cleared before it is ever drawn.
+    let lifeSum = 0;
     for (let i = 0; i < cursorTrailPoints.length; i++) {
-        const point = cursorTrailPoints[i];
-        const life = Math.max(0, point.life);
-        ctx.globalAlpha = life * 0.7;
-        ctx.beginPath();
-        ctx.arc(point.x, point.y, Math.max(0.8, 2.6 * life), 0, Math.PI * 2);
-        ctx.fill();
+        lifeSum += Math.max(0, cursorTrailPoints[i].life);
     }
+    const avgLife = cursorTrailPoints.length ? lifeSum / cursorTrailPoints.length : 0;
 
-    for (let i = 1; i < cursorTrailPoints.length; i++) {
-        const prev = cursorTrailPoints[i - 1];
-        const point = cursorTrailPoints[i];
-        ctx.globalAlpha = Math.max(0, point.life) * 0.55;
-        ctx.lineWidth = Math.max(1, 7 * point.life);
+    // One combined path drawn twice (wide halo + thin core) replaces the old
+    // per-segment shadowBlur strokes: same neon read, a fraction of the cost.
+    if (cursorTrailPoints.length > 1) {
         ctx.beginPath();
-        ctx.moveTo(prev.x, prev.y);
-        ctx.lineTo(point.x, point.y);
+        ctx.moveTo(cursorTrailPoints[0].x, cursorTrailPoints[0].y);
+        for (let i = 1; i < cursorTrailPoints.length; i++) {
+            ctx.lineTo(cursorTrailPoints[i].x, cursorTrailPoints[i].y);
+        }
+        ctx.globalAlpha = avgLife * 0.12;
+        ctx.lineWidth = 9;
+        ctx.stroke();
+        ctx.globalAlpha = avgLife * 0.55;
+        ctx.lineWidth = 2.6;
         ctx.stroke();
     }
 
+    // All spark dots in a single fill call.
+    if (cursorTrailPoints.length) {
+        ctx.beginPath();
+        for (let i = 0; i < cursorTrailPoints.length; i++) {
+            const point = cursorTrailPoints[i];
+            const radius = Math.max(0.8, 2.6 * Math.max(0, point.life));
+            ctx.moveTo(point.x + radius, point.y);
+            ctx.arc(point.x, point.y, radius, 0, Math.PI * 2);
+        }
+        ctx.globalAlpha = avgLife * 0.7;
+        ctx.fill();
+    }
+
     ctx.globalAlpha = 1;
-    ctx.shadowBlur = 0;
     ctx.globalCompositeOperation = 'source-over';
 
     for (let i = 0; i < cursorTrailPoints.length; i++) {
@@ -2436,14 +2512,11 @@ function onCursorTrailMove(event) {
 
     const canvas = document.getElementById('cursor-trail-canvas');
     if (!canvas) return;
-    if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    }
+    sizeCursorTrailCanvas(canvas);
     canvas.classList.remove('hidden');
 
     cursorTrailPoints.push({ x: event.clientX, y: event.clientY, life: 1 });
-    if (cursorTrailPoints.length > 18) cursorTrailPoints.shift();
+    if (cursorTrailPoints.length > CURSOR_TRAIL_MAX_POINTS) cursorTrailPoints.shift();
 
     if (!cursorTrailRafId) {
         cursorTrailLastTime = 0;
@@ -2459,12 +2532,9 @@ function startCursorTrail() {
     }
     const canvas = document.getElementById('cursor-trail-canvas');
     if (canvas) {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        cursorTrailResizeHandler = () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        };
+        refreshCursorTrailAccent();
+        sizeCursorTrailCanvas(canvas);
+        cursorTrailResizeHandler = () => sizeCursorTrailCanvas(canvas);
         window.addEventListener('resize', cursorTrailResizeHandler);
     }
 }
@@ -2633,6 +2703,7 @@ function applyAccentSetting(value, persist = true) {
         if (persist) localStorage.removeItem('sledge_accent');
     }
     syncAccentVars();
+    invalidateCursorTrailAccent();
     updateVisualControls();
 }
 
