@@ -161,7 +161,7 @@
         href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="styles.css?v=22">
+    <link rel="stylesheet" href="styles.css?v=24">
     <link rel="stylesheet" href="now-playing-widget.css?v=4">
 </head>
 
@@ -554,22 +554,65 @@
             <span id="courses" class="anchor-target" aria-hidden="true"></span>
             <!-- Course List View -->
             <div class="courses-list-view" id="courses-list-view">
-                <div class="page-header">
-                    <h2 class="page-title"><i class="fas fa-book-open"></i> All Courses &amp; Labs</h2>
-                    <p class="page-subtitle">Separate theory coursework and hands-on practical lab sections</p>
+                <header class="courses-masthead">
+                    <div class="courses-masthead-main">
+                        <p class="courses-eyebrow">
+                            <span class="courses-eyebrow-jp">第参章</span>
+                            <span class="courses-eyebrow-sep" aria-hidden="true">·</span>
+                            <span>The Archive</span>
+                        </p>
+                        <h1 class="courses-display-title">Coursework &amp; Labs</h1>
+                        <p class="courses-lede">Theory and practical resources, organised by course. Lecture slides, past papers, lab manuals and schedules — kept in one place.</p>
+                    </div>
+                    <dl class="courses-stats" aria-label="Course totals">
+                        <div class="courses-stat">
+                            <dt>Theory</dt>
+                            <dd id="courses-stat-theory">06</dd>
+                        </div>
+                        <div class="courses-stat">
+                            <dt>Labs</dt>
+                            <dd id="courses-stat-lab">03</dd>
+                        </div>
+                        <div class="courses-stat">
+                            <dt>Total</dt>
+                            <dd id="courses-stat-total">09</dd>
+                        </div>
+                    </dl>
+                </header>
+
+                <div class="courses-toolbar">
+                    <!-- Filter Pills on Courses Page -->
+                    <div class="course-filter-bar" id="courses-filter-bar" role="group" aria-label="Filter courses">
+                        <button class="filter-pill active" type="button" data-filter="all" aria-pressed="true">
+                            All (<span id="courses-count-all">9</span>)
+                        </button>
+                        <button class="filter-pill" type="button" data-filter="theory" aria-pressed="false">
+                            Theory (<span id="courses-count-theory">6</span>)
+                        </button>
+                        <button class="filter-pill" type="button" data-filter="lab" aria-pressed="false">
+                            Lab (<span id="courses-count-lab">3</span>)
+                        </button>
+                    </div>
+
+                    <div class="courses-toolbar-tools">
+                        <div class="courses-search">
+                            <i class="fas fa-search" aria-hidden="true"></i>
+                            <label class="sr-only" for="courses-search-input">Search courses</label>
+                            <input type="search" id="courses-search-input" name="course-search" placeholder="Search courses…" autocomplete="off" spellcheck="false">
+                        </div>
+                        <div class="courses-sort">
+                            <label class="sr-only" for="courses-sort-select">Sort courses</label>
+                            <select id="courses-sort-select" name="course-sort">
+                                <option value="code">Sort: Code</option>
+                                <option value="name">Sort: Name</option>
+                                <option value="materials">Sort: Most Materials</option>
+                                <option value="updated">Sort: Recently Updated</option>
+                            </select>
+                            <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                        </div>
+                    </div>
                 </div>
-                <!-- Filter Pills on Courses Page -->
-                <div class="course-filter-bar" id="courses-filter-bar">
-                    <button class="filter-pill active" data-filter="all">
-                        <i class="fas fa-th-large"></i> All (<span id="courses-count-all">9</span>)
-                    </button>
-                    <button class="filter-pill" data-filter="theory">
-                        <i class="fas fa-book-reader"></i> Theory Courses (<span id="courses-count-theory">6</span>)
-                    </button>
-                    <button class="filter-pill" data-filter="lab">
-                        <i class="fas fa-flask"></i> Lab Sections (<span id="courses-count-lab">3</span>)
-                    </button>
-                </div>
+
                 <div class="courses-grid-full" id="courses-grid-full">
                     <!-- Populated by JS -->
                 </div>
@@ -577,46 +620,48 @@
 
             <!-- Single Course Detail View -->
             <div class="course-detail-view hidden" id="course-detail-view">
-                <button class="btn btn-ghost back-btn" id="course-back-btn">
-                    <i class="fas fa-arrow-left"></i> Back to Courses
+                <button class="btn btn-ghost back-btn" id="course-back-btn" type="button">
+                    <i class="fas fa-arrow-left" aria-hidden="true"></i> Back to the Archive
                 </button>
                 <div class="course-header" id="course-header">
                     <!-- Populated by JS -->
                 </div>
 
                 <!-- Section Mode Switcher (Theory vs Lab) -->
-                <div class="course-mode-bar hidden" id="course-mode-bar">
+                <div class="course-mode-bar hidden" id="course-mode-bar" role="group" aria-label="Course section">
                     <div class="mode-toggle-group">
-                        <button class="mode-toggle-btn active" data-mode="theory" id="mode-btn-theory">
-                            <i class="fas fa-book-reader"></i> Theory Section
+                        <button class="mode-toggle-btn active" type="button" data-mode="theory" id="mode-btn-theory" aria-pressed="true">
+                            Theory
                         </button>
-                        <button class="mode-toggle-btn" data-mode="lab" id="mode-btn-lab">
-                            <i class="fas fa-flask"></i> Lab Section
+                        <button class="mode-toggle-btn" type="button" data-mode="lab" id="mode-btn-lab" aria-pressed="false">
+                            Lab
                         </button>
                     </div>
-                    <span class="mode-status-text" id="mode-status-text">
-                        <i class="fas fa-info-circle"></i> Viewing Theory Coursework
-                    </span>
+                    <span class="mode-status-text" id="mode-status-text">Theory coursework</span>
                 </div>
 
                 <!-- Tabs: 3 categories + Calendar -->
-                <div class="tabs" id="course-tabs">
-                    <button class="tab active" data-tab="lectures" id="tab-lectures">
-                        <i class="fas fa-chalkboard"></i> <span id="tab-label-1">Lecture Slides</span>
+                <div class="tabs" id="course-tabs" role="tablist" aria-label="Course resources">
+                    <button class="tab active" type="button" role="tab" aria-selected="true" aria-controls="tab-content-lectures" data-tab="lectures" id="tab-lectures" tabindex="0">
+                        <i class="fas fa-chalkboard" aria-hidden="true"></i> <span id="tab-label-1">Lecture Slides</span>
+                        <span class="tab-count" id="tab-count-1" hidden></span>
                     </button>
-                    <button class="tab" data-tab="past-papers" id="tab-past-papers">
-                        <i class="fas fa-scroll"></i> <span id="tab-label-2">Past Papers</span>
+                    <button class="tab" type="button" role="tab" aria-selected="false" aria-controls="tab-content-past-papers" data-tab="past-papers" id="tab-past-papers" tabindex="-1">
+                        <i class="fas fa-scroll" aria-hidden="true"></i> <span id="tab-label-2">Past Papers</span>
+                        <span class="tab-count" id="tab-count-2" hidden></span>
                     </button>
-                    <button class="tab" data-tab="related" id="tab-related">
-                        <i class="fas fa-paperclip"></i> <span id="tab-label-3">Related Materials</span>
+                    <button class="tab" type="button" role="tab" aria-selected="false" aria-controls="tab-content-related" data-tab="related" id="tab-related" tabindex="-1">
+                        <i class="fas fa-paperclip" aria-hidden="true"></i> <span id="tab-label-3">Related Materials</span>
+                        <span class="tab-count" id="tab-count-3" hidden></span>
                     </button>
-                    <button class="tab" data-tab="course-calendar" id="tab-course-calendar">
-                        <i class="fas fa-calendar-day"></i> <span id="tab-label-4">Calendar</span>
+                    <button class="tab" type="button" role="tab" aria-selected="false" aria-controls="tab-content-course-calendar" data-tab="course-calendar" id="tab-course-calendar" tabindex="-1">
+                        <i class="fas fa-calendar-day" aria-hidden="true"></i> <span id="tab-label-4">Calendar</span>
+                        <span class="tab-count" id="tab-count-4" hidden></span>
                     </button>
                 </div>
 
                 <!-- Tab 1: Lecture Slides (Theory) / Lab Manuals (Lab) -->
-                <div class="tab-content active" id="tab-content-lectures">
+                <div class="tab-content active" id="tab-content-lectures" role="tabpanel" aria-labelledby="tab-lectures">
                     <div class="tab-toolbar">
                         <h3 id="tab-1-title"><i class="fas fa-chalkboard"></i> Lecture Slides</h3>
                         <button class="btn btn-primary btn-sm admin-only" id="upload-lectures-btn">
@@ -633,7 +678,7 @@
                 </div>
 
                 <!-- Tab 2: Past Papers (Theory) / Lab Papers & Viva (Lab) -->
-                <div class="tab-content" id="tab-content-past-papers">
+                <div class="tab-content" id="tab-content-past-papers" role="tabpanel" aria-labelledby="tab-past-papers">
                     <div class="tab-toolbar">
                         <h3 id="tab-2-title"><i class="fas fa-scroll"></i> Past Papers</h3>
                         <button class="btn btn-primary btn-sm admin-only" id="upload-papers-btn">
@@ -650,7 +695,7 @@
                 </div>
 
                 <!-- Tab 3: Related Materials (Theory) / Code & Tasks (Lab) -->
-                <div class="tab-content" id="tab-content-related">
+                <div class="tab-content" id="tab-content-related" role="tabpanel" aria-labelledby="tab-related">
                     <div class="tab-toolbar">
                         <h3 id="tab-3-title"><i class="fas fa-paperclip"></i> Related Materials</h3>
                         <button class="btn btn-primary btn-sm admin-only" id="upload-related-btn">
@@ -667,7 +712,7 @@
                 </div>
 
                 <!-- Course Calendar Tab -->
-                <div class="tab-content" id="tab-content-course-calendar">
+                <div class="tab-content" id="tab-content-course-calendar" role="tabpanel" aria-labelledby="tab-course-calendar">
                     <div class="tab-toolbar">
                         <h3><i class="fas fa-calendar-day"></i> Course Events</h3>
                         <button class="btn btn-primary btn-sm admin-only" id="add-course-event-btn">
@@ -682,6 +727,9 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Phase 4B: The Reading Room (individual resource view) -->
+                <div class="course-reader-view hidden" id="course-reader-view" aria-live="polite"></div>
             </div>
         </section>
 
@@ -835,11 +883,12 @@
                     <input type="url" id="resource-url" class="form-input"
                         placeholder="https://drive.google.com/file/d/..." required>
                     <p class="form-hint" style="margin-top: 6px; font-size: 0.82rem; color: var(--text-tertiary);">
-                        <i class="fab fa-google-drive" style="color: #34a853;"></i> Google Drive, OneDrive, Dropbox, or
-                        any PDF/web link.
+                        <i class="fab fa-google-drive" style="color: #34a853;"></i> Google Drive, Google Docs,
+                        OneDrive, Dropbox, or any PDF/web link.
                         <br><em>Tip: For Google Drive, ensure link sharing is set to "Anyone with the link can
-                            view".</em>
+                            view". Sledge can preview single Drive files and Google Docs, but not folders.</em>
                     </p>
+                    <p class="form-error hidden" id="upload-form-error" role="alert"></p>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
@@ -1432,7 +1481,7 @@
 
     <!-- App Scripts -->
     <script src="firebase-config.js?v=6"></script>
-    <script src="app.js?v=22"></script>
+    <script src="app.js?v=24"></script>
 
     <!-- ===== NOW PLAYING WIDGET ===== -->
     <script src="now-playing-widget.js?v=4"></script>

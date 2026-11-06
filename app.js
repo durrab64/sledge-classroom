@@ -76,6 +76,32 @@ const FILE_CATEGORIES = {
     lab: { label: 'Lab Resources', icon: 'fas fa-flask', collection: 'lab' },
 };
 
+// Phase 4B: resource categories map to the Phase 4A tabs and Theory/Lab mode.
+const RESOURCE_CATEGORY_META = {
+    lectures: { label: 'Lecture Slides', shortLabel: 'Slides', icon: 'fas fa-chalkboard', mode: 'theory', tab: 'lectures' },
+    papers: { label: 'Past Papers', shortLabel: 'Papers', icon: 'fas fa-scroll', mode: 'theory', tab: 'past-papers' },
+    related: { label: 'Related Materials', shortLabel: 'Materials', icon: 'fas fa-paperclip', mode: 'theory', tab: 'related' },
+    lab: { label: 'Lab Manuals', shortLabel: 'Manuals', icon: 'fas fa-flask', mode: 'lab', tab: 'lectures' },
+    lab_papers: { label: 'Lab Past Papers', shortLabel: 'Lab papers', icon: 'fas fa-scroll', mode: 'lab', tab: 'past-papers' },
+    lab_tasks: { label: 'Code & Lab Tasks', shortLabel: 'Tasks', icon: 'fas fa-laptop-code', mode: 'lab', tab: 'related' },
+};
+
+const COURSE_TAB_NAMES = ['lectures', 'past-papers', 'related', 'course-calendar'];
+
+function getCategoryMeta(category) {
+    return RESOURCE_CATEGORY_META[category] || null;
+}
+
+function getCategoryForTab(tabName, mode) {
+    if (tabName === 'course-calendar') return null;
+    const meta = RESOURCE_CATEGORY_META[mode === 'lab'
+        ? (tabName === 'past-papers' ? 'lab_papers' : tabName === 'related' ? 'lab_tasks' : 'lab')
+        : (tabName === 'past-papers' ? 'papers' : tabName)];
+    return meta && meta.tab === tabName ? (mode === 'lab'
+        ? (tabName === 'past-papers' ? 'lab_papers' : tabName === 'related' ? 'lab_tasks' : 'lab')
+        : (tabName === 'past-papers' ? 'papers' : tabName)) : null;
+}
+
 const EVENT_TYPES = {
     quiz: { icon: 'fas fa-question-circle', color: 'var(--event-quiz)', bg: 'rgba(139, 92, 246, 0.1)', label: 'Quiz' },
     assignment: { icon: 'fas fa-clipboard-list', color: 'var(--event-assignment)', bg: 'rgba(245, 158, 11, 0.1)', label: 'Assignment' },
@@ -90,8 +116,24 @@ let currentCourseId = null;
 let currentLabId = null;
 let currentTab = 'lectures';
 let currentCourseMode = 'theory'; // 'theory' | 'lab'
-let currentFilter = 'all'; // 'all' | 'theory' | 'lab'
+let currentFilter = 'all'; // homepage filter: 'all' | 'theory' | 'lab'
+let courseFilter = 'all'; // courses page filter: 'all' | 'theory' | 'lab'
+let courseSearch = '';
+let courseSort = 'code'; // 'code' | 'name' | 'materials' | 'updated'
 let originPage = 'courses'; // 'courses' | 'home' | 'labs'
+let courseDetailPushed = false;
+let resourcePushed = false;
+let resourceNavDepth = 0;
+let resourceReturnScroll = null;
+let currentResourceKey = null;
+let resourcePreviewTimer = null;
+let readerBaseTitle = null;
+let readerReturnFocus = null; // element that opened the Reading Room
+let readerReturnFocusInfo = null; // { courseId, category, docId } fallback
+let pendingReaderFocusRestore = false;
+let courseCardData = null;
+let courseDataPromise = null;
+let courseRenderGeneration = 0;
 let uploadContext = null; // { category, courseId }
 let selectedFiles = [];
 let calendarDate = new Date();
@@ -107,6 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     initNavigation();
     initFilters();
+    initCourseTabs();
     initAuth();
     initUploadModal();
     initEventModal();
@@ -316,27 +359,119 @@ function initNavigation() {
     handleHashRoute();
 }
 
+function safeDecode(value) {
+    try {
+        return decodeURIComponent(value);
+    } catch (error) {
+        return value;
+    }
+}
+
+function buildResourceHash(courseId, category, docId) {
+    return `#course-${encodeURIComponent(courseId)}/${encodeURIComponent(category)}/${encodeURIComponent(docId)}`;
+}
+
 function handleHashRoute() {
-    const raw = (window.location.hash || '').replace(/^#\/?/, '').toLowerCase().trim();
-    if (!raw || raw === 'home') {
+    const raw = (window.location.hash || '').replace(/^#\/?/, '').trim();
+    const first = raw.split('/')[0].toLowerCase();
+
+    if (!first || first === 'home') {
+        resetResourceNavigation();
+        courseDetailPushed = false;
         navigateTo('home', false);
-    } else if (raw === 'courses') {
-        navigateTo('courses', false);
-    } else if (raw === 'labs') {
-        navigateTo('labs', false);
-    } else if (raw === 'calendar') {
-        navigateTo('calendar', false);
-    } else if (raw.startsWith('course-')) {
-        const cId = raw.replace('course-', '');
-        if (COURSES.some(c => c.id === cId)) {
-            openCourseDetail(cId, 'theory', 'courses');
+        return;
+    }
+    if (first === 'courses' || first === 'labs' || first === 'calendar') {
+        resetResourceNavigation();
+        courseDetailPushed = false;
+        navigateTo(first, false);
+        return;
+    }
+
+    if (!first.startsWith('course-')) return;
+
+    const courseId = first.slice('course-'.length);
+    const parts = raw.split('/').filter(Boolean);
+    const course = COURSES.find(c => c.id === courseId);
+    const isResourceRoute = parts.length >= 3;
+
+    if (!course) {
+        if (isResourceRoute) {
+            resetResourceNavigation();
+            showResourceNotFound({ reason: 'course' });
         } else {
+            resetResourceNavigation();
+            courseDetailPushed = false;
             navigateTo('courses', false);
         }
+        return;
+    }
+
+    if (isResourceRoute) {
+        const category = safeDecode(parts[1]).toLowerCase();
+        const docId = parts.slice(2).map(safeDecode).join('/');
+        openResourceView(courseId, category, docId, { fromHash: true });
+        return;
+    }
+
+    let mode = 'theory';
+    let tab = 'lectures';
+    const state = history.state;
+    if (parts[1]) {
+        const requested = safeDecode(parts[1]).toLowerCase();
+        const meta = RESOURCE_CATEGORY_META[requested];
+        if (meta) {
+            mode = meta.mode;
+            tab = meta.tab;
+        }
+    } else if (state && state.courseId === courseId) {
+        mode = state.courseMode === 'lab' ? 'lab' : 'theory';
+        if (COURSE_TAB_NAMES.includes(state.courseTab)) tab = state.courseTab;
+    }
+    if (!course.hasLab) mode = 'theory';
+
+    const restoreScroll = resourceReturnScroll;
+    resourceReturnScroll = null;
+    resourcePushed = false;
+    resourceNavDepth = 0;
+    openCourseDetail(courseId, mode, 'courses', {
+        fromHash: true,
+        tab,
+        restoreScroll,
+    });
+}
+
+function resetResourceNavigation() {
+    resourcePushed = false;
+    resourceNavDepth = 0;
+    resourceReturnScroll = null;
+    currentResourceKey = null;
+    readerReturnFocus = null;
+    readerReturnFocusInfo = null;
+    pendingReaderFocusRestore = false;
+    clearPreviewTimer();
+}
+
+function setCourseHistory(courseId, mode, replace = false, tab = currentTab) {
+    const hash = `#course-${courseId}`;
+    const state = { page: 'course', courseId, courseMode: mode, courseTab: tab };
+    try {
+        if (replace) {
+            history.replaceState(state, '', hash);
+        } else {
+            history.pushState(state, '', hash);
+        }
+    } catch (e) {
+        window.location.hash = hash;
     }
 }
 
 function navigateTo(page, updateHash = true) {
+    closeReaderChrome();
+    // Page-level navigation always leaves the Reading Room. Reset the reader
+    // bookkeeping here so returning to a course starts a fresh history depth
+    // (otherwise "Back to category" can overshoot into the archive).
+    resetResourceNavigation();
     currentPage = page;
 
     if (page === 'courses') {
@@ -357,7 +492,7 @@ function navigateTo(page, updateHash = true) {
 
     if (updateHash && window.location.hash !== `#${page}`) {
         try {
-            history.pushState(null, '', `#${page}`);
+            history.pushState({ page }, '', `#${page}`);
         } catch (e) {
             window.location.hash = `#${page}`;
         }
@@ -376,18 +511,92 @@ function closeMobileMenu() {
 
 // ===== FIRESTORE HELPERS =====
 
-// Get files for a course + category from Firestore
-async function getFilesFromDB(courseId, category) {
-    try {
-        const snapshot = await db.collection('courses').doc(courseId)
-            .collection(category)
-            .orderBy('createdAt', 'desc')
-            .get();
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    } catch (error) {
-        console.error(`Error fetching ${category} for ${courseId}:`, error);
-        return [];
+// ===== RESOURCE LIST CACHE =====
+// Resource lists are small but can be re-read often when students move between
+// tabs, Theory/Lab and the Reading Room. Cache successful results only, so a
+// failed query is never mistaken for an empty category.
+const COURSE_FILE_TTL = 2 * 60 * 1000;
+const courseFileCache = new Map(); // `${courseId}:${category}` -> { files, ts }
+const courseFileInflight = new Map();
+
+function invalidateCourseFiles(courseId, category = null) {
+    if (!courseId) {
+        courseFileCache.clear();
+        courseFileInflight.clear();
+        return;
     }
+    const prefix = category ? `${courseId}:${category}` : `${courseId}:`;
+    for (const key of Array.from(courseFileCache.keys())) {
+        if (key === prefix || (category === null && key.startsWith(prefix))) courseFileCache.delete(key);
+    }
+    for (const key of Array.from(courseFileInflight.keys())) {
+        if (key === prefix || (category === null && key.startsWith(prefix))) courseFileInflight.delete(key);
+    }
+}
+
+// Get files for a course + category from Firestore.
+// Returns { ok, files, error, fromCache } so callers can distinguish a failed
+// query from a genuinely empty collection.
+async function getFilesFromDB(courseId, category, options = {}) {
+    const key = `${courseId}:${category}`;
+    const cached = courseFileCache.get(key);
+    if (!options.force && cached && Date.now() - cached.ts < COURSE_FILE_TTL) {
+        return { ok: true, files: cached.files, fromCache: true };
+    }
+
+    const pending = courseFileInflight.get(key);
+    if (!options.force && pending) return pending;
+
+    let request;
+    request = (async () => {
+        try {
+            const snapshot = await db.collection('courses').doc(courseId)
+                .collection(category)
+                .orderBy('createdAt', 'desc')
+                .get();
+            const files = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            // Publish only if this is still the current request for the key.
+            // An upload/delete can invalidate the key while the read is in
+            // flight; that removes the entry (and may start a newer request),
+            // so the stale response must never repopulate the cache.
+            if (courseFileInflight.get(key) === request) {
+                courseFileCache.set(key, { files, ts: Date.now() });
+            }
+            return { ok: true, files, fromCache: false };
+        } catch (error) {
+            console.error(`Error fetching ${category} for ${courseId}:`, error);
+            return { ok: false, files: [], error };
+        } finally {
+            if (courseFileInflight.get(key) === request) courseFileInflight.delete(key);
+        }
+    })();
+
+    courseFileInflight.set(key, request);
+    return request;
+}
+
+// ===== COURSE DATA CACHE =====
+// Counts are fetched once per course/mode and shared by the home archive,
+// the Courses grid and the Labs grid. Writes invalidate only what changed.
+const COURSE_COUNT_TTL = 5 * 60 * 1000;
+const EVENT_COUNT_TTL = 60 * 1000;
+const courseCountCache = new Map(); // `${courseId}:${mode}` -> { data, ts }
+const courseCountInflight = new Map();
+let eventCountCache = { list: null, ts: 0 };
+
+function latestUpdatedFromSnapshots(snapshots) {
+    let latest = 0;
+    snapshots.forEach(snapshot => {
+        snapshot.docs.forEach(doc => {
+            const value = doc.get('createdAt');
+            if (!value) return;
+            const ms = typeof value.toMillis === 'function'
+                ? value.toMillis()
+                : new Date(value).getTime();
+            if (Number.isFinite(ms) && ms > latest) latest = ms;
+        });
+    });
+    return latest;
 }
 
 // Get file counts for a course (for card display)
@@ -400,10 +609,12 @@ async function getFileCounts(courseId, mode = 'theory') {
                 db.collection('courses').doc(courseId).collection('lab_tasks').get(),
             ]);
             return {
+                ok: true,
                 primary: lab.size,
                 papers: labPapers.size,
                 tertiary: labTasks.size,
                 total: lab.size + labPapers.size + labTasks.size,
+                latestUpdated: latestUpdatedFromSnapshots([lab, labPapers, labTasks]),
             };
         } else {
             const [lectures, papers, related] = await Promise.all([
@@ -412,66 +623,220 @@ async function getFileCounts(courseId, mode = 'theory') {
                 db.collection('courses').doc(courseId).collection('related').get(),
             ]);
             return {
+                ok: true,
                 primary: lectures.size,
                 papers: papers.size,
                 tertiary: related.size,
                 total: lectures.size + papers.size + related.size,
+                latestUpdated: latestUpdatedFromSnapshots([lectures, papers, related]),
             };
         }
     } catch (error) {
         console.error('Error getting file counts:', error);
-        return { primary: 0, papers: 0, tertiary: 0, total: 0 };
+        return { ok: false, primary: 0, papers: 0, tertiary: 0, total: 0, latestUpdated: 0 };
     }
 }
 
-// Get lab file count
-async function getLabFileCount(courseId) {
-    try {
-        const counts = await getFileCounts(courseId, 'lab');
-        return counts.total;
-    } catch (error) {
-        return 0;
+// Cached per-course counts with in-flight de-duplication.
+async function getCourseCounts(courseId, mode = 'theory', force = false) {
+    const key = `${courseId}:${mode}`;
+    const cached = courseCountCache.get(key);
+    if (!force && cached && Date.now() - cached.ts < COURSE_COUNT_TTL) {
+        return cached.data;
     }
+    const pending = courseCountInflight.get(key);
+    if (!force && pending) return pending;
+
+    const request = getFileCounts(courseId, mode)
+        .then(data => {
+            // Failed counts are surfaced as zeros for this render but are never
+            // cached, so the next request retries instead of serving a false
+            // "empty course" for the full TTL. The in-flight guard also stops an
+            // invalidated request from re-seeding stale numbers.
+            if (data && data.ok !== false && courseCountInflight.get(key) === request) {
+                courseCountCache.set(key, { data, ts: Date.now() });
+            }
+            return data;
+        })
+        .finally(() => {
+            if (courseCountInflight.get(key) === request) courseCountInflight.delete(key);
+        });
+
+    courseCountInflight.set(key, request);
+    return request;
 }
 
-// Get events from Firestore
-async function getEventsFromDB() {
+function invalidateCourseCounts(courseId) {
+    if (!courseId) {
+        courseCountCache.clear();
+    } else {
+        for (const key of Array.from(courseCountCache.keys())) {
+            if (key.startsWith(`${courseId}:`)) courseCountCache.delete(key);
+        }
+        for (const key of Array.from(courseCountInflight.keys())) {
+            if (key.startsWith(`${courseId}:`)) courseCountInflight.delete(key);
+        }
+    }
+    // The aggregate dataset embeds the cached numbers, so rebuild it lazily.
+    courseCardData = null;
+    courseDataPromise = null;
+}
+
+function invalidateEventCounts() {
+    eventCountCache = { list: null, ts: 0 };
+    courseCardData = null;
+    courseDataPromise = null;
+}
+
+function invalidateAllCourseData() {
+    invalidateCourseCounts();
+    invalidateEventCounts();
+    invalidateCourseFiles();
+    courseCardData = null;
+    courseDataPromise = null;
+}
+
+// One shared events read powers all card event counts. The main calendar uses
+// its own month range query; this is only for aggregate counts.
+async function getEventsForCounts(force = false) {
+    if (!force && eventCountCache.list && Date.now() - eventCountCache.ts < EVENT_COUNT_TTL) {
+        return eventCountCache.list;
+    }
     try {
-        const snapshot = await db.collection('events').orderBy('date', 'asc').get();
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const snapshot = await db.collection('events').get();
+        const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        eventCountCache = { list, ts: Date.now() };
+        return list;
     } catch (error) {
-        console.error('Error fetching events:', error);
+        console.error('Error fetching event counts:', error);
         return [];
     }
 }
 
-// Get event count for a course
-async function getEventCount(courseId) {
-    try {
-        const snapshot = await db.collection('events').where('courseId', '==', courseId).get();
-        return snapshot.size;
-    } catch (error) {
-        return 0;
+// Build the full card dataset once; both grids and the Labs grid reuse it.
+async function getCourseCardData(force = false) {
+    if (!force && courseCardData) return courseCardData;
+    if (!force && courseDataPromise) return courseDataPromise;
+
+    courseDataPromise = (async () => {
+        const [events, entries] = await Promise.all([
+            getEventsForCounts(force),
+            Promise.all(COURSES.map(async course => {
+                const tasks = [getCourseCounts(course.id, 'theory', force)];
+                if (course.hasLab) tasks.push(getCourseCounts(course.id, 'lab', force));
+                const results = await Promise.all(tasks);
+                return {
+                    course,
+                    theory: results[0],
+                    lab: results[1] || null,
+                };
+            })),
+        ]);
+
+        const countsByCourse = new Map();
+        events.forEach(event => {
+            if (!event.courseId) return;
+            countsByCourse.set(event.courseId, (countsByCourse.get(event.courseId) || 0) + 1);
+        });
+
+        entries.forEach(entry => {
+            entry.eventCount = countsByCourse.get(entry.course.id) || 0;
+        });
+
+        courseCardData = entries;
+        return courseCardData;
+    })().finally(() => {
+        courseDataPromise = null;
+    });
+
+    return courseDataPromise;
+}
+
+// ===== FILTER PILLS & COURSES TOOLBAR =====
+function pad2(value) {
+    return String(value).padStart(2, '0');
+}
+
+function pluralize(count, singular, plural) {
+    return count === 1 ? singular : (plural || `${singular}s`);
+}
+
+function setPillState(bar, value) {
+    if (!bar) return;
+    bar.querySelectorAll('.filter-pill').forEach(pill => {
+        const active = pill.dataset.filter === value;
+        pill.classList.toggle('active', active);
+        pill.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+}
+
+function resetCourseListFilters() {
+    courseFilter = 'all';
+    courseSearch = '';
+    courseSort = 'code';
+    const input = document.getElementById('courses-search-input');
+    const sort = document.getElementById('courses-sort-select');
+    if (input) input.value = '';
+    if (sort) sort.value = 'code';
+    setPillState(document.getElementById('courses-filter-bar'), 'all');
+    if (courseCardData) {
+        renderCourseCards('courses-grid-full', courseCardData, courseFilter);
     }
 }
 
-// ===== FILTER PILLS =====
 function initFilters() {
-    ['home-filter-bar', 'courses-filter-bar'].forEach(barId => {
-        const bar = document.getElementById(barId);
-        if (!bar) return;
-        bar.querySelectorAll('.filter-pill').forEach(btn => {
+    // Homepage filter — independent from the Courses page toolbar.
+    const homeBar = document.getElementById('home-filter-bar');
+    if (homeBar) {
+        homeBar.querySelectorAll('.filter-pill').forEach(btn => {
             btn.addEventListener('click', () => {
-                const filter = btn.dataset.filter;
-                currentFilter = filter;
-                document.querySelectorAll('.filter-pill').forEach(p => {
-                    p.classList.toggle('active', p.dataset.filter === filter);
-                });
-                renderCourseCards('home-courses-grid');
-                renderCourseCards('courses-grid-full');
+                currentFilter = btn.dataset.filter;
+                setPillState(homeBar, currentFilter);
+                if (courseCardData) {
+                    renderCourseCards('home-courses-grid', courseCardData, currentFilter);
+                } else {
+                    loadAllCourseCards();
+                }
             });
         });
-    });
+    }
+
+    // Courses page filter — never touches the homepage state.
+    const coursesBar = document.getElementById('courses-filter-bar');
+    if (coursesBar) {
+        coursesBar.querySelectorAll('.filter-pill').forEach(btn => {
+            btn.addEventListener('click', () => {
+                courseFilter = btn.dataset.filter;
+                setPillState(coursesBar, courseFilter);
+                if (courseCardData) {
+                    renderCourseCards('courses-grid-full', courseCardData, courseFilter);
+                } else {
+                    loadAllCourseCards();
+                }
+            });
+        });
+    }
+
+    const search = document.getElementById('courses-search-input');
+    if (search) {
+        search.addEventListener('input', () => {
+            courseSearch = search.value;
+            if (courseCardData) {
+                renderCourseCards('courses-grid-full', courseCardData, courseFilter);
+            }
+        });
+    }
+
+    const sort = document.getElementById('courses-sort-select');
+    if (sort) {
+        sort.value = courseSort;
+        sort.addEventListener('change', () => {
+            courseSort = sort.value;
+            if (courseCardData) {
+                renderCourseCards('courses-grid-full', courseCardData, courseFilter);
+            }
+        });
+    }
 }
 
 function updateFilterCounters() {
@@ -491,57 +856,87 @@ function updateFilterCounters() {
     setEl('home-count-all', allCount);
     setEl('home-count-theory', theoryCount);
     setEl('home-count-lab', labCount);
+
+    setEl('courses-count-all', allCount);
+    setEl('courses-count-theory', theoryCount);
+    setEl('courses-count-lab', labCount);
+
+    setEl('courses-stat-theory', pad2(theoryCount));
+    setEl('courses-stat-lab', pad2(labCount));
+    setEl('courses-stat-total', pad2(allCount));
 }
 
 // ===== COURSE CARDS =====
-async function loadAllCourseCards() {
+async function loadAllCourseCards(options = {}) {
+    const force = !!options.force;
     updateFilterCounters();
-    await renderCourseCards('home-courses-grid');
-    await renderCourseCards('courses-grid-full');
-    await renderLabCards();
+
+    const generation = ++courseRenderGeneration;
+    const home = document.getElementById('home-courses-grid');
+    const full = document.getElementById('courses-grid-full');
+
+    if (home && !courseCardData) {
+        home.setAttribute('aria-busy', 'true');
+        home.innerHTML = skeletonMarkup(6);
+    }
+    if (full && !courseCardData) {
+        full.setAttribute('aria-busy', 'true');
+        full.innerHTML = skeletonMarkup(6);
+    }
+
+    let entries = [];
+    try {
+        entries = await getCourseCardData(force);
+    } catch (error) {
+        console.error('Error loading course cards:', error);
+    }
+
+    // A newer render started while this one was waiting — discard stale output.
+    if (generation !== courseRenderGeneration) return;
+
+    if (home) {
+        home.removeAttribute('aria-busy');
+        renderCourseCards('home-courses-grid', entries, currentFilter);
+    }
+    if (full) {
+        full.removeAttribute('aria-busy');
+        renderCourseCards('courses-grid-full', entries, courseFilter);
+    }
+    renderLabCards(entries);
 }
 
-async function renderCourseCards(containerId) {
-    const container = document.getElementById(containerId);
+function renderCourseCards(containerId, entries = [], filter = 'all') {
+    if (containerId === 'home-courses-grid') {
+        renderHomeCourseCards(entries, filter);
+    } else {
+        renderArchiveCourseCards(entries, filter);
+    }
+}
+
+// Homepage archive grid — markup and visual output intentionally unchanged.
+function renderHomeCourseCards(entries, filter) {
+    const container = document.getElementById('home-courses-grid');
     if (!container) return;
-    // The homepage uses an editorial card treatment; other grids keep their
-    // existing markup and styling.
-    const isHome = containerId === 'home-courses-grid';
-    container.setAttribute('aria-busy', 'true');
-    container.innerHTML = skeletonMarkup(6);
 
-    // Fetch counts for Theory courses
-    const theoryPromises = COURSES.map(async (course) => {
-        const [counts, eventCount] = await Promise.all([
-            getFileCounts(course.id, 'theory'),
-            getEventCount(course.id),
-        ]);
-        return { course, counts, eventCount };
-    });
-
-    // Fetch counts for Lab sections
-    const labPromises = LAB_COURSES.map(async (course) => {
-        const [counts, eventCount] = await Promise.all([
-            getFileCounts(course.id, 'lab'),
-            getEventCount(course.id),
-        ]);
-        return { course, counts, eventCount };
-    });
-
-    const [theoryData, labData] = await Promise.all([
-        Promise.all(theoryPromises),
-        Promise.all(labPromises),
-    ]);
-
-    container.removeAttribute('aria-busy');
     container.innerHTML = '';
 
-    const showTheory = currentFilter === 'all' || currentFilter === 'theory';
-    const showLab = currentFilter === 'all' || currentFilter === 'lab';
+    const theoryData = entries.map(entry => ({
+        course: entry.course,
+        counts: entry.theory,
+        eventCount: entry.eventCount,
+    }));
+    const labData = entries.filter(entry => entry.course.hasLab).map(entry => ({
+        course: entry.course,
+        counts: entry.lab,
+        eventCount: entry.eventCount,
+    }));
+
+    const showTheory = filter === 'all' || filter === 'theory';
+    const showLab = filter === 'all' || filter === 'lab';
 
     // 1. THEORY COURSES SECTION
     if (showTheory) {
-        if (currentFilter === 'all') {
+        if (filter === 'all') {
             const header = document.createElement('div');
             header.className = 'courses-group-header';
             header.style.gridColumn = '1 / -1';
@@ -556,12 +951,12 @@ async function renderCourseCards(containerId) {
 
         theoryData.forEach(({ course, counts, eventCount }, index) => {
             const card = document.createElement('div');
-            card.className = isHome ? 'course-card course-card--home' : 'course-card';
+            card.className = 'course-card course-card--home';
             card.style.setProperty('--card-accent', course.color);
             card.style.animationDelay = `${index * 0.04}s`;
             card.innerHTML = `
                 <span class="course-type-badge theory"><i class="fas fa-book-reader"></i> Theory</span>
-                ${isHome ? `<div class="card-index" aria-hidden="true">TH ${String(index + 1).padStart(2, '0')}</div>` : ''}
+                <div class="card-index" aria-hidden="true">TH ${pad2(index + 1)}</div>
                 <div class="card-icon" style="background: ${course.gradient}">
                     <i class="${course.icon}"></i>
                 </div>
@@ -581,7 +976,7 @@ async function renderCourseCards(containerId) {
 
     // 2. LAB SECTIONS
     if (showLab) {
-        if (currentFilter === 'all') {
+        if (filter === 'all') {
             const header = document.createElement('div');
             header.className = 'courses-group-header';
             header.style.gridColumn = '1 / -1';
@@ -596,12 +991,12 @@ async function renderCourseCards(containerId) {
 
         labData.forEach(({ course, counts, eventCount }, index) => {
             const card = document.createElement('div');
-            card.className = isHome ? 'course-card course-card--home' : 'course-card';
+            card.className = 'course-card course-card--home';
             card.style.setProperty('--card-accent', '#10b981');
             card.style.animationDelay = `${index * 0.04}s`;
             card.innerHTML = `
                 <span class="course-type-badge lab"><i class="fas fa-flask"></i> Practical Lab</span>
-                ${isHome ? `<div class="card-index" aria-hidden="true">LB ${String(index + 1).padStart(2, '0')}</div>` : ''}
+                <div class="card-index" aria-hidden="true">LB ${pad2(index + 1)}</div>
                 <div class="card-icon" style="background: linear-gradient(135deg, #10b981, #059669)">
                     <i class="fas fa-flask"></i>
                 </div>
@@ -620,23 +1015,190 @@ async function renderCourseCards(containerId) {
     }
 }
 
+// Courses page archive grid — editorial cards, search, sort and grouping.
+function renderArchiveCourseCards(entries, filter = courseFilter) {
+    const container = document.getElementById('courses-grid-full');
+    if (!container) return;
+
+    const term = courseSearch.trim().toLowerCase();
+    const matches = course => {
+        if (!term) return true;
+        return [course.name, course.code, course.description]
+            .some(value => (value || '').toLowerCase().includes(term));
+    };
+
+    const sorters = {
+        code: (a, b) => a.course.code.localeCompare(b.course.code),
+        name: (a, b) => a.course.name.localeCompare(b.course.name),
+        materials: (a, b) => (b.counts.total - a.counts.total) || a.course.code.localeCompare(b.course.code),
+        updated: (a, b) => (b.counts.latestUpdated - a.counts.latestUpdated) || a.course.code.localeCompare(b.course.code),
+    };
+    const sorter = sorters[courseSort] || sorters.code;
+
+    const makeItem = (entry, kind) => ({
+        course: entry.course,
+        counts: kind === 'lab' ? entry.lab : entry.theory,
+        eventCount: entry.eventCount,
+        kind,
+    });
+
+    const theory = entries
+        .map(entry => makeItem(entry, 'theory'))
+        .filter(item => matches(item.course))
+        .sort(sorter);
+    const labs = entries
+        .filter(entry => entry.course.hasLab)
+        .map(entry => makeItem(entry, 'lab'))
+        .filter(item => matches(item.course))
+        .sort(sorter);
+
+    const groups = [];
+    if (filter !== 'lab') {
+        groups.push({ kind: 'theory', label: 'Theory Courses', jp: '理論', noun: 'Course', items: theory });
+    }
+    if (filter !== 'theory') {
+        groups.push({ kind: 'lab', label: 'Lab Sections', jp: '実験', noun: 'Lab', items: labs });
+    }
+
+    const visibleGroups = groups.filter(group => group.items.length > 0);
+    const totalShown = visibleGroups.reduce((sum, group) => sum + group.items.length, 0);
+
+    container.innerHTML = '';
+
+    if (totalShown === 0) {
+        container.innerHTML = `
+            <div class="courses-empty">
+                <i class="fas fa-search" aria-hidden="true"></i>
+                <h3>No courses match your search</h3>
+                <p>Try a different term, or reset the archive filters.</p>
+                <button type="button" class="btn btn-ghost btn-sm" id="courses-clear-filters">Clear filters</button>
+            </div>
+        `;
+        const clear = document.getElementById('courses-clear-filters');
+        if (clear) clear.addEventListener('click', resetCourseListFilters);
+        return;
+    }
+
+    visibleGroups.forEach(group => {
+        const header = document.createElement('div');
+        header.className = 'courses-group-header';
+        header.innerHTML = `
+            <div class="courses-group-title">
+                <span>${group.label}</span>
+                <span class="courses-group-jp" aria-hidden="true">${group.jp}</span>
+            </div>
+            <span class="courses-group-badge ${group.kind}">${pad2(group.items.length)} ${pluralize(group.items.length, group.noun)}</span>
+        `;
+        container.appendChild(header);
+
+        group.items.forEach((item, index) => {
+            container.appendChild(createArchiveCourseCard(item, index));
+        });
+    });
+}
+
+function createArchiveCourseCard(item, index) {
+    const { course, counts, eventCount, kind } = item;
+    const isLab = kind === 'lab';
+    const card = document.createElement('a');
+
+    card.className = `course-card course-card--archive course-card--${kind}`;
+    card.href = `#course-${course.id}`;
+    card.dataset.courseId = course.id;
+    card.dataset.courseMode = kind;
+    card.style.setProperty('--card-accent', isLab ? '#10b981' : course.color);
+    card.setAttribute('aria-label', `${course.name}, ${course.code}, ${isLab ? 'lab section' : 'theory course'}`);
+
+    const primaryLabel = isLab ? 'Manual' : 'Slide';
+    const tertiaryLabel = isLab ? 'Task' : 'Material';
+    const metrics = [
+        { value: counts.primary, label: pluralize(counts.primary, primaryLabel) },
+        { value: counts.papers, label: pluralize(counts.papers, 'Paper') },
+        { value: counts.tertiary, label: pluralize(counts.tertiary, tertiaryLabel) },
+        { value: eventCount, label: pluralize(eventCount, 'Event') },
+    ];
+
+    card.innerHTML = `
+        <span class="archive-card-top">
+            <span class="archive-card-index">${isLab ? 'LB' : 'TH'} ${pad2(index + 1)}</span>
+            <span class="archive-card-type ${kind}">${isLab ? 'Lab' : 'Theory'}</span>
+        </span>
+        <span class="archive-card-code">${escapeHtml(course.code)}</span>
+        <span class="archive-card-title">${escapeHtml(course.name)}</span>
+        <span class="archive-card-desc">${escapeHtml(course.description)}</span>
+        <span class="archive-card-metrics">
+            ${metrics.map(metric => `
+                <span class="archive-metric">
+                    <span class="archive-metric-value">${pad2(metric.value)}</span>
+                    <span class="archive-metric-label">${metric.label}</span>
+                </span>
+            `).join('')}
+        </span>
+        <span class="archive-card-open">Open course <span aria-hidden="true">→</span></span>
+    `;
+
+    card.addEventListener('click', event => {
+        event.preventDefault();
+        openCourseDetail(course.id, kind, 'courses');
+    });
+    card.addEventListener('keydown', event => {
+        if (event.key === ' ' || event.key === 'Spacebar') {
+            event.preventDefault();
+            card.click();
+        }
+    });
+
+    return card;
+}
+
 // ===== COURSE DETAIL VIEW (Theory vs Lab Separation) =====
-async function openCourseDetail(courseId, initialMode = 'theory', fromPage = currentPage) {
+async function openCourseDetail(courseId, initialMode = 'theory', fromPage = currentPage, options = {}) {
     // BLEACH SHINIGAMI GATE (MVC Easter Egg)
     if (courseId === 'calculus' && !sessionStorage.getItem('bleachGateUnlocked')) {
         promptBleachGate(() => {
-            openCourseDetail(courseId, initialMode, fromPage);
+            openCourseDetail(courseId, initialMode, fromPage, options);
         });
         return;
     }
 
-    currentCourseId = courseId;
-    currentCourseMode = initialMode;
-    originPage = fromPage || 'courses';
     const course = COURSES.find(c => c.id === courseId);
     if (!course) return;
 
-    if (currentPage !== 'courses') navigateTo('courses');
+    closeReaderChrome();
+
+    const fromHash = !!options.fromHash;
+    if (fromHash) {
+        originPage = fromPage || 'courses';
+        // Back/Forward into a course entry can restore the "Back to the Archive"
+        // behaviour; a fresh deep link starts its own history path.
+        courseDetailPushed = !!(history.state
+            && history.state.page === 'course'
+            && history.state.courseId === courseId);
+    } else {
+        originPage = fromPage || (currentPage === 'labs' ? 'labs' : currentPage === 'home' ? 'home' : 'courses');
+    }
+
+    if (currentPage !== 'courses') navigateTo('courses', false);
+
+    currentCourseId = courseId;
+    currentCourseMode = course.hasLab ? initialMode : 'theory';
+
+    const stateTab = fromHash && history.state && history.state.courseId === courseId
+        && COURSE_TAB_NAMES.includes(history.state.courseTab)
+        ? history.state.courseTab
+        : null;
+    if (options.tab && COURSE_TAB_NAMES.includes(options.tab)) {
+        currentTab = options.tab;
+    } else if (stateTab) {
+        currentTab = stateTab;
+    } else if (!fromHash) {
+        currentTab = 'lectures';
+    }
+
+    if (!fromHash) {
+        setCourseHistory(courseId, currentCourseMode, false, currentTab);
+        courseDetailPushed = true;
+    }
 
     document.getElementById('courses-list-view').classList.add('hidden');
     document.getElementById('course-detail-view').classList.remove('hidden');
@@ -652,34 +1214,125 @@ async function openCourseDetail(courseId, initialMode = 'theory', fromPage = cur
         currentCourseMode = 'theory';
     }
 
-    // Back button
-    document.getElementById('course-back-btn').onclick = () => {
-        document.getElementById('courses-list-view').classList.remove('hidden');
-        document.getElementById('course-detail-view').classList.add('hidden');
-        if (originPage === 'labs') {
-            navigateTo('labs');
-        } else if (originPage === 'home') {
-            navigateTo('home');
-        } else {
-            navigateTo('courses');
-        }
-        loadAllCourseCards();
-    };
+    document.getElementById('course-back-btn').onclick = closeCourseDetail;
 
     // Render content for current mode
     await applyCourseModeView();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (pendingReaderFocusRestore) {
+        pendingReaderFocusRestore = false;
+        restoreReaderFocus();
+    }
+    const restore = options.restoreScroll;
+    window.scrollTo({
+        top: restore != null ? restore : 0,
+        behavior: restore != null ? 'auto' : 'smooth',
+    });
+}
+
+function closeCourseDetail() {
+    closeReaderChrome();
+    resourcePushed = false;
+    resourceNavDepth = 0;
+    document.getElementById('courses-list-view').classList.remove('hidden');
+    document.getElementById('course-detail-view').classList.add('hidden');
+
+    const target = originPage === 'labs' ? 'labs' : originPage === 'home' ? 'home' : 'courses';
+
+    if (courseDetailPushed) {
+        courseDetailPushed = false;
+        history.back();
+        return;
+    }
+
+    navigateTo(target, false);
+    try {
+        history.replaceState({ page: target }, '', `#${target}`);
+    } catch (e) {
+        window.location.hash = target;
+    }
 }
 
 async function switchCourseMode(mode) {
     if (currentCourseMode === mode) return;
     currentCourseMode = mode;
+    setCourseHistory(currentCourseId, mode, true, currentTab);
     await applyCourseModeView();
+}
+
+async function getCourseDetailStats(courseId, mode) {
+    const [counts, events] = await Promise.all([
+        getCourseCounts(courseId, mode),
+        getEventsForCounts(),
+    ]);
+    return {
+        counts,
+        eventCount: events.filter(event => event.courseId === courseId).length,
+    };
+}
+
+function courseDetailStatsMarkup(mode, stats) {
+    const isLab = mode === 'lab';
+    const metrics = [
+        { label: isLab ? 'Manuals' : 'Slides', value: stats.counts.primary },
+        { label: isLab ? 'Past papers' : 'Papers', value: stats.counts.papers },
+        { label: isLab ? 'Tasks' : 'Materials', value: stats.counts.tertiary },
+        { label: 'Events', value: stats.eventCount },
+    ];
+    return metrics.map(metric => `
+        <div class="course-stat">
+            <dt>${metric.label}</dt>
+            <dd>${pad2(metric.value)}</dd>
+        </div>
+    `).join('');
+}
+
+async function updateCourseDetailHeader(course, mode) {
+    const header = document.getElementById('course-header');
+    if (!header) return;
+
+    const courseId = course.id;
+    const stats = await getCourseDetailStats(courseId, mode);
+    if (currentCourseId !== courseId || currentCourseMode !== mode) return;
+
+    const isLab = mode === 'lab';
+    const accent = isLab ? '#10b981' : course.color;
+    header.style.removeProperty('background');
+    header.style.setProperty('--course-accent', accent);
+    header.dataset.mode = mode;
+    header.dataset.courseId = course.id;
+    header.innerHTML = `
+        <div class="course-header-content">
+            <div class="course-detail-meta">
+                <span class="course-detail-code">${escapeHtml(course.code)}</span>
+                <span class="course-detail-sep" aria-hidden="true">/</span>
+                <span class="course-detail-section">${isLab ? 'Lab Section' : 'Theory Section'}</span>
+            </div>
+            <h1 class="course-detail-title">${escapeHtml(course.name)}</h1>
+            <p class="course-detail-desc">${escapeHtml(isLab
+                ? 'Practical lab manuals, experiment sheets, code exercises, and viva past papers.'
+                : course.description)}</p>
+            <dl class="course-detail-stats" aria-label="Resource totals">
+                ${courseDetailStatsMarkup(mode, stats)}
+            </dl>
+        </div>
+    `;
+    return stats;
+}
+
+async function refreshCourseDetailStats() {
+    const course = COURSES.find(c => c.id === currentCourseId);
+    if (!course) return;
+    const mode = currentCourseMode;
+    const stats = await getCourseDetailStats(course.id, mode);
+    if (currentCourseId !== course.id || currentCourseMode !== mode) return;
+    const statsEl = document.querySelector('#course-header .course-detail-stats');
+    if (statsEl) statsEl.innerHTML = courseDetailStatsMarkup(mode, stats);
 }
 
 async function applyCourseModeView() {
     const course = COURSES.find(c => c.id === currentCourseId);
     if (!course) return;
+    const mode = currentCourseMode;
 
     // Update Mode Switcher buttons & status
     const btnTheory = document.getElementById('mode-btn-theory');
@@ -687,36 +1340,17 @@ async function applyCourseModeView() {
     const statusText = document.getElementById('mode-status-text');
 
     if (btnTheory && btnLab) {
-        btnTheory.classList.toggle('active', currentCourseMode === 'theory');
-        btnLab.classList.toggle('active', currentCourseMode === 'lab');
+        btnTheory.classList.toggle('active', mode === 'theory');
+        btnLab.classList.toggle('active', mode === 'lab');
+        btnTheory.setAttribute('aria-pressed', mode === 'theory' ? 'true' : 'false');
+        btnLab.setAttribute('aria-pressed', mode === 'lab' ? 'true' : 'false');
     }
     if (statusText) {
-        statusText.innerHTML = currentCourseMode === 'theory' 
-            ? '<i class="fas fa-book-reader" style="color:var(--blue-500);"></i> Viewing Theory Coursework'
-            : '<i class="fas fa-flask" style="color:#10b981;"></i> Viewing Practical Lab Section';
+        statusText.textContent = mode === 'theory' ? 'Theory coursework' : 'Practical lab section';
     }
 
-    // Update Header
-    const header = document.getElementById('course-header');
-    if (currentCourseMode === 'lab') {
-        header.style.background = 'linear-gradient(135deg, #0d9488, #059669)';
-        header.innerHTML = `
-            <div class="course-header-content">
-                <div class="course-header-icon"><i class="fas fa-flask"></i></div>
-                <h1>${course.name} — Lab Section</h1>
-                <p>Practical lab manuals, experiment sheets, code exercises, and viva past papers.</p>
-            </div>
-        `;
-    } else {
-        header.style.background = course.gradient;
-        header.innerHTML = `
-            <div class="course-header-content">
-                <div class="course-header-icon"><i class="${course.icon}"></i></div>
-                <h1>${course.name}${course.hasLab ? ' — Theory Section' : ''}</h1>
-                <p>${course.description}</p>
-            </div>
-        `;
-    }
+    await updateCourseDetailHeader(course, mode);
+    if (currentCourseId !== course.id || currentCourseMode !== mode) return;
 
     // Update Tab Labels and Toolbars
     const tabLabel1 = document.getElementById('tab-label-1');
@@ -732,11 +1366,11 @@ async function applyCourseModeView() {
     const upload2Btn = document.getElementById('upload-2-btn-text');
     const upload3Btn = document.getElementById('upload-3-btn-text');
 
-    const cat1 = currentCourseMode === 'lab' ? 'lab' : 'lectures';
-    const cat2 = currentCourseMode === 'lab' ? 'lab_papers' : 'papers';
-    const cat3 = currentCourseMode === 'lab' ? 'lab_tasks' : 'related';
+    const cat1 = mode === 'lab' ? 'lab' : 'lectures';
+    const cat2 = mode === 'lab' ? 'lab_papers' : 'papers';
+    const cat3 = mode === 'lab' ? 'lab_tasks' : 'related';
 
-    if (currentCourseMode === 'lab') {
+    if (mode === 'lab') {
         if (tabLabel1) tabLabel1.textContent = 'Lab Manuals';
         if (tabLabel2) tabLabel2.textContent = 'Lab Past Papers';
         if (tabLabel3) tabLabel3.textContent = 'Code & Tasks';
@@ -764,8 +1398,17 @@ async function applyCourseModeView() {
         if (upload3Btn) upload3Btn.textContent = 'Add Material';
     }
 
-    // Reset to first tab
-    switchTab('lectures');
+    // Hydrate tab badges from the Phase 4A count cache without reading the
+    // other collections. Only the tab the student is actually viewing loads.
+    resetTabCounts();
+    const counts = await getCourseCounts(course.id, mode);
+    if (currentCourseId !== course.id || currentCourseMode !== mode) return;
+    setTabCount(1, counts.primary);
+    setTabCount(2, counts.papers);
+    setTabCount(3, counts.tertiary);
+    const events = await getEventsForCounts();
+    if (currentCourseId !== course.id || currentCourseMode !== mode) return;
+    setTabCount(4, events.filter(event => event.courseId === course.id).length);
 
     // Bind upload buttons to current active collections
     document.getElementById('upload-lectures-btn').onclick = () => openUploadModal(cat1, currentCourseId);
@@ -777,44 +1420,137 @@ async function applyCourseModeView() {
         openEventModal();
     };
 
-    // Load active category lists
-    await Promise.all([
-        renderFileList(cat1),
-        renderFileList(cat2),
-        renderFileList(cat3),
-        renderCourseEvents(),
-    ]);
+    const activeTab = COURSE_TAB_NAMES.includes(currentTab) ? currentTab : 'lectures';
+    currentTab = activeTab;
+    switchTab(activeTab, false, { load: false });
+    await loadCourseTab(activeTab);
 }
 
 // ===== TABS =====
-function switchTab(tabName) {
+const COURSE_TAB_PANELS = {
+    'lectures': 'tab-content-lectures',
+    'past-papers': 'tab-content-past-papers',
+    'related': 'tab-content-related',
+    'course-calendar': 'tab-content-course-calendar',
+};
+
+function setTabCount(index, count) {
+    const el = document.getElementById(`tab-count-${index}`);
+    if (!el) return;
+    el.textContent = pad2(count);
+    el.hidden = false;
+}
+
+function resetTabCounts() {
+    for (let i = 1; i <= 4; i += 1) clearTabCount(i);
+}
+
+function clearTabCount(index) {
+    const el = document.getElementById(`tab-count-${index}`);
+    if (!el) return;
+    el.textContent = '';
+    el.hidden = true;
+}
+
+function switchTab(tabName, focus = false, options = {}) {
     currentTab = tabName;
-    document.querySelectorAll('#course-tabs .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabName));
-
-    // Map tab names to content IDs
-    const tabMapping = {
-        'lectures': 'tab-content-lectures',
-        'past-papers': 'tab-content-past-papers',
-        'related': 'tab-content-related',
-        'course-calendar': 'tab-content-course-calendar',
-    };
-
-    document.querySelectorAll('.tab-content').forEach(tc => {
-        tc.classList.remove('active');
+    const tabs = Array.from(document.querySelectorAll('#course-tabs .tab'));
+    tabs.forEach(tab => {
+        const active = tab.dataset.tab === tabName;
+        tab.classList.toggle('active', active);
+        tab.setAttribute('aria-selected', active ? 'true' : 'false');
+        tab.tabIndex = active ? 0 : -1;
+        if (active && focus) tab.focus();
     });
 
-    const targetId = tabMapping[tabName];
+    const activeTab = tabs.find(tab => tab.dataset.tab === tabName);
+    const tabBar = document.getElementById('course-tabs');
+    if (activeTab && tabBar && tabBar.scrollWidth > tabBar.clientWidth) {
+        const barRect = tabBar.getBoundingClientRect();
+        const tabRect = activeTab.getBoundingClientRect();
+        if (tabRect.left < barRect.left || tabRect.right > barRect.right) {
+            tabBar.scrollLeft += (tabRect.left - barRect.left) - (barRect.width - tabRect.width) / 2;
+        }
+    }
+
+    document.querySelectorAll('#course-detail-view .tab-content').forEach(panel => {
+        panel.classList.remove('active');
+    });
+
+    const targetId = COURSE_TAB_PANELS[tabName];
     if (targetId) {
-        document.getElementById(targetId).classList.add('active');
+        const panel = document.getElementById(targetId);
+        if (panel) panel.classList.add('active');
+    }
+
+    // Remember the tab without adding a history entry. Back from the Reading
+    // Room can then restore the exact category the student came from.
+    // A direct `#course-<id>` visit starts with `history.state === null`, so
+    // seed the entry here too; otherwise the tab is lost on the way back.
+    const detail = document.getElementById('course-detail-view');
+    const detailVisible = !!detail && !detail.classList.contains('hidden');
+    if (currentPage === 'courses' && currentCourseId && detailVisible && !isResourceViewOpen()) {
+        const state = history.state;
+        const sameCourse = state && state.page === 'course' && state.courseId === currentCourseId;
+        if (!state || sameCourse) {
+            try {
+                history.replaceState(
+                    {
+                        page: 'course',
+                        courseId: currentCourseId,
+                        courseMode: currentCourseMode,
+                        courseTab: tabName,
+                    },
+                    '',
+                    window.location.hash
+                );
+            } catch (error) {
+                /* Ignore state failures; the tab still works in-session. */
+            }
+        }
+    }
+
+    // Load only the category the student selected. No background prefetching.
+    if (options.load !== false && currentPage === 'courses' && currentCourseId && !isResourceViewOpen()) {
+        void loadCourseTab(tabName);
     }
 }
 
-document.querySelectorAll('#course-tabs .tab').forEach(tab => {
-    tab.addEventListener('click', () => switchTab(tab.dataset.tab));
-});
+function loadCourseTab(tabName) {
+    if (!currentCourseId || isResourceViewOpen()) return Promise.resolve();
+    if (tabName === 'course-calendar') return renderCourseEvents();
+    const category = getCategoryForTab(tabName, currentCourseMode);
+    if (!category) return Promise.resolve();
+    return renderFileList(category);
+}
+
+function initCourseTabs() {
+    const tablist = document.getElementById('course-tabs');
+    if (!tablist) return;
+
+    tablist.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+    });
+
+    tablist.addEventListener('keydown', event => {
+        const tabs = Array.from(tablist.querySelectorAll('.tab'));
+        const index = tabs.indexOf(document.activeElement);
+        if (index < 0) return;
+
+        let next = null;
+        if (event.key === 'ArrowRight') next = (index + 1) % tabs.length;
+        else if (event.key === 'ArrowLeft') next = (index - 1 + tabs.length) % tabs.length;
+        else if (event.key === 'Home') next = 0;
+        else if (event.key === 'End') next = tabs.length - 1;
+        if (next === null) return;
+
+        event.preventDefault();
+        switchTab(tabs[next].dataset.tab, true);
+    });
+}
 
 // ===== RENDER FILE LISTS FROM FIRESTORE =====
-async function renderFileList(category) {
+async function renderFileList(category, options = {}) {
     const listIdMap = {
         lectures: 'lectures-list',
         papers: 'papers-list',
@@ -836,14 +1572,46 @@ async function renderFileList(category) {
     const listEl = document.getElementById(listIdMap[category]);
     if (!listEl) return;
 
+    const tabIndexMap = {
+        lectures: 1, lab: 1,
+        papers: 2, lab_papers: 2,
+        related: 3, lab_tasks: 3,
+    };
     const courseId = currentCourseId;
+    const mode = currentCourseMode;
 
     // Show loading
     listEl.setAttribute('aria-busy', 'true');
     listEl.innerHTML = skeletonMarkup(3, 'row');
 
-    const files = await getFilesFromDB(courseId, category);
+    const result = await getFilesFromDB(courseId, category, options);
+    if (currentCourseId !== courseId || currentCourseMode !== mode) return;
     listEl.removeAttribute('aria-busy');
+
+    if (!result.ok) {
+        // A failed read is never presented as "no resources yet".
+        clearTabCount(tabIndexMap[category]);
+        listEl.innerHTML = `
+            <div class="empty-state resource-error-state" role="alert">
+                <i class="fas fa-cloud-exclamation"></i>
+                <h3>Resources could not be loaded</h3>
+                <p>We couldn't reach this section. Check your connection and try again.</p>
+                <button type="button" class="btn btn-ghost btn-sm" data-retry-category="${escapeAttr(category)}">
+                    <i class="fas fa-redo" aria-hidden="true"></i> Retry
+                </button>
+            </div>
+        `;
+        const retry = listEl.querySelector('[data-retry-category]');
+        if (retry) {
+            retry.addEventListener('click', () => {
+                renderFileList(category, { force: true });
+            });
+        }
+        return;
+    }
+
+    const files = result.files;
+    setTabCount(tabIndexMap[category], files.length);
 
     if (files.length === 0) {
         const msg = emptyMessages[category] || { icon: 'fas fa-folder-open', title: 'No Files Yet', desc: 'Uploaded resources will appear here.' };
@@ -863,49 +1631,257 @@ async function renderFileList(category) {
     });
 }
 
+function safeHttpUrl(value) {
+    if (!value) return '';
+    try {
+        const url = new URL(value, window.location.href);
+        return (url.protocol === 'http:' || url.protocol === 'https:') ? url.href : '';
+    } catch (error) {
+        return '';
+    }
+}
+
+// Phase 4B: recognize the link shapes we can honestly preview. Anything else
+// stays an external link; we never fabricate an embed for an unknown host.
+function parseResourceUrl(value) {
+    const safe = safeHttpUrl(value);
+    const invalid = {
+        kind: 'invalid', url: '', host: '', source: 'Unknown source',
+        embedUrl: '', externalLabel: 'Open link', id: '',
+    };
+    if (!safe) return invalid;
+
+    let parsed;
+    try {
+        parsed = new URL(safe);
+    } catch (error) {
+        return invalid;
+    }
+
+    const host = parsed.hostname.replace(/^www\./i, '').toLowerCase();
+    const path = parsed.pathname;
+    const search = parsed.searchParams;
+    const base = {
+        kind: 'external',
+        url: safe,
+        host,
+        source: host || 'External link',
+        embedUrl: '',
+        externalLabel: 'Open external link',
+        id: '',
+    };
+
+    if (host === 'drive.google.com') {
+        let id = '';
+        const fileMatch = path.match(/\/file\/d\/([^/]+)/);
+        if (fileMatch) id = fileMatch[1];
+        if (!id && /^\/(open|uc)\/?$/.test(path) && search.get('id')) id = search.get('id');
+        if (id) {
+            return {
+                ...base,
+                kind: 'drive',
+                id,
+                source: 'Google Drive',
+                embedUrl: `https://drive.google.com/file/d/${encodeURIComponent(id)}/preview`,
+                externalLabel: 'Open in Google Drive',
+            };
+        }
+        if (/\/folders\//.test(path)) {
+            return {
+                ...base,
+                kind: 'folder',
+                source: 'Google Drive',
+                externalLabel: 'Open folder in Google Drive',
+            };
+        }
+    }
+
+    if (host === 'docs.google.com') {
+        let match = path.match(/\/(document|presentation|spreadsheets)\/d\/e\/([^/]+)/);
+        if (match) {
+            const docType = match[1];
+            const id = match[2];
+            const source = docType === 'presentation' ? 'Google Slides'
+                : docType === 'spreadsheets' ? 'Google Sheets' : 'Google Docs';
+            return {
+                ...base,
+                kind: 'docs',
+                docType,
+                published: true,
+                id,
+                source,
+                embedUrl: `https://docs.google.com/${docType}/d/e/${encodeURIComponent(id)}/pub?embedded=true`,
+                externalLabel: `Open in ${source}`,
+            };
+        }
+        match = path.match(/\/(document|presentation|spreadsheets)\/d\/([^/]+)/);
+        if (match) {
+            const docType = match[1];
+            const id = match[2];
+            const source = docType === 'presentation' ? 'Google Slides'
+                : docType === 'spreadsheets' ? 'Google Sheets' : 'Google Docs';
+            return {
+                ...base,
+                kind: 'docs',
+                docType,
+                published: false,
+                id,
+                source,
+                embedUrl: `https://docs.google.com/${docType}/d/${encodeURIComponent(id)}/preview`,
+                externalLabel: `Open in ${source}`,
+            };
+        }
+    }
+
+    return base;
+}
+
+// A download action is only shown when the URL represents an actual file
+// download rather than another editor/view page.
+function isDirectDownloadUrl(value) {
+    const info = parseResourceUrl(value);
+    if (info.kind === 'invalid' || info.kind === 'folder') return false;
+
+    let parsed;
+    try {
+        parsed = new URL(info.url);
+    } catch (error) {
+        return false;
+    }
+    const search = parsed.searchParams;
+
+    if (info.kind === 'drive') {
+        return /\/uc\/?$/.test(parsed.pathname) || search.get('export') === 'download';
+    }
+    if (info.kind === 'docs') {
+        return /\/export\/?$/.test(parsed.pathname) || search.get('export') === 'download';
+    }
+    if (/\.(pdf|pptx?|docx?|xlsx?|zip|rar|7z|csv|txt)$/i.test(parsed.pathname)) return true;
+    return search.get('download') === '1' || search.get('dl') === '1';
+}
+
+// Infer a format only from an unambiguous signal. Generic Drive file URLs are
+// deliberately left alone: Drive does not expose the MIME type in the URL.
+function inferResourceType(value) {
+    const info = parseResourceUrl(value);
+    if (info.kind === 'invalid') return '';
+    if (info.kind === 'folder') return 'link';
+    if (info.kind === 'docs') {
+        if (info.docType === 'presentation') return 'ppt';
+        if (info.docType === 'spreadsheets') return 'sheet';
+        return 'doc';
+    }
+
+    let path = '';
+    try {
+        path = new URL(info.url).pathname.toLowerCase();
+    } catch (error) {
+        return '';
+    }
+
+    if (/\.pdf$/.test(path)) return 'pdf';
+    if (/\.(ppt|pptx)$/.test(path)) return 'ppt';
+    if (/\.(doc|docx)$/.test(path)) return 'doc';
+    if (/\.(xls|xlsx|csv)$/.test(path)) return 'sheet';
+    if (/\.(zip|rar|7z|tar|gz)$/.test(path)) return 'zip';
+    if (/\.(py|js|java|cpp|c|cs|html|css|json|ts|jsx|tsx)$/.test(path)) return 'code';
+    return '';
+}
+
+function normalizeResourceKey(value) {
+    const info = parseResourceUrl(value);
+    if (info.kind === 'invalid') return '';
+    if (info.kind === 'drive' && info.id) return `drive:${info.id}`;
+    if (info.kind === 'docs' && info.id) return `docs:${info.docType}:${info.id}`;
+    if (info.kind === 'folder') {
+        const match = info.url.match(/\/folders\/([^/?#]+)/);
+        if (match) return `drive-folder:${match[1]}`;
+    }
+    return info.url.replace(/\/+$/, '').toLowerCase();
+}
+
 function createFileItem(file, category) {
     const iconInfo = getResourceIconInfo(file.type || file.name);
     const item = document.createElement('div');
     item.className = 'file-item';
-    
-    // Fallbacks for URLs
-    const previewUrl = file.previewURL || file.url;
-    const downloadUrl = file.downloadURL || file.url;
+    item.dataset.resourceId = file.id || '';
+    item.dataset.category = category;
+
+    // Only http(s) links are rendered. Open and Download are independent, and
+    // Download is omitted when it would duplicate Open or merely reopen an
+    // editor page (e.g. Google Docs).
+    const previewUrl = safeHttpUrl(file.previewURL || file.url);
+    const downloadCandidate = safeHttpUrl(file.downloadURL);
+    const downloadUrl = downloadCandidate && downloadCandidate !== previewUrl
+        && isDirectDownloadUrl(downloadCandidate) ? downloadCandidate : '';
+    const fileName = escapeHtml(file.name || 'Untitled resource');
+    const fileNameAttr = escapeAttr(file.name || 'Untitled resource');
+    const routeHash = currentCourseId && file.id
+        ? buildResourceHash(currentCourseId, category, file.id)
+        : '';
 
     item.innerHTML = `
-        <div class="file-icon ${iconInfo.type}">
-            <i class="${iconInfo.icon}"></i>
-        </div>
-        <div class="file-info">
-            <div class="file-name">${escapeHtml(file.name)}</div>
-            <div class="file-meta">
-                ${file.description ? escapeHtml(file.description) + ' · ' : ''}
-                <span class="file-type-pill" style="font-size:0.75rem; text-transform:uppercase; font-weight:600; color:var(--blue-500);">${iconInfo.label}</span>
-                ${file.date ? ' · ' + file.date : ''}
+        <a class="file-main" href="${escapeAttr(routeHash || '#courses')}" aria-label="Read ${fileNameAttr} in the Reading Room">
+            <div class="file-icon ${iconInfo.type}" aria-hidden="true">
+                <i class="${iconInfo.icon}"></i>
             </div>
-        </div>
+            <div class="file-info">
+                <div class="file-name" title="${fileNameAttr}">${fileName}</div>
+                ${file.description ? `<div class="file-desc">${escapeHtml(file.description)}</div>` : ''}
+                <div class="file-meta">
+                    <span class="file-type-pill">${iconInfo.label}</span>
+                    ${file.date ? `<span class="file-meta-sep" aria-hidden="true">·</span><span>${escapeHtml(file.date)}</span>` : ''}
+                </div>
+            </div>
+        </a>
         <div class="file-actions">
             ${previewUrl ? `
-                <a href="${previewUrl}" target="_blank" rel="noopener noreferrer" class="file-action-btn" title="View / Open Online">
-                    <i class="fas fa-external-link-alt"></i>
+                <a href="${escapeAttr(previewUrl)}" target="_blank" rel="noopener noreferrer" class="file-action-btn" data-action="open" title="Open online" aria-label="Open ${fileNameAttr} online">
+                    <i class="fas fa-external-link-alt" aria-hidden="true"></i><span class="file-action-label">Open</span>
                 </a>
             ` : ''}
             ${downloadUrl ? `
-                <a href="${downloadUrl}" target="_blank" rel="noopener noreferrer" class="file-action-btn" title="Download Document">
-                    <i class="fas fa-download"></i>
+                <a href="${escapeAttr(downloadUrl)}" target="_blank" rel="noopener noreferrer" class="file-action-btn" data-action="download" title="Download" aria-label="Download ${fileNameAttr}">
+                    <i class="fas fa-download" aria-hidden="true"></i><span class="file-action-label">Download</span>
                 </a>
             ` : ''}
-            <button class="file-action-btn delete" title="Delete (Admin)" data-id="${file.id}" data-category="${category}">
-                <i class="fas fa-trash-alt"></i>
+            ${!previewUrl && !downloadUrl ? `
+                <span class="file-link-missing"><i class="fas fa-link-slash" aria-hidden="true"></i> Link unavailable</span>
+            ` : ''}
+            <button class="file-action-btn delete" title="Delete (Admin)" aria-label="Delete ${fileNameAttr}" data-id="${escapeAttr(file.id)}" data-category="${escapeAttr(category)}">
+                <i class="fas fa-trash-alt" aria-hidden="true"></i>
             </button>
         </div>
     `;
 
-    // Delete (admin only — CSS hides it for non-admin)
-    item.querySelector('.delete').addEventListener('click', (e) => {
-        e.stopPropagation();
-        deleteFileFromDB(file, category);
+    // Row click opens the Reading Room; explicit actions stay independent.
+    const main = item.querySelector('.file-main');
+    if (main && routeHash) {
+        main.addEventListener('click', (event) => {
+            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            event.preventDefault();
+            openResourceView(currentCourseId, category, file.id, { push: true, trigger: main });
+        });
+        main.addEventListener('keydown', (event) => {
+            if (event.key === ' ' || event.key === 'Spacebar') {
+                event.preventDefault();
+                openResourceView(currentCourseId, category, file.id, { push: true, trigger: main });
+            }
+        });
+    }
+    item.addEventListener('click', (event) => {
+        if (event.target.closest('a, button')) return;
+        if (routeHash) openResourceView(currentCourseId, category, file.id, { push: true, trigger: main || item });
     });
+
+    // Delete (admin only — CSS hides it for non-admin)
+    const deleteBtn = item.querySelector('.delete');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteFileFromDB(file, category);
+        });
+    }
 
     return item;
 }
@@ -921,6 +1897,704 @@ function getResourceIconInfo(typeOrName) {
     return { type: 'default', icon: 'fas fa-link', label: 'Resource' };
 }
 
+// ===== PHASE 4B — THE READING ROOM =====
+function isResourceViewOpen() {
+    const detail = document.getElementById('course-detail-view');
+    return !!detail && detail.classList.contains('reader-open');
+}
+
+function clearPreviewTimer() {
+    if (resourcePreviewTimer) {
+        clearTimeout(resourcePreviewTimer);
+        resourcePreviewTimer = null;
+    }
+}
+
+function closeReaderChrome() {
+    clearPreviewTimer();
+    const detail = document.getElementById('course-detail-view');
+    if (detail) detail.classList.remove('reader-open');
+    const reader = document.getElementById('course-reader-view');
+    if (reader) {
+        reader.classList.add('hidden');
+        reader.innerHTML = '';
+        reader.removeAttribute('aria-busy');
+    }
+    if (readerBaseTitle) {
+        document.title = readerBaseTitle;
+        readerBaseTitle = null;
+    }
+    currentResourceKey = null;
+}
+
+function prepareReaderShell() {
+    if (currentPage !== 'courses') navigateTo('courses', false);
+    document.getElementById('courses-list-view').classList.add('hidden');
+    const detail = document.getElementById('course-detail-view');
+    detail.classList.remove('hidden');
+    detail.classList.add('reader-open');
+    const reader = document.getElementById('course-reader-view');
+    reader.classList.remove('hidden');
+    reader.setAttribute('aria-busy', 'true');
+    window.scrollTo({ top: 0, behavior: 'auto' });
+}
+
+function readerSkeletonMarkup() {
+    return `
+        <div class="reading-room reading-room--loading" aria-label="Loading resource">
+            <div class="rr-skeleton rr-skeleton--crumb"></div>
+            <div class="rr-skeleton rr-skeleton--eyebrow"></div>
+            <div class="rr-skeleton rr-skeleton--title"></div>
+            <div class="rr-skeleton rr-skeleton--title rr-skeleton--title-short"></div>
+            <div class="rr-skeleton rr-skeleton--line"></div>
+            <div class="rr-skeleton rr-skeleton--preview"></div>
+        </div>
+    `;
+}
+
+function renderReaderSkeleton() {
+    const reader = document.getElementById('course-reader-view');
+    if (!reader) return;
+    reader.setAttribute('aria-busy', 'true');
+    reader.innerHTML = readerSkeletonMarkup();
+}
+
+// ===== READING ROOM FOCUS MANAGEMENT =====
+function setReaderReturnFocus(options = {}) {
+    const trigger = options.trigger;
+    if (trigger && document.contains(trigger)) {
+        readerReturnFocus = trigger;
+        return;
+    }
+    const active = document.activeElement;
+    if (!readerReturnFocus && active && active !== document.body
+        && typeof active.closest === 'function'
+        && !active.closest('#course-reader-view')) {
+        readerReturnFocus = active;
+    }
+}
+
+function focusReaderHeading() {
+    const reader = document.getElementById('course-reader-view');
+    if (!reader || reader.classList.contains('hidden')) return;
+    const heading = reader.querySelector('#rr-title')
+        || reader.querySelector('.rr-state h1')
+        || reader.querySelector('h1');
+    const target = heading || reader;
+    if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+    target.focus({ preventScroll: true });
+}
+
+function isFocusableNow(el) {
+    return !!(el && document.contains(el) && !el.closest('.hidden'));
+}
+
+function restoreReaderFocus() {
+    const direct = readerReturnFocus;
+    const info = readerReturnFocusInfo;
+    readerReturnFocus = null;
+    readerReturnFocusInfo = null;
+
+    if (isFocusableNow(direct)) {
+        direct.focus({ preventScroll: true });
+        return;
+    }
+    if (!info) return;
+
+    const escapeId = value => (window.CSS && typeof CSS.escape === 'function'
+        ? CSS.escape(String(value))
+        : String(value).replace(/["\\]/g, '\\$&'));
+    const deadline = Date.now() + 1500;
+    const findAndFocus = () => {
+        const selector = `.file-item[data-resource-id="${escapeId(info.docId)}"][data-category="${escapeId(info.category)}"] .file-main`;
+        const target = document.querySelector(selector);
+        if (isFocusableNow(target)) {
+            target.focus({ preventScroll: true });
+            return;
+        }
+        if (Date.now() < deadline) {
+            requestAnimationFrame(findAndFocus);
+            return;
+        }
+        const tab = document.querySelector('#course-tabs .tab[aria-selected="true"]');
+        if (isFocusableNow(tab)) tab.focus({ preventScroll: true });
+    };
+    requestAnimationFrame(findAndFocus);
+}
+
+async function openResourceView(courseId, category, docId, options = {}) {
+    // The Bleach gate guards every calculus URL, including direct resource deep
+    // links. Prompt before the reader shell or skeleton is rendered so no
+    // protected content can appear until access is granted.
+    if (courseId === 'calculus' && !sessionStorage.getItem('bleachGateUnlocked')) {
+        navigateTo('courses', false);
+        promptBleachGate(() => {
+            openResourceView(courseId, category, docId, options);
+        });
+        return;
+    }
+
+    const course = COURSES.find(c => c.id === courseId) || null;
+    const meta = getCategoryMeta(category);
+
+    if (!course || !meta || !docId) {
+        resetResourceNavigation();
+        showResourceNotFound({
+            reason: !course ? 'course' : 'category',
+            course,
+            category,
+        });
+        return;
+    }
+
+    const wasOpen = isResourceViewOpen();
+    if (!options.fromHash && !wasOpen) {
+        resourceReturnScroll = window.scrollY;
+    }
+
+    const key = `${course.id}:${category}:${docId}`;
+    currentCourseId = course.id;
+    currentCourseMode = meta.mode;
+    currentTab = meta.tab;
+
+    prepareReaderShell();
+    // prepareReaderShell may navigate to the Courses page, which clears the
+    // reader key. Claim it only after the shell is ready.
+    currentResourceKey = key;
+    if (!wasOpen) {
+        // Capture the trigger after any page-level reset so closing the reader
+        // can return focus to the row that opened it.
+        setReaderReturnFocus(options);
+        readerReturnFocusInfo = { courseId: course.id, category, docId };
+        pendingReaderFocusRestore = false;
+    }
+    renderReaderSkeleton();
+
+    if (options.push && !options.fromHash) {
+        const hash = buildResourceHash(course.id, category, docId);
+        const nextDepth = resourceNavDepth + 1;
+        try {
+            history.pushState({
+                page: 'resource',
+                courseId: course.id,
+                category,
+                docId,
+                courseMode: meta.mode,
+                courseTab: meta.tab,
+                resourceDepth: nextDepth,
+            }, '', hash);
+            resourceNavDepth = nextDepth;
+            resourcePushed = true;
+        } catch (error) {
+            window.location.hash = hash;
+        }
+    } else if (options.fromHash) {
+        const state = history.state;
+        resourcePushed = !!(state && state.page === 'resource');
+        resourceNavDepth = resourcePushed ? (state.resourceDepth || 0) : 0;
+    }
+
+    const result = await getFilesFromDB(course.id, category, { force: !!options.force });
+    if (currentResourceKey !== key) return;
+
+    if (!result.ok) {
+        renderResourceError(course, category, docId);
+        return;
+    }
+
+    const files = result.files;
+    const index = files.findIndex(file => file.id === docId);
+    if (index < 0) {
+        showResourceNotFound({ reason: 'missing', course, category });
+        return;
+    }
+
+    renderResourceView(course, category, files[index], files, index);
+    focusReaderHeading();
+}
+
+function previewFacadeMarkup(info, file, iconInfo) {
+    return `
+        <div class="rr-facade" id="rr-facade">
+            <div class="rr-facade-icon ${iconInfo.type}" aria-hidden="true">
+                <i class="${iconInfo.icon}"></i>
+            </div>
+            <p class="rr-kicker">In-site preview</p>
+            <h2>Read it here</h2>
+            <p class="rr-facade-copy">
+                This document loads from ${escapeHtml(info.source)} only when you ask.
+                It may ask you to sign in with a Google account that has access.
+            </p>
+            <button type="button" class="btn btn-primary rr-load-btn" data-rr-load-preview aria-controls="rr-preview-region">
+                <i class="fas fa-book-open" aria-hidden="true"></i> Load preview
+            </button>
+            <p class="rr-facade-note">
+                Nothing loads automatically.
+                <a href="${escapeAttr(info.url)}" target="_blank" rel="noopener noreferrer">Open externally</a> instead.
+            </p>
+        </div>
+    `;
+}
+
+function renderResourceView(course, category, file, files, index) {
+    const reader = document.getElementById('course-reader-view');
+    if (!reader) return;
+
+    const meta = getCategoryMeta(category);
+    const iconInfo = getResourceIconInfo(file.type || file.name);
+    const viewInfo = parseResourceUrl(file.previewURL || file.url);
+    const externalInfo = parseResourceUrl(file.url || file.previewURL || file.downloadURL);
+    const downloadUrl = safeHttpUrl(file.downloadURL);
+    const showDownload = !!(downloadUrl
+        && downloadUrl !== viewInfo.url
+        && isDirectDownloadUrl(downloadUrl));
+    const canPreview = !!viewInfo.embedUrl;
+    const externalUrl = externalInfo.kind !== 'invalid'
+        ? externalInfo.url
+        : (viewInfo.kind !== 'invalid' ? viewInfo.url : '');
+    const externalLabel = externalInfo.externalLabel || viewInfo.externalLabel || 'Open external link';
+    const source = viewInfo.kind !== 'invalid' ? viewInfo.source : externalInfo.source;
+    const title = file.name || 'Untitled resource';
+    const titleAttr = escapeAttr(title);
+    const categoryLabel = meta ? meta.label : 'Resource';
+    const courseName = course.name;
+    const date = file.date || 'Date not recorded';
+    const description = file.description || '';
+
+    let reason = 'This link opens outside Sledge Classroom.';
+    if (viewInfo.kind === 'folder') {
+        reason = 'Google Drive folders cannot be embedded inside Sledge Classroom.';
+    } else if (viewInfo.kind === 'external') {
+        reason = 'This file is hosted outside Google Drive, so Sledge cannot embed it.';
+    } else if (viewInfo.kind === 'invalid') {
+        reason = 'This resource does not have a valid preview link.';
+    }
+
+    const prevFile = index > 0 ? files[index - 1] : null;
+    const nextFile = index < files.length - 1 ? files[index + 1] : null;
+    const related = files
+        .map((entry, entryIndex) => ({ entry, entryIndex }))
+        .filter(item => item.entryIndex !== index)
+        .slice(0, 4);
+
+    let actions = '';
+    if (canPreview) {
+        actions += `
+            <button type="button" class="btn btn-primary rr-action-primary" id="rr-load-preview" data-rr-load-preview aria-controls="rr-preview-region">
+                <i class="fas fa-book-open" aria-hidden="true"></i> View online
+            </button>
+        `;
+    } else if (externalUrl) {
+        actions += `
+            <a class="btn btn-primary rr-action-primary" href="${escapeAttr(externalUrl)}" target="_blank" rel="noopener noreferrer">
+                <i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i> ${escapeHtml(externalLabel)}
+            </a>
+        `;
+    }
+    if (canPreview && externalUrl) {
+        actions += `
+            <a class="btn btn-ghost" href="${escapeAttr(externalUrl)}" target="_blank" rel="noopener noreferrer">
+                <i class="fas fa-external-link-alt" aria-hidden="true"></i> ${escapeHtml(externalLabel)}
+            </a>
+        `;
+    }
+    if (showDownload) {
+        actions += `
+            <a class="btn btn-ghost" href="${escapeAttr(downloadUrl)}" target="_blank" rel="noopener noreferrer" data-action="download">
+                <i class="fas fa-download" aria-hidden="true"></i> Download
+            </a>
+        `;
+    }
+    if (!actions) {
+        actions = `
+            <p class="rr-missing-link" role="alert">
+                <i class="fas fa-link-slash" aria-hidden="true"></i>
+                This resource has no usable link. An administrator can update it from the course category.
+            </p>
+        `;
+    }
+
+    const previewBody = canPreview
+        ? previewFacadeMarkup(viewInfo, file, iconInfo)
+        : `
+            <div class="rr-unavailable">
+                <i class="fas fa-external-link-alt" aria-hidden="true"></i>
+                <h2>In-site preview isn't available</h2>
+                <p>${escapeHtml(reason)}</p>
+                ${externalUrl ? `<a class="btn btn-ghost btn-sm" href="${escapeAttr(externalUrl)}" target="_blank" rel="noopener noreferrer">
+                    <i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i> ${escapeHtml(externalLabel)}
+                </a>` : ''}
+            </div>
+        `;
+
+    const prevMarkup = prevFile ? `
+        <a class="rr-nav-link rr-nav-prev" href="${escapeAttr(buildResourceHash(course.id, category, prevFile.id))}" data-rr-open-resource="${escapeAttr(prevFile.id)}">
+            <span class="rr-nav-direction"><i class="fas fa-arrow-left" aria-hidden="true"></i> Previous</span>
+            <span class="rr-nav-name">${escapeHtml(prevFile.name || 'Untitled resource')}</span>
+        </a>
+    ` : '<span></span>';
+    const nextMarkup = nextFile ? `
+        <a class="rr-nav-link rr-nav-next" href="${escapeAttr(buildResourceHash(course.id, category, nextFile.id))}" data-rr-open-resource="${escapeAttr(nextFile.id)}">
+            <span class="rr-nav-direction">Next <i class="fas fa-arrow-right" aria-hidden="true"></i></span>
+            <span class="rr-nav-name">${escapeHtml(nextFile.name || 'Untitled resource')}</span>
+        </a>
+    ` : '<span></span>';
+
+    const relatedMarkup = related.length ? `
+        <section class="rr-related" aria-labelledby="rr-related-title">
+            <div class="rr-related-head">
+                <h2 id="rr-related-title">More in ${escapeHtml(categoryLabel)}</h2>
+                <button type="button" class="rr-text-link" data-rr-back-category>
+                    View all <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="rr-related-list">
+                ${related.map(({ entry }) => {
+                    const info = getResourceIconInfo(entry.type || entry.name);
+                    return `
+                        <a class="rr-related-item" href="${escapeAttr(buildResourceHash(course.id, category, entry.id))}" data-rr-open-resource="${escapeAttr(entry.id)}">
+                            <span class="rr-related-icon ${info.type}" aria-hidden="true"><i class="${info.icon}"></i></span>
+                            <span class="rr-related-copy">
+                                <span class="rr-related-name">${escapeHtml(entry.name || 'Untitled resource')}</span>
+                                <span class="rr-related-meta">${info.label}${entry.date ? ` · ${escapeHtml(entry.date)}` : ''}</span>
+                            </span>
+                        </a>
+                    `;
+                }).join('')}
+            </div>
+        </section>
+    ` : '';
+
+    if (!readerBaseTitle) readerBaseTitle = document.title;
+    document.title = `${title} — ${courseName} | Sledge Classroom`;
+
+    reader.innerHTML = `
+        <article class="reading-room" aria-labelledby="rr-title">
+            <div class="rr-topline">
+                <button type="button" class="rr-back-btn" id="rr-back-to-category">
+                    <i class="fas fa-arrow-left" aria-hidden="true"></i> Back to ${escapeHtml(categoryLabel)}
+                </button>
+                <nav class="rr-breadcrumb" aria-label="Breadcrumb">
+                    <a href="#courses" data-rr-nav="courses">Courses</a>
+                    <span aria-hidden="true">/</span>
+                    <a href="${escapeAttr(`#course-${course.id}`)}" data-rr-nav="course">${escapeHtml(courseName)}</a>
+                    <span aria-hidden="true">/</span>
+                    <a href="${escapeAttr(`#course-${course.id}`)}" data-rr-nav="category">${escapeHtml(categoryLabel)}</a>
+                    <span aria-hidden="true">/</span>
+                    <span aria-current="page">${escapeHtml(title)}</span>
+                </nav>
+            </div>
+
+            <header class="rr-header">
+                <p class="rr-eyebrow">
+                    <span>${escapeHtml(course.code)}</span>
+                    <span aria-hidden="true">·</span>
+                    <span>${escapeHtml(categoryLabel)}</span>
+                    <span aria-hidden="true">·</span>
+                    <span>${escapeHtml(iconInfo.label)}</span>
+                </p>
+                <h1 class="rr-title" id="rr-title">${escapeHtml(title)}</h1>
+                ${description
+                    ? `<p class="rr-desc">${escapeHtml(description)}</p>`
+                    : '<p class="rr-desc rr-desc--empty">No description has been added for this resource.</p>'}
+                <dl class="rr-meta">
+                    <div><dt>Uploaded</dt><dd>${escapeHtml(date)}</dd></div>
+                    <div><dt>Source</dt><dd>${escapeHtml(source)}</dd></div>
+                    <div><dt>Format</dt><dd>${escapeHtml(iconInfo.label)}</dd></div>
+                    <div><dt>Course</dt><dd>${escapeHtml(course.code)}</dd></div>
+                </dl>
+            </header>
+
+            <div class="rr-actions">${actions}</div>
+
+            <section class="rr-preview" id="rr-preview-region" aria-label="Document preview">
+                <div class="rr-preview-head">
+                    <span class="rr-kicker">${canPreview ? 'In-site preview' : 'Preview unavailable'}</span>
+                    <span class="rr-preview-source">${escapeHtml(source)}</span>
+                </div>
+                <div class="rr-stage" id="rr-preview-stage">
+                    ${previewBody}
+                </div>
+            </section>
+
+            <footer class="rr-footer">
+                <div class="rr-footer-back">
+                    <button type="button" class="rr-text-link" data-rr-back-category>
+                        <i class="fas fa-arrow-left" aria-hidden="true"></i> Back to ${escapeHtml(categoryLabel)}
+                    </button>
+                </div>
+                ${prevMarkup}
+                ${nextMarkup}
+            </footer>
+
+            ${relatedMarkup}
+        </article>
+    `;
+
+    reader.removeAttribute('aria-busy');
+
+    // Preview loads only on explicit request.
+    reader.querySelectorAll('[data-rr-load-preview]').forEach(button => {
+        button.addEventListener('click', () => loadResourcePreview(viewInfo, file));
+    });
+
+    reader.querySelectorAll('[data-rr-back-category]').forEach(button => {
+        button.addEventListener('click', closeReaderView);
+    });
+    const backBtn = document.getElementById('rr-back-to-category');
+    if (backBtn) backBtn.addEventListener('click', closeReaderView);
+
+    reader.querySelectorAll('[data-rr-nav]').forEach(link => {
+        link.addEventListener('click', event => {
+            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            event.preventDefault();
+            if (link.dataset.rrNav === 'courses') {
+                navigateTo('courses');
+            } else {
+                closeReaderView();
+            }
+        });
+    });
+
+    reader.querySelectorAll('[data-rr-open-resource]').forEach(link => {
+        link.addEventListener('click', event => {
+            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            event.preventDefault();
+            openResourceView(course.id, category, link.dataset.rrOpenResource, { push: true, trigger: link });
+        });
+    });
+}
+
+function loadResourcePreview(info, file) {
+    if (!info || !info.embedUrl) return;
+    const stage = document.getElementById('rr-preview-stage');
+    const region = document.getElementById('rr-preview-region');
+    if (!stage || !region) return;
+
+    clearPreviewTimer();
+    region.setAttribute('aria-busy', 'true');
+    stage.innerHTML = `
+        <div class="rr-preview-loading" id="rr-preview-loading" role="status">
+            <span class="spinner" aria-hidden="true"></span>
+            <p>Loading preview…</p>
+            <p class="rr-preview-note">If Google asks you to sign in, your account needs access to this file.</p>
+        </div>
+    `;
+
+    const iframe = document.createElement('iframe');
+    iframe.className = 'rr-iframe';
+    iframe.src = info.embedUrl;
+    iframe.title = `Preview of ${file.name || 'resource'}`;
+    iframe.loading = 'lazy';
+    iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+    iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups');
+    iframe.setAttribute('allow', 'fullscreen');
+    iframe.setAttribute('allowfullscreen', '');
+
+    let settled = false;
+    const fail = (message) => {
+        if (settled) return;
+        settled = true;
+        clearPreviewTimer();
+        region.removeAttribute('aria-busy');
+        stage.innerHTML = `
+            <div class="rr-preview-fallback" role="alert">
+                <i class="fas fa-triangle-exclamation" aria-hidden="true"></i>
+                <h2>Preview didn't load</h2>
+                <p>${escapeHtml(message)} Google may restrict embedding for this file, or the viewer may need a signed-in account.</p>
+                <div class="rr-fallback-actions">
+                    <a class="btn btn-primary btn-sm" href="${escapeAttr(info.url)}" target="_blank" rel="noopener noreferrer">
+                        <i class="fas fa-external-link-alt" aria-hidden="true"></i> Open externally
+                    </a>
+                    <button type="button" class="btn btn-ghost btn-sm" id="rr-preview-retry">
+                        <i class="fas fa-redo" aria-hidden="true"></i> Try again
+                    </button>
+                </div>
+            </div>
+        `;
+        const retry = document.getElementById('rr-preview-retry');
+        if (retry) retry.addEventListener('click', () => loadResourcePreview(info, file));
+    };
+
+    iframe.addEventListener('load', () => {
+        if (settled) return;
+        settled = true;
+        clearPreviewTimer();
+        region.removeAttribute('aria-busy');
+        stage.classList.add('is-loaded');
+        const loading = document.getElementById('rr-preview-loading');
+        if (loading) loading.remove();
+    });
+    iframe.addEventListener('error', () => fail('The preview could not be loaded.'));
+
+    resourcePreviewTimer = setTimeout(() => {
+        fail('The preview took too long to respond.');
+    }, 15000);
+
+    stage.appendChild(iframe);
+}
+
+function returnToCourseTab(tab = currentTab, options = {}) {
+    if (!currentCourseId) {
+        navigateTo('courses');
+        return;
+    }
+    const safeTab = COURSE_TAB_NAMES.includes(tab) ? tab : 'lectures';
+    const courseId = currentCourseId;
+    const mode = currentCourseMode;
+    const hash = `#course-${courseId}`;
+    const state = { page: 'course', courseId, courseMode: mode, courseTab: safeTab };
+
+    closeReaderChrome();
+    resourcePushed = false;
+    resourceNavDepth = 0;
+    document.getElementById('courses-list-view').classList.add('hidden');
+    document.getElementById('course-detail-view').classList.remove('hidden');
+
+    try {
+        if (options.replace) history.replaceState(state, '', hash);
+        else history.pushState(state, '', hash);
+    } catch (error) {
+        window.location.hash = hash;
+    }
+
+    currentTab = safeTab;
+    const header = document.getElementById('course-header');
+    const needsRender = !header
+        || header.dataset.courseId !== courseId
+        || header.dataset.mode !== mode;
+
+    if (needsRender) {
+        // Arrived from a direct resource deep link: the course detail was never
+        // rendered, so hydrate it before revealing the category.
+        applyCourseModeView();
+    } else {
+        switchTab(safeTab);
+    }
+
+    window.scrollTo({
+        top: options.restoreScroll !== false && resourceReturnScroll != null ? resourceReturnScroll : 0,
+        behavior: 'auto',
+    });
+    resourceReturnScroll = null;
+    if (pendingReaderFocusRestore) {
+        pendingReaderFocusRestore = false;
+        restoreReaderFocus();
+    }
+}
+
+function closeReaderView() {
+    clearPreviewTimer();
+    pendingReaderFocusRestore = true;
+    if (resourceNavDepth > 0) {
+        const depth = resourceNavDepth;
+        resourceNavDepth = 0;
+        resourcePushed = false;
+        history.go(-depth);
+        return;
+    }
+    returnToCourseTab(currentTab, { push: true });
+}
+
+function readerStateMarkup({ icon, title, message, action = '' }) {
+    return `
+        <div class="reading-room reading-room--state">
+            <div class="rr-topline">
+                <button type="button" class="rr-back-btn" data-rr-state-back>
+                    <i class="fas fa-arrow-left" aria-hidden="true"></i> Back to the Archive
+                </button>
+            </div>
+            <div class="rr-state">
+                <i class="${icon}" aria-hidden="true"></i>
+                <p class="rr-kicker">The Reading Room</p>
+                <h1>${escapeHtml(title)}</h1>
+                <p>${escapeHtml(message)}</p>
+                ${action}
+            </div>
+        </div>
+    `;
+}
+
+function showResourceNotFound({ reason, course, category }) {
+    currentResourceKey = null;
+    currentCourseId = course ? course.id : null;
+    prepareReaderShell();
+
+    const meta = getCategoryMeta(category);
+    const canReturn = !!(course && meta);
+    const title = reason === 'course' ? 'Course not found' : 'Resource not found';
+    const message = reason === 'course'
+        ? 'This course link is incomplete or the course no longer exists.'
+        : reason === 'category'
+            ? 'This resource category is not part of the course.'
+            : 'This resource may have been removed, or the link is incomplete.';
+
+    const reader = document.getElementById('course-reader-view');
+    reader.innerHTML = readerStateMarkup({
+        icon: 'fas fa-compass',
+        title,
+        message,
+        action: canReturn
+            ? `<button type="button" class="btn btn-primary btn-sm" data-rr-state-category>
+                   Back to ${escapeHtml(meta.label)}
+               </button>`
+            : `<a class="btn btn-primary btn-sm" href="#courses" data-rr-state-archive>
+                   Back to the Archive
+               </a>`,
+    });
+    reader.removeAttribute('aria-busy');
+    if (!readerBaseTitle) readerBaseTitle = document.title;
+    document.title = `${title} | Sledge Classroom`;
+
+    const back = reader.querySelector('[data-rr-state-back]');
+    if (back) back.addEventListener('click', () => {
+        if (canReturn) closeReaderView();
+        else navigateTo('courses');
+    });
+    const categoryBtn = reader.querySelector('[data-rr-state-category]');
+    if (categoryBtn) categoryBtn.addEventListener('click', () => closeReaderView());
+    const archive = reader.querySelector('[data-rr-state-archive]');
+    if (archive) archive.addEventListener('click', event => {
+        event.preventDefault();
+        navigateTo('courses');
+    });
+    focusReaderHeading();
+}
+
+function renderResourceError(course, category, docId) {
+    prepareReaderShell();
+    const meta = getCategoryMeta(category);
+    const reader = document.getElementById('course-reader-view');
+    reader.innerHTML = readerStateMarkup({
+        icon: 'fas fa-cloud-exclamation',
+        title: 'This resource could not be loaded',
+        message: 'We could not reach the library. Check your connection and try again.',
+        action: `
+            <div class="rr-state-actions">
+                <button type="button" class="btn btn-primary btn-sm" data-rr-state-retry>
+                    <i class="fas fa-redo" aria-hidden="true"></i> Retry
+                </button>
+                ${meta ? `<button type="button" class="btn btn-ghost btn-sm" data-rr-state-category>
+                    Back to ${escapeHtml(meta.label)}
+                </button>` : ''}
+            </div>
+        `,
+    });
+    reader.removeAttribute('aria-busy');
+    if (!readerBaseTitle) readerBaseTitle = document.title;
+    document.title = 'Resource unavailable | Sledge Classroom';
+
+    const back = reader.querySelector('[data-rr-state-back]');
+    if (back) back.addEventListener('click', () => closeReaderView());
+    const retry = reader.querySelector('[data-rr-state-retry]');
+    if (retry) retry.addEventListener('click', () => {
+        openResourceView(course.id, category, docId, { fromHash: true, force: true });
+    });
+    const categoryBtn = reader.querySelector('[data-rr-state-category]');
+    if (categoryBtn) categoryBtn.addEventListener('click', () => closeReaderView());
+    focusReaderHeading();
+}
+
 // ===== DELETE RESOURCE FROM FIREBASE FIRESTORE =====
 async function deleteFileFromDB(file, category) {
     if (!isAdmin) {
@@ -930,7 +2604,7 @@ async function deleteFileFromDB(file, category) {
 
     if (!confirm(`Delete "${file.name}"? This cannot be undone.`)) return;
 
-    const courseId = category === 'lab' ? currentLabId : currentCourseId;
+    const courseId = currentCourseId;
     showLoading('Deleting resource...');
 
     try {
@@ -939,17 +2613,40 @@ async function deleteFileFromDB(file, category) {
 
         showToast('Resource deleted successfully', 'success');
 
+        invalidateCourseCounts(courseId);
+        invalidateCourseFiles(courseId, category);
         await renderFileList(category);
+        await refreshCourseDetailStats();
         await loadAllCourseCards();
     } catch (error) {
         console.error('Delete error:', error);
-        showToast('Failed to delete resource: ' + error.message, 'error');
+        showToast('Unable to delete this resource. Please try again.', 'error');
     } finally {
         hideLoading();
     }
 }
 
 // ===== RESOURCE MODAL (Google Drive, OneDrive, Links) =====
+function showUploadFormError(message) {
+    const errorEl = document.getElementById('upload-form-error');
+    const urlInput = document.getElementById('resource-url');
+    if (errorEl) {
+        errorEl.textContent = message;
+        errorEl.classList.remove('hidden');
+    }
+    if (urlInput) urlInput.setAttribute('aria-invalid', 'true');
+}
+
+function clearUploadFormError() {
+    const errorEl = document.getElementById('upload-form-error');
+    const urlInput = document.getElementById('resource-url');
+    if (errorEl) {
+        errorEl.textContent = '';
+        errorEl.classList.add('hidden');
+    }
+    if (urlInput) urlInput.removeAttribute('aria-invalid');
+}
+
 function initUploadModal() {
     document.getElementById('upload-cancel-btn').addEventListener('click', closeUploadModal);
     document.getElementById('upload-modal-close').addEventListener('click', closeUploadModal);
@@ -963,22 +2660,13 @@ function initUploadModal() {
     const urlInput = document.getElementById('resource-url');
     if (urlInput) {
         urlInput.addEventListener('input', () => {
-            const u = urlInput.value.toLowerCase();
+            clearUploadFormError();
             const typeSelect = document.getElementById('resource-type');
             if (!typeSelect) return;
-            if (u.includes('.pdf') || (u.includes('drive.google.com') && !u.includes('/presentation') && !u.includes('/spreadsheets'))) {
-                typeSelect.value = 'pdf';
-            } else if (u.includes('.ppt') || u.includes('.pptx') || u.includes('docs.google.com/presentation')) {
-                typeSelect.value = 'ppt';
-            } else if (u.includes('.doc') || u.includes('.docx') || u.includes('docs.google.com/document')) {
-                typeSelect.value = 'doc';
-            } else if (u.includes('.xls') || u.includes('.xlsx') || u.includes('docs.google.com/spreadsheets')) {
-                typeSelect.value = 'sheet';
-            } else if (u.includes('.zip') || u.includes('.rar')) {
-                typeSelect.value = 'zip';
-            } else if (u.includes('github.com') || u.includes('.py') || u.includes('.java') || u.includes('.cpp')) {
-                typeSelect.value = 'code';
-            }
+            // Only unambiguous formats override the student/admin selection.
+            // Generic Drive file links do not reveal their MIME type.
+            const inferred = inferResourceType(urlInput.value.trim());
+            if (inferred) typeSelect.value = inferred;
         });
     }
 }
@@ -1007,7 +2695,8 @@ function openUploadModal(category, courseId) {
     document.getElementById('resource-title').value = '';
     document.getElementById('resource-url').value = '';
     document.getElementById('resource-description').value = '';
-    
+    clearUploadFormError();
+
     // Set default format based on category
     const typeSelect = document.getElementById('resource-type');
     if (typeSelect) {
@@ -1024,6 +2713,7 @@ function openUploadModal(category, courseId) {
 
 function closeUploadModal() {
     document.getElementById('upload-modal').classList.add('hidden');
+    clearUploadFormError();
     uploadContext = null;
 }
 
@@ -1031,9 +2721,11 @@ function closeUploadModal() {
 async function confirmUpload() {
     if (!uploadContext || !isAdmin) return;
 
+    clearUploadFormError();
+
     const title = document.getElementById('resource-title').value.trim();
     let url = document.getElementById('resource-url').value.trim();
-    const type = document.getElementById('resource-type').value;
+    const selectedType = document.getElementById('resource-type').value;
     const description = document.getElementById('resource-description').value.trim();
     const { category, courseId } = uploadContext;
 
@@ -1044,35 +2736,68 @@ async function confirmUpload() {
     }
 
     if (!url) {
-        showToast('Please enter the document or share link', 'error');
+        showUploadFormError('Please enter the document or share link.');
         document.getElementById('resource-url').focus();
         return;
     }
 
-    // Auto-fix missing protocol
-    if (!/^https?:\/\//i.test(url)) {
-        url = 'https://' + url;
-    }
+    // Normalize the scheme, then accept only http(s). This rejects
+    // javascript:, data:, ftp: and malformed links before any write.
+    if (/^\/\//.test(url)) url = 'https:' + url;
+    else if (!/^[a-z][a-z0-9+.-]*:/i.test(url)) url = 'https://' + url;
 
-    // Smart link conversions
+    const safeUrl = safeHttpUrl(url);
+    if (!safeUrl) {
+        showUploadFormError('That link is not a valid http:// or https:// URL.');
+        document.getElementById('resource-url').focus();
+        return;
+    }
+    url = safeUrl;
+
+    // Infer only from a clear extension or a known Google Docs/Drive path.
+    const inferredType = inferResourceType(url);
+    const type = inferredType || selectedType;
+
+    // Smart link conversions (existing records remain untouched).
     let previewURL = url;
     let downloadURL = url;
 
-    // Google Drive URL processing
-    const gdriveMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-    if (gdriveMatch) {
-        const fileId = gdriveMatch[1];
-        previewURL = `https://drive.google.com/file/d/${fileId}/view?usp=sharing`;
-        downloadURL = `https://drive.google.com/uc?export=download&id=${fileId}`;
-    } else if (url.includes('dropbox.com')) {
+    const driveFileMatch = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/i);
+    const driveIdMatch = url.match(/drive\.google\.com\/(?:open|uc)\?[^#]*\bid=([a-zA-Z0-9_-]+)/i);
+    const driveFileId = driveFileMatch ? driveFileMatch[1] : (driveIdMatch ? driveIdMatch[1] : '');
+    if (driveFileId) {
+        previewURL = `https://drive.google.com/file/d/${driveFileId}/view?usp=sharing`;
+        downloadURL = `https://drive.google.com/uc?export=download&id=${driveFileId}`;
+    } else if (url.includes('dropbox.com') && /dl=0(?:&|$)/.test(url)) {
         downloadURL = url.replace('dl=0', 'dl=1');
     }
 
     const confirmBtn = document.getElementById('upload-confirm-btn');
     confirmBtn.disabled = true;
-    confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking link...';
 
     try {
+        // Duplicate detection is scoped to this course/category. We compare
+        // normalized Drive/Docs IDs so tracking parameters do not hide a copy.
+        const existing = await getFilesFromDB(courseId, category, { force: true });
+        if (!existing.ok) {
+            showUploadFormError('We could not check this section for duplicates. Please try again.');
+            return;
+        }
+
+        const key = normalizeResourceKey(url);
+        const duplicate = key && existing.files.some(file => (
+            [file.url, file.previewURL, file.downloadURL]
+                .some(candidate => candidate && normalizeResourceKey(candidate) === key)
+        ));
+        if (duplicate) {
+            showUploadFormError('That link is already in this section. Choose a different file or section.');
+            document.getElementById('resource-url').focus();
+            return;
+        }
+
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
         await db.collection('courses').doc(courseId)
             .collection(category)
             .add({
@@ -1091,12 +2816,16 @@ async function confirmUpload() {
         showToast('Resource added successfully!', 'success');
         closeUploadModal();
 
+        invalidateCourseCounts(courseId);
+        invalidateCourseFiles(courseId, category);
         await renderFileList(category);
+        await refreshCourseDetailStats();
         await loadAllCourseCards();
 
     } catch (error) {
         console.error('Save resource error:', error);
-        showToast('Failed to save resource: ' + error.message, 'error');
+        showUploadFormError('Unable to save this resource. Please try again.');
+        showToast('Unable to save this resource. Please try again.', 'error');
     } finally {
         confirmBtn.disabled = false;
         confirmBtn.innerHTML = '<i class="fas fa-plus-circle"></i> Save Resource';
@@ -1104,19 +2833,24 @@ async function confirmUpload() {
 }
 
 // ===== LAB CARDS =====
-async function renderLabCards() {
+function renderLabCards(entries) {
     const container = document.getElementById('labs-grid');
     if (!container) return;
-    container.setAttribute('aria-busy', 'true');
-    container.innerHTML = skeletonMarkup(3);
 
-    const promises = LAB_COURSES.map(async (course) => {
-        const counts = await getFileCounts(course.id, 'lab');
-        const eventCount = await getEventCount(course.id);
-        return { course, counts, eventCount };
-    });
+    if (!Array.isArray(entries)) {
+        container.setAttribute('aria-busy', 'true');
+        container.innerHTML = skeletonMarkup(3);
+        return;
+    }
 
-    const results = await Promise.all(promises);
+    const results = entries
+        .filter(entry => entry.course.hasLab)
+        .map(entry => ({
+            course: entry.course,
+            counts: entry.lab,
+            eventCount: entry.eventCount,
+        }));
+
     container.removeAttribute('aria-busy');
     container.innerHTML = '';
 
@@ -1232,12 +2966,17 @@ async function saveEvent() {
         showToast('Event added successfully', 'success');
 
         // Refresh
+        invalidateEventCounts();
         await renderCalendar();
         await loadHomeEvents();
-        if (currentCourseId) await renderCourseEvents();
+        if (currentCourseId) {
+            await renderCourseEvents();
+            await refreshCourseDetailStats();
+        }
+        await loadAllCourseCards();
     } catch (error) {
         console.error('Error saving event:', error);
-        showToast('Failed to save event: ' + error.message, 'error');
+        showToast('Unable to save this event. Please try again.', 'error');
     }
 }
 
@@ -1251,26 +2990,47 @@ async function deleteEvent(eventId) {
     try {
         await db.collection('events').doc(eventId).delete();
         showToast('Event deleted', 'info');
+        invalidateEventCounts();
         await renderCalendar();
         await loadHomeEvents();
-        if (currentCourseId) await renderCourseEvents();
+        if (currentCourseId) {
+            await renderCourseEvents();
+            await refreshCourseDetailStats();
+        }
+        await loadAllCourseCards();
     } catch (error) {
-        showToast('Failed to delete event', 'error');
+        console.error('Delete event error:', error);
+        showToast('Unable to delete this event. Please try again.', 'error');
     }
 }
 
 // ===== RENDER COURSE EVENTS =====
 async function renderCourseEvents() {
     const list = document.getElementById('course-events-list');
+    if (!list) return;
+
+    const courseId = currentCourseId;
+    list.setAttribute('aria-busy', 'true');
     list.innerHTML = '<div class="empty-state"><div class="spinner" style="margin:0 auto;"></div><p style="margin-top:12px;">Loading events...</p></div>';
 
     try {
+        // Equality-only query: no composite index required. Sorting happens
+        // client-side so Firebase configuration stays untouched.
         const snapshot = await db.collection('events')
-            .where('courseId', '==', currentCourseId)
-            .orderBy('date', 'asc')
+            .where('courseId', '==', courseId)
             .get();
 
+        if (currentCourseId !== courseId) return;
+
         const events = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        events.sort((a, b) => {
+            const byDate = String(a.date || '').localeCompare(String(b.date || ''));
+            if (byDate !== 0) return byDate;
+            return String(a.time || '').localeCompare(String(b.time || ''));
+        });
+
+        list.removeAttribute('aria-busy');
+        setTabCount(4, events.length);
 
         if (events.length === 0) {
             list.innerHTML = `
@@ -1289,7 +3049,36 @@ async function renderCourseEvents() {
         });
     } catch (error) {
         console.error('Error loading course events:', error);
-        list.innerHTML = '<div class="empty-state"><p>Failed to load events.</p></div>';
+        if (currentCourseId !== courseId) return;
+
+        list.removeAttribute('aria-busy');
+        const countEl = document.getElementById('tab-count-4');
+        if (countEl) countEl.hidden = true;
+
+        list.innerHTML = `
+            <div class="empty-state course-events-error">
+                <i class="fas fa-cloud-exclamation"></i>
+                <h3>The schedule could not be loaded</h3>
+                <p>Check your connection and try again.</p>
+                <div class="course-events-error-actions">
+                    <button type="button" class="btn btn-ghost btn-sm" id="retry-course-events">
+                        <i class="fas fa-redo"></i> Retry
+                    </button>
+                    <button type="button" class="btn btn-primary btn-sm admin-only" id="course-events-add-btn">
+                        <i class="fas fa-plus"></i> Add event
+                    </button>
+                </div>
+            </div>
+        `;
+
+        const retry = document.getElementById('retry-course-events');
+        if (retry) retry.addEventListener('click', () => renderCourseEvents());
+
+        const addBtn = document.getElementById('course-events-add-btn');
+        if (addBtn) addBtn.addEventListener('click', () => {
+            eventModalCourseId = currentCourseId;
+            openEventModal();
+        });
     }
 }
 
@@ -1379,6 +3168,12 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+function escapeAttr(text) {
+    return escapeHtml(String(text == null ? '' : text))
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }
 
 // Lightweight loading placeholders. These are static elements (no animation
