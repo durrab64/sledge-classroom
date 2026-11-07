@@ -161,7 +161,7 @@
         href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="styles.css?v=24">
+    <link rel="stylesheet" href="styles.css?v=26">
     <link rel="stylesheet" href="now-playing-widget.css?v=4">
 </head>
 
@@ -980,12 +980,12 @@
     </div>
 
     <!-- ===== BLEACH SHINIGAMI GATE MODAL (MVC EASTER EGG) ===== -->
-    <div class="modal-overlay hidden" id="bleach-gate-modal">
+    <div class="modal-overlay hidden" id="bleach-gate-modal" role="dialog" aria-modal="true" aria-labelledby="bleach-gate-title" aria-describedby="bleach-gate-desc" tabindex="-1">
         <div class="modal bleach-modal">
             <div class="bleach-modal-banner">
-                <div class="bleach-badge-tag"><i class="fas fa-torii-gate"></i> SOUL SOCIETY GATEWAY</div>
-                <button class="btn btn-ghost btn-sm modal-close" id="bleach-gate-close" title="Close Gate">
-                    <i class="fas fa-times"></i>
+                <div class="bleach-badge-tag"><i class="fas fa-torii-gate" aria-hidden="true"></i> SOUL SOCIETY GATEWAY</div>
+                <button class="btn btn-ghost btn-sm modal-close" id="bleach-gate-close" title="Close Gate" aria-label="Close Soul Society gate">
+                    <i class="fas fa-times" aria-hidden="true"></i>
                 </button>
             </div>
             <div class="bleach-modal-content">
@@ -995,8 +995,8 @@
                 </div>
                 <div class="bleach-dialog-card">
                     <div class="bleach-speaker-name">Orihime Inoue <span>(Senkaimon Gatekeeper)</span></div>
-                    <h3 class="bleach-question">"Is Bleach better than One Piece?"</h3>
-                    <p class="bleach-subtext">You are trying to enter <strong>Multivariable Calculus (MVC)</strong>. Orihime requires your confession before opening the Senkaimon!</p>
+                    <h3 class="bleach-question" id="bleach-gate-title">"Is Bleach better than One Piece?"</h3>
+                    <p class="bleach-subtext" id="bleach-gate-desc">You are trying to enter <strong>Multivariable Calculus (MVC)</strong>. Orihime requires your confession before opening the Senkaimon!</p>
                 </div>
                 
                 <div id="bleach-rejection-msg" class="bleach-alert bleach-alert-error hidden">
@@ -1481,7 +1481,7 @@
 
     <!-- App Scripts -->
     <script src="firebase-config.js?v=6"></script>
-    <script src="app.js?v=24"></script>
+    <script src="app.js?v=26"></script>
 
     <!-- ===== NOW PLAYING WIDGET ===== -->
     <script src="now-playing-widget.js?v=4"></script>

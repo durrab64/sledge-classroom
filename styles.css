@@ -9278,3 +9278,33 @@ body.is-admin #page-courses .file-action-btn.admin-action {
         transition: none !important;
     }
 }
+
+/* ---------------------------------------------------
+   SMALL-PHONE FLOATING CONTROLS (<= 390px)
+   Keep the decorative moon and back-to-top out of the
+   reader action buttons and the course tab strip.
+   --------------------------------------------------- */
+@media (max-width: 390px) {
+    #tensa-moon {
+        top: calc(84px + env(safe-area-inset-top, 0px));
+        right: calc(12px + env(safe-area-inset-right, 0px));
+        bottom: auto;
+        width: 44px;
+        height: 44px;
+    }
+
+    /* Reserve the moon's corner so breadcrumb links never sit underneath it. */
+    html[data-zanpakuto="tensa-zangetsu"] #course-reader-view .rr-breadcrumb {
+        padding-right: 56px;
+    }
+
+    /* Stack the back-to-top control above the dock, clear of the tab strip
+       and the centred reader action buttons. */
+    .back-to-top {
+        left: auto;
+        right: calc(14px + env(safe-area-inset-right, 0px));
+        bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+        width: 42px;
+        height: 42px;
+    }
+}

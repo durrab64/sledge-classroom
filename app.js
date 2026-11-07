@@ -374,35 +374,45 @@ function buildResourceHash(courseId, category, docId) {
 function handleHashRoute() {
     const raw = (window.location.hash || '').replace(/^#\/?/, '').trim();
     const first = raw.split('/')[0].toLowerCase();
+    const parts = raw.split('/').filter(Boolean);
+    const isResourceRoute = first.startsWith('course-') && parts.length >= 3;
+    // Browser Back/Forward can leave the Reading Room without closeReaderView().
+    // Remember that transition so focus returns to the row that opened it once
+    // the destination view has rendered.
+    const leavingReader = isResourceViewOpen() && !isResourceRoute;
 
     if (!first || first === 'home') {
+        if (leavingReader) pendingReaderFocusRestore = true;
         resetResourceNavigation();
         courseDetailPushed = false;
         navigateTo('home', false);
+        restoreReaderFocusAfterRoute();
         return;
     }
     if (first === 'courses' || first === 'labs' || first === 'calendar') {
+        if (leavingReader) pendingReaderFocusRestore = true;
         resetResourceNavigation();
         courseDetailPushed = false;
         navigateTo(first, false);
+        restoreReaderFocusAfterRoute();
         return;
     }
 
     if (!first.startsWith('course-')) return;
 
     const courseId = first.slice('course-'.length);
-    const parts = raw.split('/').filter(Boolean);
     const course = COURSES.find(c => c.id === courseId);
-    const isResourceRoute = parts.length >= 3;
 
     if (!course) {
         if (isResourceRoute) {
             resetResourceNavigation();
             showResourceNotFound({ reason: 'course' });
         } else {
+            if (leavingReader) pendingReaderFocusRestore = true;
             resetResourceNavigation();
             courseDetailPushed = false;
             navigateTo('courses', false);
+            restoreReaderFocusAfterRoute();
         }
         return;
     }
@@ -413,6 +423,8 @@ function handleHashRoute() {
         openResourceView(courseId, category, docId, { fromHash: true });
         return;
     }
+
+    if (leavingReader) pendingReaderFocusRestore = true;
 
     let mode = 'theory';
     let tab = 'lectures';
@@ -446,10 +458,19 @@ function resetResourceNavigation() {
     resourceNavDepth = 0;
     resourceReturnScroll = null;
     currentResourceKey = null;
-    readerReturnFocus = null;
-    readerReturnFocusInfo = null;
-    pendingReaderFocusRestore = false;
+    // A route change that is restoring focus (browser Back out of the reader)
+    // keeps the recorded trigger until the destination view has rendered.
+    if (!pendingReaderFocusRestore) {
+        readerReturnFocus = null;
+        readerReturnFocusInfo = null;
+    }
     clearPreviewTimer();
+}
+
+function restoreReaderFocusAfterRoute() {
+    if (!pendingReaderFocusRestore) return;
+    pendingReaderFocusRestore = false;
+    restoreReaderFocus();
 }
 
 function setCourseHistory(courseId, mode, replace = false, tab = currentTab) {
@@ -1999,7 +2020,23 @@ function restoreReaderFocus() {
         direct.focus({ preventScroll: true });
         return;
     }
-    if (!info) return;
+
+    const focusPageFallback = () => {
+        const tab = document.querySelector('#course-tabs .tab[aria-selected="true"]');
+        if (isFocusableNow(tab)) {
+            tab.focus({ preventScroll: true });
+            return;
+        }
+        // Browser Back may land on the archive instead of a course page; give
+        // the keyboard a sensible place to continue from.
+        const card = document.querySelector('#courses-list-view .course-card');
+        if (isFocusableNow(card)) card.focus({ preventScroll: true });
+    };
+
+    if (!info) {
+        focusPageFallback();
+        return;
+    }
 
     const escapeId = value => (window.CSS && typeof CSS.escape === 'function'
         ? CSS.escape(String(value))
@@ -2016,8 +2053,7 @@ function restoreReaderFocus() {
             requestAnimationFrame(findAndFocus);
             return;
         }
-        const tab = document.querySelector('#course-tabs .tab[aria-selected="true"]');
-        if (isFocusableNow(tab)) tab.focus({ preventScroll: true });
+        focusPageFallback();
     };
     requestAnimationFrame(findAndFocus);
 }
@@ -2030,7 +2066,7 @@ async function openResourceView(courseId, category, docId, options = {}) {
         navigateTo('courses', false);
         promptBleachGate(() => {
             openResourceView(courseId, category, docId, options);
-        });
+        }, options.trigger);
         return;
     }
 
@@ -3453,6 +3489,141 @@ function hideLoading() {
 
 // ===== BLEACH SHINIGAMI GATE (MVC EASTER EGG) =====
 let bleachUnlockCallback = null;
+let bleachGateReturnFocus = null;
+let bleachGateReturnFocusInfo = null;
+let bleachGateInerted = [];
+let bleachGateSuccessTimer = null;
+
+function escapeSelectorValue(value) {
+    if (window.CSS && typeof CSS.escape === 'function') return CSS.escape(String(value));
+    return String(value).replace(/["\\]/g, '\\$&');
+}
+
+const BLEACH_GATE_FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+function getBleachGateFocusables(modal) {
+    return Array.from(modal.querySelectorAll(BLEACH_GATE_FOCUSABLE))
+        .filter(el => !el.closest('.hidden') && el.getClientRects().length > 0);
+}
+
+// Background content must not be reachable by keyboard while the gate is open.
+// Track pre-existing `inert` attributes (the dock popups rely on them) so they
+// are restored exactly as they were.
+function setBleachGateBackgroundInert(shouldInert) {
+    const modal = document.getElementById('bleach-gate-modal');
+    if (shouldInert) {
+        if (bleachGateInerted.length) return;
+        Array.from(document.body.children).forEach(child => {
+            if (!modal || child === modal) return;
+            if (['SCRIPT', 'STYLE', 'LINK', 'META', 'TEMPLATE'].includes(child.tagName)) return;
+            bleachGateInerted.push({ el: child, hadInert: child.hasAttribute('inert') });
+            child.setAttribute('inert', '');
+        });
+        return;
+    }
+    bleachGateInerted.forEach(({ el, hadInert }) => {
+        if (!hadInert) el.removeAttribute('inert');
+    });
+    bleachGateInerted = [];
+}
+
+function focusBleachGateInitial() {
+    const modal = document.getElementById('bleach-gate-modal');
+    if (!modal) return;
+    const focusables = getBleachGateFocusables(modal);
+    const target = document.getElementById('bleach-gate-yes') || focusables[0] || modal;
+    if (target && typeof target.focus === 'function') {
+        target.focus({ preventScroll: true });
+    }
+}
+
+function openBleachGate(trigger) {
+    const modal = document.getElementById('bleach-gate-modal');
+    if (!modal) return;
+    const active = document.activeElement;
+    let nextReturnFocus = null;
+    if (trigger && document.contains(trigger)) {
+        nextReturnFocus = trigger;
+    } else if (active && active !== document.body && !modal.contains(active)
+        && typeof active.focus === 'function') {
+        nextReturnFocus = active;
+    }
+    bleachGateReturnFocus = nextReturnFocus;
+    bleachGateReturnFocusInfo = null;
+    if (nextReturnFocus && typeof nextReturnFocus.closest === 'function') {
+        const courseCard = nextReturnFocus.closest('.course-card[data-course-id]');
+        if (courseCard) {
+            bleachGateReturnFocusInfo = {
+                selector: `#courses-list-view .course-card[data-course-id="${escapeSelectorValue(courseCard.dataset.courseId)}"]`,
+            };
+        }
+    }
+    modal.classList.remove('hidden');
+    setBleachGateBackgroundInert(true);
+    focusBleachGateInitial();
+}
+
+function resetGateHashToCourses() {
+    resetResourceNavigation();
+    navigateTo('courses', false);
+    try {
+        history.replaceState({ page: 'courses' }, '', '#courses');
+    } catch (error) {
+        window.location.hash = '#courses';
+    }
+}
+
+function restoreBleachGateFocus() {
+    let target = bleachGateReturnFocus;
+    const info = bleachGateReturnFocusInfo;
+    bleachGateReturnFocus = null;
+    bleachGateReturnFocusInfo = null;
+    if (!isFocusableNow(target) && info && info.selector) {
+        target = document.querySelector(info.selector);
+    }
+    if (isFocusableNow(target)) {
+        target.focus({ preventScroll: true });
+        return;
+    }
+    const fallback = document.querySelector('#courses-list-view .course-card')
+        || document.querySelector('#courses-list-view a, #courses-list-view button')
+        || document.getElementById('nav-logo-link');
+    if (isFocusableNow(fallback)) {
+        fallback.focus({ preventScroll: true });
+    }
+}
+
+function hideBleachGate(options = {}) {
+    const modal = document.getElementById('bleach-gate-modal');
+    if (!modal) return;
+    const actionsRow = document.getElementById('bleach-actions-row');
+    const succMsg = document.getElementById('bleach-success-msg');
+    if (bleachGateSuccessTimer) {
+        clearTimeout(bleachGateSuccessTimer);
+        bleachGateSuccessTimer = null;
+    }
+    modal.classList.add('hidden');
+    if (actionsRow) actionsRow.style.pointerEvents = '';
+    if (succMsg) succMsg.classList.add('hidden');
+    setBleachGateBackgroundInert(false);
+
+    const callback = bleachUnlockCallback;
+    bleachUnlockCallback = null;
+
+    if (options.unlocked) {
+        // Access was granted: open the requested view and let it move focus to
+        // the reader heading (or the course view) itself.
+        bleachGateReturnFocus = null;
+        bleachGateReturnFocusInfo = null;
+        if (typeof callback === 'function') callback();
+        return;
+    }
+
+    // Dismissed without unlocking. Never leave a protected resource URL in the
+    // address bar while the archive is what the student actually sees.
+    resetGateHashToCourses();
+    restoreBleachGateFocus();
+}
 
 function initBleachGateModal() {
     const modal = document.getElementById('bleach-gate-modal');
@@ -3466,17 +3637,11 @@ function initBleachGateModal() {
     if (!modal) return;
 
     if (closeBtn) {
-        closeBtn.addEventListener('click', () => {
-            modal.classList.add('hidden');
-            bleachUnlockCallback = null;
-        });
+        closeBtn.addEventListener('click', () => hideBleachGate());
     }
 
     modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.classList.add('hidden');
-            bleachUnlockCallback = null;
-        }
+        if (e.target === modal) hideBleachGate();
     });
 
     if (noBtn) {
@@ -3499,21 +3664,50 @@ function initBleachGateModal() {
             if (actionsRow) actionsRow.style.pointerEvents = 'none';
             sessionStorage.setItem('bleachGateUnlocked', 'true');
 
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                if (actionsRow) actionsRow.style.pointerEvents = '';
-                if (succMsg) succMsg.classList.add('hidden');
-                if (typeof bleachUnlockCallback === 'function') {
-                    const cb = bleachUnlockCallback;
-                    bleachUnlockCallback = null;
-                    cb();
-                }
+            bleachGateSuccessTimer = setTimeout(() => {
+                bleachGateSuccessTimer = null;
+                hideBleachGate({ unlocked: true });
             }, 1000);
         });
     }
+
+    // Escape dismisses without unlocking. Tab and Shift+Tab stay inside the
+    // dialog; the background is also inert, so focus cannot leak out anyway.
+    modal.addEventListener('keydown', (event) => {
+        if (modal.classList.contains('hidden')) return;
+
+        if (event.key === 'Escape' || event.key === 'Esc') {
+            // Ignore Escape during the one-second "access granted" animation.
+            if (bleachGateSuccessTimer) return;
+            event.preventDefault();
+            event.stopPropagation();
+            hideBleachGate();
+            return;
+        }
+
+        if (event.key !== 'Tab') return;
+        const focusables = getBleachGateFocusables(modal);
+        if (!focusables.length) {
+            event.preventDefault();
+            modal.focus({ preventScroll: true });
+            return;
+        }
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        const active = document.activeElement;
+        if (event.shiftKey) {
+            if (active === first || !modal.contains(active)) {
+                event.preventDefault();
+                last.focus({ preventScroll: true });
+            }
+        } else if (active === last || !modal.contains(active)) {
+            event.preventDefault();
+            first.focus({ preventScroll: true });
+        }
+    });
 }
 
-function promptBleachGate(onSuccess) {
+function promptBleachGate(onSuccess, trigger) {
     bleachUnlockCallback = onSuccess;
     const modal = document.getElementById('bleach-gate-modal');
     const rejMsg = document.getElementById('bleach-rejection-msg');
@@ -3526,7 +3720,7 @@ function promptBleachGate(onSuccess) {
 
     if (rejMsg) rejMsg.classList.add('hidden');
     if (succMsg) succMsg.classList.add('hidden');
-    modal.classList.remove('hidden');
+    openBleachGate(trigger);
 }
 
 // ===== ZANPAKUTO THEMES =====
