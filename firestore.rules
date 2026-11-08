@@ -1,0 +1,23 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isOwner() {
+      return request.auth != null
+          && request.auth.uid in [
+               'dRHxakX2iAWM4w1IqtYPLpCZrwr2'
+             ];
+    }
+
+    match /courses/{courseId}/{category}/{fileId} {
+      allow read: if true;
+      allow create, update, delete: if isOwner();
+    }
+
+    match /events/{eventId} {
+      allow read: if true;
+      allow create, update, delete: if isOwner();
+    }
+  }
+}

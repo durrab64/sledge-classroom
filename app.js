@@ -196,23 +196,36 @@ function updateThemeIcon(theme) {
 }
 
 // ===== AUTHENTICATION =====
+// Centralized owner-state application. Fail closed: any unresolved, missing,
+// or errored identity clears admin state. Firestore rules remain the real
+// security boundary; this only controls the admin UI and early write guards.
+function applyAdminState(user, error) {
+    const owner = window.SledgeAdmin
+        ? window.SledgeAdmin.resolveAdminState(user, error)
+        : false;
+
+    isAdmin = owner;
+
+    document.body.classList.toggle('is-admin', owner);
+
+    const adminBtn = document.getElementById('admin-btn');
+    const dropdown = document.getElementById('admin-dropdown');
+    const emailDisplay = document.getElementById('admin-email-display');
+
+    if (adminBtn) adminBtn.classList.toggle('logged-in', owner);
+    if (emailDisplay) emailDisplay.textContent = owner && user ? (user.email || '') : '';
+    if (!owner && dropdown) dropdown.classList.add('hidden');
+}
+
 function initAuth() {
     const adminBtn = document.getElementById('admin-btn');
     const dropdown = document.getElementById('admin-dropdown');
 
-    // Listen for auth state changes
+    // Listen for auth state changes. The error callback fails closed.
     auth.onAuthStateChanged((user) => {
-        if (user) {
-            isAdmin = true;
-            document.body.classList.add('is-admin');
-            adminBtn.classList.add('logged-in');
-            document.getElementById('admin-email-display').textContent = user.email;
-        } else {
-            isAdmin = false;
-            document.body.classList.remove('is-admin');
-            adminBtn.classList.remove('logged-in');
-            dropdown.classList.add('hidden');
-        }
+        applyAdminState(user, null);
+    }, (error) => {
+        applyAdminState(null, error);
     });
 
     // Admin button click
@@ -300,7 +313,18 @@ async function handleLogin() {
 
     try {
         await auth.signInWithEmailAndPassword(email, password);
+        const signedInUser = auth.currentUser;
+        const ownerSignedIn = window.SledgeAdmin
+            ? window.SledgeAdmin.isOwnerUser(signedInUser)
+            : false;
+
         closeLoginModal();
+
+        if (!ownerSignedIn) {
+            showToast('Signed in, but this account does not have admin access.', 'error');
+            return;
+        }
+
         showToast('Welcome back, Admin!', 'success');
     } catch (error) {
         let msg = 'Login failed. Please try again.';
@@ -2972,6 +2996,11 @@ function closeEventModal() {
 }
 
 async function saveEvent() {
+    if (!isAdmin) {
+        showToast('Only admin can add events', 'error');
+        return;
+    }
+
     const title = document.getElementById('event-title').value.trim();
     const date = document.getElementById('event-date').value;
     const time = document.getElementById('event-time').value;
