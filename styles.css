@@ -8916,6 +8916,14 @@ body.is-admin #page-courses .file-action-btn.admin-action {
     text-decoration: none;
 }
 
+#page-courses .rr-nav-disabled {
+    opacity: 0.45;
+    pointer-events: none;
+    cursor: not-allowed;
+    border-color: var(--c-line);
+    color: var(--c-muted);
+}
+
 #page-courses .rr-nav-next {
     text-align: right;
     align-items: flex-end;

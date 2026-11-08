@@ -1008,10 +1008,10 @@ function renderHomeCourseCards(entries, filter) {
                 <div class="card-title">${course.name}${course.hasLab ? ' — Theory' : ''}</div>
                 <div class="card-subtitle">${course.code} · Theory Coursework</div>
                 <div class="card-meta">
-                    <div class="card-meta-item"><i class="fas fa-chalkboard"></i> ${counts.primary} Slides</div>
-                    <div class="card-meta-item"><i class="fas fa-scroll"></i> ${counts.papers} Papers</div>
-                    <div class="card-meta-item"><i class="fas fa-paperclip"></i> ${counts.tertiary} Materials</div>
-                    <div class="card-meta-item"><i class="fas fa-calendar-day"></i> ${eventCount} Events</div>
+                    ${counts.primary > 0 ? `<div class="card-meta-item"><i class="fas fa-chalkboard"></i> ${counts.primary} Slides</div>` : ''}
+                    ${counts.papers > 0 ? `<div class="card-meta-item"><i class="fas fa-scroll"></i> ${counts.papers} Papers</div>` : ''}
+                    ${counts.tertiary > 0 ? `<div class="card-meta-item"><i class="fas fa-paperclip"></i> ${counts.tertiary} Materials</div>` : ''}
+                    ${eventCount > 0 ? `<div class="card-meta-item"><i class="fas fa-calendar-day"></i> ${eventCount} Events</div>` : ''}
                 </div>
             `;
             card.addEventListener('click', () => openCourseDetail(course.id, 'theory', currentPage));
@@ -1048,10 +1048,10 @@ function renderHomeCourseCards(entries, filter) {
                 <div class="card-title">${course.name} — Lab</div>
                 <div class="card-subtitle">${course.code} · Hands-on Practical Lab</div>
                 <div class="card-meta">
-                    <div class="card-meta-item"><i class="fas fa-vial"></i> ${counts.primary} Manuals</div>
-                    <div class="card-meta-item"><i class="fas fa-scroll"></i> ${counts.papers} Past Papers</div>
-                    <div class="card-meta-item"><i class="fas fa-laptop-code"></i> ${counts.tertiary} Tasks</div>
-                    <div class="card-meta-item"><i class="fas fa-calendar-day"></i> ${eventCount} Events</div>
+                    ${counts.primary > 0 ? `<div class="card-meta-item"><i class="fas fa-vial"></i> ${counts.primary} Manuals</div>` : ''}
+                    ${counts.papers > 0 ? `<div class="card-meta-item"><i class="fas fa-scroll"></i> ${counts.papers} Past Papers</div>` : ''}
+                    ${counts.tertiary > 0 ? `<div class="card-meta-item"><i class="fas fa-laptop-code"></i> ${counts.tertiary} Tasks</div>` : ''}
+                    ${eventCount > 0 ? `<div class="card-meta-item"><i class="fas fa-calendar-day"></i> ${eventCount} Events</div>` : ''}
                 </div>
             `;
             card.addEventListener('click', () => openCourseDetail(course.id, 'lab', currentPage));
@@ -2294,13 +2294,13 @@ function renderResourceView(course, category, file, files, index) {
             <span class="rr-nav-direction"><i class="fas fa-arrow-left" aria-hidden="true"></i> Previous</span>
             <span class="rr-nav-name">${escapeHtml(prevFile.name || 'Untitled resource')}</span>
         </a>
-    ` : '<span></span>';
+    ` : '<span class="rr-nav-link rr-nav-disabled" aria-disabled="true" role="button" aria-label="No previous resource"><span class="rr-nav-direction"><i class="fas fa-arrow-left" aria-hidden="true"></i> Previous</span><span class="rr-nav-name"></span></span>';
     const nextMarkup = nextFile ? `
         <a class="rr-nav-link rr-nav-next" href="${escapeAttr(buildResourceHash(course.id, category, nextFile.id))}" data-rr-open-resource="${escapeAttr(nextFile.id)}">
             <span class="rr-nav-direction">Next <i class="fas fa-arrow-right" aria-hidden="true"></i></span>
             <span class="rr-nav-name">${escapeHtml(nextFile.name || 'Untitled resource')}</span>
         </a>
-    ` : '<span></span>';
+    ` : '<span class="rr-nav-link rr-nav-disabled" aria-disabled="true" role="button" aria-label="No next resource"><span class="rr-nav-direction">Next <i class="fas fa-arrow-right" aria-hidden="true"></i></span><span class="rr-nav-name"></span></span>';
 
     const relatedMarkup = related.length ? `
         <section class="rr-related" aria-labelledby="rr-related-title">
