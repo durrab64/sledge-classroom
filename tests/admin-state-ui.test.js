@@ -40,11 +40,15 @@ test('public read path is not gated by admin state', () => {
     assert.doesNotMatch(APP, /getFilesFromDB[\s\S]{0,400}?isAdmin/);
 });
 
-test('index.html loads admin-auth.js before app.js', () => {
+test('index.html loads scripts in dependency order', () => {
     const adminIdx = HTML.indexOf('admin-auth.js?v=1');
-    const appIdx = HTML.indexOf('app.js?v=27');
+    const readerIdx = HTML.indexOf('reader-description.js?v=1');
+    const appIdx = HTML.indexOf('app.js?v=28');
     assert.ok(adminIdx > -1, 'admin-auth.js must be loaded');
-    assert.ok(appIdx > adminIdx, 'admin-auth.js must load before app.js');
+    assert.ok(readerIdx > -1, 'reader-description.js must be loaded');
+    assert.ok(appIdx > -1, 'app.js must be loaded');
+    assert.ok(readerIdx > adminIdx, 'reader-description.js must load after admin-auth.js');
+    assert.ok(appIdx > readerIdx, 'app.js must load after reader-description.js');
 });
 
 test('test files are excluded from hosting', () => {

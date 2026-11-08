@@ -16,7 +16,8 @@
       "**/node_modules/**",
       "FIREBASE_SETUP_GUIDE.md",
       "chrome-extension/**",
-      "tests/**"
+      "tests/**",
+      "docs/**"
     ],
     "headers": [
       {

@@ -1872,7 +1872,9 @@ function createFileItem(file, category) {
             </div>
             <div class="file-info">
                 <div class="file-name" title="${fileNameAttr}">${fileName}</div>
-                ${file.description ? `<div class="file-desc">${escapeHtml(file.description)}</div>` : ''}
+                ${ReaderDescription.hasDescription(file.description)
+                    ? `<div class="file-desc">${escapeHtml(ReaderDescription.getDisplayDescription(file.description))}</div>`
+                    : ''}
                 <div class="file-meta">
                     <span class="file-type-pill">${iconInfo.label}</span>
                     ${file.date ? `<span class="file-meta-sep" aria-hidden="true">·</span><span>${escapeHtml(file.date)}</span>` : ''}
@@ -2219,7 +2221,7 @@ function renderResourceView(course, category, file, files, index) {
     const categoryLabel = meta ? meta.label : 'Resource';
     const courseName = course.name;
     const date = file.date || 'Date not recorded';
-    const description = file.description || '';
+    const description = ReaderDescription.getDisplayDescription(file.description);
 
     let reason = 'This link opens outside Sledge Classroom.';
     if (viewInfo.kind === 'folder') {
@@ -2354,9 +2356,7 @@ function renderResourceView(course, category, file, files, index) {
                     <span>${escapeHtml(iconInfo.label)}</span>
                 </p>
                 <h1 class="rr-title" id="rr-title">${escapeHtml(title)}</h1>
-                ${description
-                    ? `<p class="rr-desc">${escapeHtml(description)}</p>`
-                    : '<p class="rr-desc rr-desc--empty">No description has been added for this resource.</p>'}
+                ${description ? `<p class="rr-desc">${escapeHtml(description)}</p>` : ''}
                 <dl class="rr-meta">
                     <div><dt>Uploaded</dt><dd>${escapeHtml(date)}</dd></div>
                     <div><dt>Source</dt><dd>${escapeHtml(source)}</dd></div>
