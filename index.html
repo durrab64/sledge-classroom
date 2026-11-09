@@ -202,7 +202,8 @@
                 <button class="admin-btn" id="admin-btn" title="Admin Login" aria-label="Admin Login">
                     <i class="fas fa-user-shield" id="admin-icon"></i>
                 </button>
-                <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle menu">
+                <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle menu"
+                    aria-expanded="false" aria-controls="mobile-menu">
                     <i class="fas fa-bars"></i>
                 </button>
             </div>
@@ -737,14 +738,50 @@
         <section class="page page-labs" id="page-labs">
             <span id="labs" class="anchor-target" aria-hidden="true"></span>
             <!-- Labs List View -->
-            <div class="labs-list-view" id="labs-list-view">
-                <div class="page-header">
-                    <h2 class="page-title"><i class="fas fa-flask"></i> Lab Sections</h2>
-                    <p class="page-subtitle">Hands-on lab resources for practical courses</p>
-                </div>
-                <div class="labs-grid" id="labs-grid">
-                    <!-- Populated by JS -->
-                </div>
+            <div class="labs-workspace labs-list-view" id="labs-list-view">
+                <header class="labs-masthead">
+                    <div class="labs-masthead-main">
+                        <p class="labs-kicker">
+                            <span class="labs-kicker-rule" aria-hidden="true"></span>
+                            <span>Practical Workspace · NUML BSCS</span>
+                            <span class="labs-kicker-jp" lang="ja" aria-hidden="true">実験室</span>
+                        </p>
+                        <h1 class="labs-title">The Laboratory</h1>
+                        <p class="labs-lede">Hands-on benches for practical courses — manuals, experiment
+                            tasks, and session records kept in one working space.</p>
+                    </div>
+                    <dl class="labs-stats" aria-label="Laboratory overview">
+                        <div class="labs-stat">
+                            <dt class="labs-stat-label">Lab Sections</dt>
+                            <dd class="labs-stat-value" data-lab-stat="sections">—</dd>
+                        </div>
+                        <div class="labs-stat">
+                            <dt class="labs-stat-label">Manuals</dt>
+                            <dd class="labs-stat-value" data-lab-stat="manuals">—</dd>
+                        </div>
+                        <div class="labs-stat">
+                            <dt class="labs-stat-label">Tasks</dt>
+                            <dd class="labs-stat-value" data-lab-stat="tasks">—</dd>
+                        </div>
+                        <div class="labs-stat">
+                            <dt class="labs-stat-label">Sessions</dt>
+                            <dd class="labs-stat-value" data-lab-stat="events">—</dd>
+                        </div>
+                    </dl>
+                </header>
+
+                <section class="labs-directory" aria-labelledby="labs-index-title">
+                    <div class="labs-index-bar">
+                        <div class="labs-index-heading">
+                            <h2 class="labs-index-title" id="labs-index-title">Bench Directory</h2>
+                            <p class="labs-index-sub">Select a bench to open its practical resource set.</p>
+                        </div>
+                        <p class="labs-index-count" id="labs-index-count" aria-live="polite">—</p>
+                    </div>
+                    <div class="labs-grid" id="labs-grid">
+                        <!-- Populated by JS -->
+                    </div>
+                </section>
             </div>
 
             <!-- Single Lab Detail View -->
@@ -774,50 +811,97 @@
         <!-- ===== CALENDAR PAGE ===== -->
         <section class="page page-calendar" id="page-calendar">
             <span id="calendar" class="anchor-target" aria-hidden="true"></span>
-            <div class="page-header">
-                <h2 class="page-title"><i class="fas fa-calendar-alt"></i> Master Calendar</h2>
-                <p class="page-subtitle">All your events across every course in one view</p>
-            </div>
-            <div class="calendar-controls">
-                <button class="btn btn-ghost" id="cal-prev"><i class="fas fa-chevron-left"></i></button>
-                <h3 class="calendar-month-title" id="calendar-month-title">October 2026</h3>
-                <button class="btn btn-ghost" id="cal-next"><i class="fas fa-chevron-right"></i></button>
-                <button class="btn btn-primary btn-sm admin-only" id="add-global-event-btn" style="margin-left: auto;">
-                    <i class="fas fa-plus"></i> Add Event
-                </button>
-            </div>
-            <div class="calendar-grid" id="calendar-grid">
-                <!-- Populated by JS -->
-            </div>
-            <div class="calendar-legend">
-                <div class="legend-item"><span class="legend-dot" style="background: var(--event-quiz)"></span> Quiz
+
+            <header class="calendar-masthead">
+                <div class="calendar-masthead-main">
+                    <p class="calendar-kicker">
+                        <span class="calendar-kicker-rule" aria-hidden="true"></span>
+                        <span>Academic Schedule · NUML BSCS</span>
+                    </p>
+                    <h1 class="calendar-title">The Calendar</h1>
+                    <p class="calendar-lede">Quizzes, assignments, presentations and exams across every course —
+                        laid out on one planning desk.</p>
                 </div>
-                <div class="legend-item"><span class="legend-dot" style="background: var(--event-assignment)"></span>
-                    Assignment</div>
-                <div class="legend-item"><span class="legend-dot" style="background: var(--event-presentation)"></span>
-                    Presentation</div>
-                <div class="legend-item"><span class="legend-dot" style="background: var(--event-exam)"></span> Exam
+                <dl class="calendar-facts" aria-label="Schedule overview">
+                    <div class="calendar-fact">
+                        <dt>Displayed month</dt>
+                        <dd id="calendar-fact-month">—</dd>
+                    </div>
+                    <div class="calendar-fact">
+                        <dt>Events this month</dt>
+                        <dd id="calendar-fact-events">—</dd>
+                    </div>
+                    <div class="calendar-fact">
+                        <dt>Today</dt>
+                        <dd id="calendar-fact-today">—</dd>
+                    </div>
+                </dl>
+            </header>
+
+            <section class="calendar-board" aria-label="Monthly schedule">
+                <div class="calendar-toolbar">
+                    <div class="calendar-nav" role="group" aria-label="Month navigation">
+                        <button class="calendar-nav-btn" id="cal-prev" type="button" aria-label="Previous month">
+                            <i class="fas fa-chevron-left" aria-hidden="true"></i>
+                        </button>
+                        <div class="calendar-month-block">
+                            <h2 class="calendar-month-title" id="calendar-month-title" aria-live="polite">October 2026</h2>
+                            <p class="calendar-month-meta" id="calendar-month-meta">—</p>
+                        </div>
+                        <button class="calendar-nav-btn" id="cal-next" type="button" aria-label="Next month">
+                            <i class="fas fa-chevron-right" aria-hidden="true"></i>
+                        </button>
+                        <button class="calendar-today-btn" id="cal-today" type="button">Today</button>
+                    </div>
+                    <button class="btn btn-primary btn-sm admin-only" id="add-global-event-btn" type="button">
+                        <i class="fas fa-plus" aria-hidden="true"></i> Add Event
+                    </button>
                 </div>
-                <div class="legend-item"><span class="legend-dot" style="background: var(--event-other)"></span> Other
+
+                <p class="calendar-status" id="calendar-status" role="status" aria-live="polite"></p>
+
+                <div class="calendar-grid" id="calendar-grid" role="group" aria-label="Calendar days">
+                    <!-- Populated by JS -->
                 </div>
-            </div>
+
+                <div class="calendar-legend" role="group" aria-label="Event categories">
+                    <div class="calendar-legend-item"><span class="calendar-legend-dot"
+                            style="background: var(--event-quiz)" aria-hidden="true"></span> Quiz</div>
+                    <div class="calendar-legend-item"><span class="calendar-legend-dot"
+                            style="background: var(--event-assignment)" aria-hidden="true"></span> Assignment</div>
+                    <div class="calendar-legend-item"><span class="calendar-legend-dot"
+                            style="background: var(--event-presentation)" aria-hidden="true"></span> Presentation</div>
+                    <div class="calendar-legend-item"><span class="calendar-legend-dot"
+                            style="background: var(--event-exam)" aria-hidden="true"></span> Exam</div>
+                    <div class="calendar-legend-item"><span class="calendar-legend-dot"
+                            style="background: var(--event-other)" aria-hidden="true"></span> Other</div>
+                </div>
+            </section>
+
             <!-- Events for selected day -->
-            <div class="day-events-panel hidden" id="day-events-panel">
+            <section class="day-events-panel hidden" id="day-events-panel" aria-labelledby="day-events-title">
                 <div class="day-events-header">
-                    <h3 id="day-events-title">Events for October 22, 2026</h3>
-                    <button class="btn btn-ghost btn-sm" id="close-day-panel"><i class="fas fa-times"></i></button>
+                    <div class="day-events-heading">
+                        <p class="day-events-kicker">Agenda</p>
+                        <h2 id="day-events-title" tabindex="-1">Events for October 22, 2026</h2>
+                    </div>
+                    <button class="calendar-icon-btn" id="close-day-panel" type="button"
+                        aria-label="Close day details">
+                        <i class="fas fa-times" aria-hidden="true"></i>
+                    </button>
                 </div>
                 <div class="day-events-list" id="day-events-list"></div>
-            </div>
+            </section>
         </section>
     </main>
 
     <!-- ===== ADMIN LOGIN MODAL ===== -->
-    <div class="modal-overlay hidden" id="login-modal">
+    <div class="modal-overlay hidden" id="login-modal" role="dialog" aria-modal="true"
+        aria-labelledby="login-modal-title">
         <div class="modal modal-sm">
             <div class="modal-header">
-                <h2><i class="fas fa-user-shield"></i> Admin Login</h2>
-                <button class="btn btn-ghost btn-sm modal-close" id="login-modal-close">
+                <h2 id="login-modal-title"><i class="fas fa-user-shield"></i> Admin Login</h2>
+                <button class="btn btn-ghost btn-sm modal-close" id="login-modal-close" aria-label="Close admin login">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -920,23 +1004,27 @@
     </div>
 
     <!-- ===== EVENT MODAL ===== -->
-    <div class="modal-overlay hidden" id="event-modal">
+    <div class="modal-overlay hidden" id="event-modal" role="dialog" aria-modal="true"
+        aria-labelledby="event-modal-title">
         <div class="modal">
             <div class="modal-header">
-                <h2><i class="fas fa-calendar-plus"></i> Add Event</h2>
-                <button class="btn btn-ghost btn-sm modal-close" id="event-modal-close">
+                <h2 id="event-modal-title"><i class="fas fa-calendar-plus"></i> Add Event</h2>
+                <button class="btn btn-ghost btn-sm modal-close" id="event-modal-close" aria-label="Close add event">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="modal-body">
+                <p class="calendar-modal-note">Schedule an event for any course. Fields marked with an asterisk are
+                    required.</p>
                 <div class="form-group">
-                    <label for="event-title">Event Title *</label>
-                    <input type="text" id="event-title" class="form-input" placeholder="e.g., Quiz 2, Assignment 3 Due">
+                    <label for="event-title">Event Title <span class="form-required" aria-hidden="true">*</span></label>
+                    <input type="text" id="event-title" class="form-input" aria-required="true" autocomplete="off"
+                        placeholder="e.g., Quiz 2, Assignment 3 Due">
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="event-date">Date *</label>
-                        <input type="date" id="event-date" class="form-input">
+                        <label for="event-date">Date <span class="form-required" aria-hidden="true">*</span></label>
+                        <input type="date" id="event-date" class="form-input" aria-required="true">
                     </div>
                     <div class="form-group">
                         <label for="event-time">Time</label>
@@ -944,8 +1032,8 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="event-type">Event Type *</label>
-                    <select id="event-type" class="form-input">
+                    <label for="event-type">Event Type <span class="form-required" aria-hidden="true">*</span></label>
+                    <select id="event-type" class="form-input" aria-required="true">
                         <option value="quiz">Quiz</option>
                         <option value="assignment">Assignment</option>
                         <option value="presentation">Presentation</option>
@@ -954,8 +1042,8 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="event-course">Course *</label>
-                    <select id="event-course" class="form-input">
+                    <label for="event-course">Course <span class="form-required" aria-hidden="true">*</span></label>
+                    <select id="event-course" class="form-input" aria-required="true">
                         <!-- Populated by JS -->
                     </select>
                 </div>
@@ -966,7 +1054,7 @@
                 </div>
                 <div class="form-group">
                     <label for="event-groups">Groups / Names (comma separated)</label>
-                    <input type="text" id="event-groups" class="form-input"
+                    <input type="text" id="event-groups" class="form-input" autocomplete="off"
                         placeholder="e.g., Group A - Ali, Ahmed, Sara">
                 </div>
             </div>

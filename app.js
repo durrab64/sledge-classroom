@@ -228,11 +228,40 @@ function initAuth() {
         applyAdminState(null, error);
     });
 
-    // Admin button click
+    // Admin button: hover opens the menu on mouse devices; touch keeps tap-to-toggle.
+    const hoverMenu = window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)');
+    let adminMenuTimer = null;
+    const showAdminMenu = () => {
+        if (!isAdmin) return;
+        clearTimeout(adminMenuTimer);
+        dropdown.classList.remove('hidden');
+    };
+    const scheduleHideAdminMenu = () => {
+        if (!isAdmin) return;
+        clearTimeout(adminMenuTimer);
+        // Grace period so the pointer can travel from the button to the menu.
+        adminMenuTimer = setTimeout(() => dropdown.classList.add('hidden'), 400);
+    };
+    if (hoverMenu && hoverMenu.matches) {
+        adminBtn.addEventListener('mouseenter', showAdminMenu);
+        adminBtn.addEventListener('mouseleave', scheduleHideAdminMenu);
+        adminBtn.addEventListener('focus', showAdminMenu);
+        dropdown.addEventListener('mouseenter', showAdminMenu);
+        dropdown.addEventListener('mouseleave', scheduleHideAdminMenu);
+        dropdown.addEventListener('focusin', showAdminMenu);
+        dropdown.addEventListener('focusout', (event) => {
+            if (!dropdown.contains(event.relatedTarget) && document.activeElement !== adminBtn) {
+                scheduleHideAdminMenu();
+            }
+        });
+    }
+
     adminBtn.addEventListener('click', () => {
         if (isAdmin) {
-            // Toggle dropdown
-            dropdown.classList.toggle('hidden');
+            // Hover/focus owns the desktop menu; tap-to-toggle remains for touch.
+            if (!hoverMenu || !hoverMenu.matches) {
+                dropdown.classList.toggle('hidden');
+            }
         } else {
             openLoginModal();
         }
@@ -260,6 +289,7 @@ function initAuth() {
         if (e.target.id === 'login-modal') closeLoginModal();
     });
     document.getElementById('login-confirm-btn').addEventListener('click', handleLogin);
+    bindDialogKeyboard('login-modal', closeLoginModal);
     document.getElementById('admin-password').addEventListener('keydown', (e) => {
         if (e.key === 'Enter') handleLogin();
     });
@@ -278,7 +308,10 @@ function initAuth() {
     });
 }
 
+let loginReturnFocus = null;
+
 function openLoginModal() {
+    loginReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     document.getElementById('login-modal').classList.remove('hidden');
     document.getElementById('admin-email').value = '';
     document.getElementById('admin-password').value = '';
@@ -287,7 +320,43 @@ function openLoginModal() {
 }
 
 function closeLoginModal() {
-    document.getElementById('login-modal').classList.add('hidden');
+    const modal = document.getElementById('login-modal');
+    if (modal.classList.contains('hidden')) return;
+    modal.classList.add('hidden');
+    if (loginReturnFocus && document.contains(loginReturnFocus)) {
+        loginReturnFocus.focus();
+    }
+    loginReturnFocus = null;
+}
+
+// Shared keyboard behaviour for simple modal dialogs: Escape closes, and Tab
+// cycles inside the dialog instead of leaking focus into the page behind it.
+function bindDialogKeyboard(modalId, closeFn) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    modal.addEventListener('keydown', (event) => {
+        if (modal.classList.contains('hidden')) return;
+        if (event.key === 'Escape' || event.key === 'Esc') {
+            event.preventDefault();
+            event.stopPropagation();
+            closeFn();
+            return;
+        }
+        if (event.key !== 'Tab') return;
+        const focusables = Array.from(modal.querySelectorAll(
+            'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )).filter(el => el.getClientRects().length > 0);
+        if (!focusables.length) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+        }
+    });
 }
 
 async function handleLogin() {
@@ -367,6 +436,9 @@ function initNavigation() {
     });
 
     document.getElementById('mobile-menu-btn').addEventListener('click', toggleMobileMenu);
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' || event.key === 'Esc') closeMobileMenu();
+    });
 
     document.getElementById('nav-logo-link').addEventListener('click', (e) => {
         e.preventDefault();
@@ -546,12 +618,20 @@ function navigateTo(page, updateHash = true) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+function setMobileMenuOpen(open) {
+    const menu = document.getElementById('mobile-menu');
+    const button = document.getElementById('mobile-menu-btn');
+    if (menu) menu.classList.toggle('open', open);
+    if (button) button.setAttribute('aria-expanded', String(open));
+}
+
 function toggleMobileMenu() {
-    document.getElementById('mobile-menu').classList.toggle('open');
+    const menu = document.getElementById('mobile-menu');
+    setMobileMenuOpen(!menu.classList.contains('open'));
 }
 
 function closeMobileMenu() {
-    document.getElementById('mobile-menu').classList.remove('open');
+    setMobileMenuOpen(false);
 }
 
 // ===== FIRESTORE HELPERS =====
@@ -995,8 +1075,10 @@ function renderHomeCourseCards(entries, filter) {
         }
 
         theoryData.forEach(({ course, counts, eventCount }, index) => {
-            const card = document.createElement('div');
+            const card = document.createElement('a');
             card.className = 'course-card course-card--home';
+            card.href = `#course-${course.id}`;
+            card.setAttribute('aria-label', `${course.name}, ${course.code}, theory course`);
             card.style.setProperty('--card-accent', course.color);
             card.style.animationDelay = `${index * 0.04}s`;
             card.innerHTML = `
@@ -1014,7 +1096,10 @@ function renderHomeCourseCards(entries, filter) {
                     ${eventCount > 0 ? `<div class="card-meta-item"><i class="fas fa-calendar-day"></i> ${eventCount} Events</div>` : ''}
                 </div>
             `;
-            card.addEventListener('click', () => openCourseDetail(course.id, 'theory', currentPage));
+            card.addEventListener('click', (event) => {
+                event.preventDefault();
+                openCourseDetail(course.id, 'theory', currentPage);
+            });
             container.appendChild(card);
         });
     }
@@ -1035,8 +1120,10 @@ function renderHomeCourseCards(entries, filter) {
         }
 
         labData.forEach(({ course, counts, eventCount }, index) => {
-            const card = document.createElement('div');
+            const card = document.createElement('a');
             card.className = 'course-card course-card--home';
+            card.href = `#course-${course.id}`;
+            card.setAttribute('aria-label', `${course.name}, ${course.code}, lab section`);
             card.style.setProperty('--card-accent', '#10b981');
             card.style.animationDelay = `${index * 0.04}s`;
             card.innerHTML = `
@@ -1054,7 +1141,10 @@ function renderHomeCourseCards(entries, filter) {
                     ${eventCount > 0 ? `<div class="card-meta-item"><i class="fas fa-calendar-day"></i> ${eventCount} Events</div>` : ''}
                 </div>
             `;
-            card.addEventListener('click', () => openCourseDetail(course.id, 'lab', currentPage));
+            card.addEventListener('click', (event) => {
+                event.preventDefault();
+                openCourseDetail(course.id, 'lab', currentPage);
+            });
             container.appendChild(card);
         });
     }
@@ -2893,6 +2983,9 @@ async function confirmUpload() {
 }
 
 // ===== LAB CARDS =====
+// CP-9: dedicated laboratory workspace. Bench entries are real anchors so they
+// keep native link semantics; the SPA still intercepts the click to open the
+// existing lab detail route in the Courses view.
 function renderLabCards(entries) {
     const container = document.getElementById('labs-grid');
     if (!container) return;
@@ -2903,36 +2996,92 @@ function renderLabCards(entries) {
         return;
     }
 
-    const results = entries
+    const benches = entries
         .filter(entry => entry.course.hasLab)
         .map(entry => ({
             course: entry.course,
-            counts: entry.lab,
-            eventCount: entry.eventCount,
+            counts: entry.lab || { primary: 0, papers: 0, tertiary: 0 },
+            eventCount: entry.eventCount || 0,
         }));
+
+    const totals = benches.reduce((acc, bench) => {
+        acc.manuals += bench.counts.primary || 0;
+        acc.papers += bench.counts.papers || 0;
+        acc.tasks += bench.counts.tertiary || 0;
+        acc.events += bench.eventCount || 0;
+        return acc;
+    }, { manuals: 0, papers: 0, tasks: 0, events: 0 });
+
+    // Masthead stats read from the same aggregate data as the cards, so the
+    // numbers can never drift from what the directory shows.
+    const statValues = {
+        sections: benches.length,
+        manuals: totals.manuals,
+        tasks: totals.tasks,
+        events: totals.events,
+    };
+    Object.entries(statValues).forEach(([key, value]) => {
+        const el = document.querySelector(`[data-lab-stat="${key}"]`);
+        if (el) el.textContent = String(value);
+    });
+
+    const indexCount = document.getElementById('labs-index-count');
+    if (indexCount) {
+        const resourceCount = totals.manuals + totals.papers + totals.tasks;
+        indexCount.textContent = benches.length
+            ? `${benches.length} bench${benches.length === 1 ? '' : 'es'} · ${resourceCount} resources`
+            : 'No benches yet';
+    }
 
     container.removeAttribute('aria-busy');
     container.innerHTML = '';
 
-    results.forEach(({ course, counts, eventCount }) => {
-        const card = document.createElement('div');
-        card.className = 'course-card';
-        card.style.setProperty('--card-accent', '#10b981');
-        card.innerHTML = `
-            <span class="course-type-badge lab"><i class="fas fa-flask"></i> Practical Lab</span>
-            <div class="card-icon" style="background: linear-gradient(135deg, #10b981, #059669)">
-                <i class="fas fa-flask"></i>
-            </div>
-            <div class="card-title">${course.name} — Lab</div>
-            <div class="card-subtitle">${course.code} · Hands-on Practical Lab</div>
-            <div class="card-meta">
-                <div class="card-meta-item"><i class="fas fa-vial"></i> ${counts.primary} Manuals</div>
-                <div class="card-meta-item"><i class="fas fa-scroll"></i> ${counts.papers} Past Papers</div>
-                <div class="card-meta-item"><i class="fas fa-laptop-code"></i> ${counts.tertiary} Tasks</div>
-                <div class="card-meta-item"><i class="fas fa-calendar-day"></i> ${eventCount} Events</div>
+    if (!benches.length) {
+        container.innerHTML = `
+            <div class="labs-empty">
+                <i class="fas fa-flask" aria-hidden="true"></i>
+                <h3>No laboratory benches yet</h3>
+                <p>Lab sections appear here once a practical course is configured.</p>
             </div>
         `;
-        card.addEventListener('click', () => openCourseDetail(course.id, 'lab', 'labs'));
+        return;
+    }
+
+    const metric = (icon, value, label) => {
+        const zero = !value ? ' lab-metric--zero' : '';
+        return `<span class="lab-metric${zero}"><i class="fas ${icon}" aria-hidden="true"></i><strong>${value}</strong> ${label}</span>`;
+    };
+
+    benches.forEach(({ course, counts, eventCount }, index) => {
+        const card = document.createElement('a');
+        card.className = 'lab-entry';
+        card.href = `#course-${course.id}`;
+        card.setAttribute('aria-label', `${course.name} lab bench, ${course.code}. ${counts.primary} manuals, ${counts.papers} papers, ${counts.tertiary} tasks, ${eventCount} events.`);
+        card.style.setProperty('--lab-accent', course.color);
+        card.innerHTML = `
+            <span class="lab-entry__rail" aria-hidden="true">
+                <span class="lab-entry__index">LAB ${pad2(index + 1)}</span>
+                <span class="lab-entry__mark" style="background: ${course.gradient}">
+                    <i class="${course.icon}"></i>
+                </span>
+            </span>
+            <span class="lab-entry__body">
+                <span class="lab-entry__code">${course.code}</span>
+                <span class="lab-entry__title">${course.name}</span>
+                <span class="lab-entry__desc">${course.description}</span>
+                <span class="lab-entry__metrics">
+                    ${metric('fa-book', counts.primary, 'Manuals')}
+                    ${metric('fa-scroll', counts.papers, 'Papers')}
+                    ${metric('fa-laptop-code', counts.tertiary, 'Tasks')}
+                    ${metric('fa-calendar-day', eventCount, 'Events')}
+                </span>
+            </span>
+            <span class="lab-entry__action">Open bench <i class="fas fa-arrow-right" aria-hidden="true"></i></span>
+        `;
+        card.addEventListener('click', (event) => {
+            event.preventDefault();
+            openCourseDetail(course.id, 'lab', 'labs');
+        });
         container.appendChild(card);
     });
     container.removeAttribute('aria-busy');
@@ -2945,6 +3094,7 @@ async function openLabDetail(courseId) {
 // ===== EVENT MODAL =====
 function initEventModal() {
     const modal = document.getElementById('event-modal');
+    bindDialogKeyboard('event-modal', closeEventModal);
     document.getElementById('event-cancel-btn').addEventListener('click', closeEventModal);
     document.getElementById('event-modal-close').addEventListener('click', closeEventModal);
     modal.addEventListener('click', (e) => {
@@ -2969,12 +3119,15 @@ function populateEventCourseSelect() {
     });
 }
 
+let eventModalReturnFocus = null;
+
 function openEventModal() {
     if (!isAdmin) {
         showToast('Please sign in as admin to add events', 'error');
         return;
     }
 
+    eventModalReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const modal = document.getElementById('event-modal');
     document.getElementById('event-title').value = '';
     document.getElementById('event-date').value = '';
@@ -2988,11 +3141,19 @@ function openEventModal() {
     }
 
     modal.classList.remove('hidden');
+    const firstField = document.getElementById('event-title');
+    if (firstField) firstField.focus();
 }
 
 function closeEventModal() {
-    document.getElementById('event-modal').classList.add('hidden');
+    const modal = document.getElementById('event-modal');
+    const wasOpen = !modal.classList.contains('hidden');
+    modal.classList.add('hidden');
     eventModalCourseId = null;
+    if (wasOpen && eventModalReturnFocus && document.contains(eventModalReturnFocus)) {
+        eventModalReturnFocus.focus();
+    }
+    eventModalReturnFocus = null;
 }
 
 async function saveEvent() {
@@ -3288,42 +3449,179 @@ async function loadHomeEvents() {
 }
 
 // ===== CALENDAR =====
+let calendarSelectedDate = null;
+let calendarReturnFocus = null;
+let calendarRenderToken = 0;
+let pendingCalendarFocus = null;
+
 function initCalendar() {
-    document.getElementById('cal-prev').addEventListener('click', () => {
-        calendarDate.setMonth(calendarDate.getMonth() - 1);
-        renderCalendar();
-    });
+    document.getElementById('cal-prev').addEventListener('click', () => shiftCalendarMonth(-1));
+    document.getElementById('cal-next').addEventListener('click', () => shiftCalendarMonth(1));
 
-    document.getElementById('cal-next').addEventListener('click', () => {
-        calendarDate.setMonth(calendarDate.getMonth() + 1);
-        renderCalendar();
-    });
+    const todayBtn = document.getElementById('cal-today');
+    if (todayBtn) {
+        todayBtn.addEventListener('click', () => {
+            calendarDate = new Date();
+            calendarSelectedDate = null;
+            closeDayPanel(false);
+            renderCalendar();
+        });
+    }
 
-    document.getElementById('close-day-panel').addEventListener('click', () => {
-        document.getElementById('day-events-panel').classList.add('hidden');
-    });
+    document.getElementById('close-day-panel').addEventListener('click', () => closeDayPanel(true));
 
+    const panel = document.getElementById('day-events-panel');
+    if (panel) {
+        panel.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' || event.key === 'Esc') {
+                event.preventDefault();
+                closeDayPanel(true);
+            }
+        });
+    }
+
+    const grid = document.getElementById('calendar-grid');
+    if (grid) grid.addEventListener('keydown', handleCalendarKeydown);
+
+    renderCalendar();
+}
+
+function shiftCalendarMonth(delta) {
+    // Always anchor on the first of the month so short months (e.g. Feb 31)
+    // cannot skip a month, then let the renderer derive the grid.
+    calendarDate = new Date(calendarDate.getFullYear(), calendarDate.getMonth() + delta, 1);
+    calendarSelectedDate = null;
+    closeDayPanel(false);
+    renderCalendar();
+}
+
+function setCalendarStatus(text, tone = 'info', withRetry = false) {
+    const status = document.getElementById('calendar-status');
+    if (!status) return;
+    status.dataset.tone = tone;
+    if (withRetry) {
+        status.innerHTML = `<span>${escapeHtml(text)}</span><button type="button" class="calendar-retry-btn" id="calendar-retry-btn">Retry</button>`;
+        const retry = document.getElementById('calendar-retry-btn');
+        if (retry) retry.addEventListener('click', () => renderCalendar());
+    } else {
+        status.textContent = text;
+    }
+}
+
+function renderCalendarSkeleton() {
+    const grid = document.getElementById('calendar-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(day => {
+        const header = document.createElement('div');
+        header.className = 'calendar-day-header';
+        header.textContent = day;
+        grid.appendChild(header);
+    });
+    for (let i = 0; i < 35; i++) {
+        const cell = document.createElement('span');
+        cell.className = 'calendar-day calendar-day--skeleton';
+        cell.setAttribute('aria-hidden', 'true');
+        grid.appendChild(cell);
+    }
+}
+
+function setCalendarRovingFocus(activeDateStr) {
+    const grid = document.getElementById('calendar-grid');
+    if (!grid) return;
+    grid.querySelectorAll('.calendar-day').forEach(el => {
+        el.tabIndex = el.dataset.date === activeDateStr ? 0 : -1;
+    });
+}
+
+function addCalendarDays(date, days) {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
+}
+
+function handleCalendarKeydown(event) {
+    const day = event.target.closest('.calendar-day');
+    if (!day || !day.dataset.date) return;
+
+    if (event.key === 'Escape' || event.key === 'Esc') {
+        const panel = document.getElementById('day-events-panel');
+        if (panel && !panel.classList.contains('hidden')) {
+            event.preventDefault();
+            closeDayPanel(true);
+        }
+        return;
+    }
+
+    if (event.key === 'Tab') return;
+
+    const current = new Date(day.dataset.date + 'T00:00:00');
+    let target = null;
+
+    switch (event.key) {
+        case 'ArrowLeft': target = addCalendarDays(current, -1); break;
+        case 'ArrowRight': target = addCalendarDays(current, 1); break;
+        case 'ArrowUp': target = addCalendarDays(current, -7); break;
+        case 'ArrowDown': target = addCalendarDays(current, 7); break;
+        case 'Home': target = addCalendarDays(current, -current.getDay()); break;
+        case 'End': target = addCalendarDays(current, 6 - current.getDay()); break;
+        case 'PageUp': target = new Date(current.getFullYear(), current.getMonth() - 1, current.getDate()); break;
+        case 'PageDown': target = new Date(current.getFullYear(), current.getMonth() + 1, current.getDate()); break;
+        default: return;
+    }
+
+    event.preventDefault();
+    focusCalendarDate(target);
+}
+
+function focusCalendarDate(date) {
+    const dateStr = formatDateStr(date.getFullYear(), date.getMonth(), date.getDate());
+    const grid = document.getElementById('calendar-grid');
+    const target = grid ? grid.querySelector(`.calendar-day[data-date="${dateStr}"]`) : null;
+    if (target) {
+        setCalendarRovingFocus(dateStr);
+        target.focus();
+        return;
+    }
+    // The target is outside the visible six-week window; move the board first.
+    pendingCalendarFocus = dateStr;
+    calendarDate = new Date(date.getFullYear(), date.getMonth(), 1);
     renderCalendar();
 }
 
 async function renderCalendar() {
     const grid = document.getElementById('calendar-grid');
     const titleEl = document.getElementById('calendar-month-title');
+    if (!grid || !titleEl) return;
 
+    const token = ++calendarRenderToken;
+    // Keep keyboard users in place when the Retry control is replaced by a
+    // successful render.
+    const retryHadFocus = document.activeElement && document.activeElement.id === 'calendar-retry-btn';
     const year = calendarDate.getFullYear();
     const month = calendarDate.getMonth();
+    const monthLabel = new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
-    titleEl.textContent = new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    titleEl.textContent = monthLabel;
+    const factMonth = document.getElementById('calendar-fact-month');
+    if (factMonth) factMonth.textContent = monthLabel;
 
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const daysInPrevMonth = new Date(year, month, 0).getDate();
 
-    // Fetch events for this month range
-    const startDate = formatDateStr(year, month, 1 - firstDay);
-    const endDate = formatDateStr(year, month + 1, 7);
+    // Fetch events for exactly the six-week window the grid renders. Reading
+    // to a fixed day of the next month would miss events on the final row.
+    const gridStart = new Date(year, month, 1 - firstDay);
+    const gridEnd = addCalendarDays(gridStart, 41);
+    const startDate = formatDateStr(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate());
+    const endDate = formatDateStr(gridEnd.getFullYear(), gridEnd.getMonth(), gridEnd.getDate());
+
+    const firstLoad = !grid.querySelector('.calendar-day');
+    if (firstLoad) renderCalendarSkeleton();
+    grid.setAttribute('aria-busy', 'true');
+    if (firstLoad) setCalendarStatus('Loading schedule…');
 
     let events = [];
+    let loadError = null;
     try {
         const snapshot = await db.collection('events')
             .where('date', '>=', startDate)
@@ -3332,9 +3630,38 @@ async function renderCalendar() {
         events = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
         console.error('Error fetching calendar events:', error);
+        loadError = error;
+    }
+
+    // A newer month may have been requested while this response was in flight.
+    if (token !== calendarRenderToken) return;
+
+    grid.removeAttribute('aria-busy');
+
+    if (loadError) {
+        setCalendarStatus('The schedule could not be loaded.', 'error', true);
+    } else {
+        setCalendarStatus('');
     }
 
     const today = new Date();
+    const todayStr = formatDateStr(today.getFullYear(), today.getMonth(), today.getDate());
+    const firstOfMonthStr = formatDateStr(year, month, 1);
+    const monthPrefix = firstOfMonthStr.slice(0, 7);
+    const monthEventCount = events.filter(event => String(event.date || '').slice(0, 7) === monthPrefix).length;
+
+    const factEvents = document.getElementById('calendar-fact-events');
+    if (factEvents) factEvents.textContent = String(monthEventCount);
+    const factToday = document.getElementById('calendar-fact-today');
+    if (factToday) {
+        factToday.textContent = today.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    }
+    const monthMeta = document.getElementById('calendar-month-meta');
+    if (monthMeta) {
+        monthMeta.textContent = monthEventCount
+            ? `${monthEventCount} event${monthEventCount === 1 ? '' : 's'} scheduled`
+            : 'No events this month';
+    }
 
     grid.innerHTML = '';
 
@@ -3350,71 +3677,206 @@ async function renderCalendar() {
     for (let i = firstDay - 1; i >= 0; i--) {
         const dayNum = daysInPrevMonth - i;
         const dateStr = formatDateStr(year, month - 1, dayNum);
-        const dayEl = createCalendarDay(dayNum, dateStr, events, true, false);
-        grid.appendChild(dayEl);
+        grid.appendChild(createCalendarDay(dayNum, dateStr, events, true, false));
     }
 
     // Current month days
     for (let d = 1; d <= daysInMonth; d++) {
         const dateStr = formatDateStr(year, month, d);
         const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === d;
-        const dayEl = createCalendarDay(d, dateStr, events, false, isToday);
-        grid.appendChild(dayEl);
+        grid.appendChild(createCalendarDay(d, dateStr, events, false, isToday));
     }
 
     // Next month days
-    const totalCells = grid.children.length - 7;
-    const remaining = 42 - totalCells;
+    const remaining = 42 - firstDay - daysInMonth;
     for (let d = 1; d <= remaining; d++) {
         const dateStr = formatDateStr(year, month + 1, d);
-        const dayEl = createCalendarDay(d, dateStr, events, true, false);
-        grid.appendChild(dayEl);
+        grid.appendChild(createCalendarDay(d, dateStr, events, true, false));
+    }
+
+    // Roving tab stop: the selected day if it is still visible, otherwise
+    // today when it is in this month, otherwise the first of the month.
+    let focusDate = calendarSelectedDate;
+    const selectedVisible = focusDate && grid.querySelector(`.calendar-day[data-date="${focusDate}"]`);
+    if (!selectedVisible) {
+        focusDate = monthPrefix === todayStr.slice(0, 7) ? todayStr : firstOfMonthStr;
+    }
+    setCalendarRovingFocus(focusDate);
+
+    if (retryHadFocus) {
+        const activeDay = grid.querySelector('.calendar-day[tabindex="0"]');
+        if (activeDay) activeDay.focus();
+    }
+
+    // Keep an open agenda in sync when the month re-renders after a save/delete.
+    const openPanel = document.getElementById('day-events-panel');
+    if (calendarSelectedDate && openPanel && !openPanel.classList.contains('hidden')) {
+        renderDayEventList(events.filter(event => event.date === calendarSelectedDate));
+        const selectedEl = grid.querySelector(`.calendar-day[data-date="${calendarSelectedDate}"]`);
+        if (selectedEl) calendarReturnFocus = selectedEl;
+    }
+
+    if (pendingCalendarFocus) {
+        const target = grid.querySelector(`.calendar-day[data-date="${pendingCalendarFocus}"]`);
+        pendingCalendarFocus = null;
+        if (target) {
+            setCalendarRovingFocus(target.dataset.date);
+            target.focus();
+        }
     }
 }
 
 function createCalendarDay(dayNum, dateStr, events, isOtherMonth, isToday) {
-    const dayEl = document.createElement('div');
-    dayEl.className = 'calendar-day';
-    if (isOtherMonth) dayEl.classList.add('other-month');
-    if (isToday) dayEl.classList.add('today');
-
     const dayEvents = events.filter(e => e.date === dateStr);
+    const dateObj = new Date(dateStr + 'T00:00:00');
+    const fullDate = dateObj.toLocaleDateString('en-US', {
+        weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+    });
+
+    const dayEl = document.createElement('button');
+    dayEl.type = 'button';
+    dayEl.className = 'calendar-day';
+    dayEl.dataset.date = dateStr;
+    dayEl.tabIndex = -1;
+    if (isOtherMonth) dayEl.classList.add('other-month');
+    if (isToday) {
+        dayEl.classList.add('today');
+        dayEl.setAttribute('aria-current', 'date');
+    }
+    if (calendarSelectedDate === dateStr) dayEl.classList.add('selected');
+    dayEl.setAttribute('aria-label', `${fullDate}. ${dayEvents.length
+        ? `${dayEvents.length} event${dayEvents.length === 1 ? '' : 's'}`
+        : 'No events'}.`);
+
+    const chips = dayEvents.slice(0, 3).map(e => {
+        const typeInfo = EVENT_TYPES[e.type] || EVENT_TYPES.other;
+        return `<span class="calendar-event-chip" style="--event-color: ${typeInfo.color}; --event-bg: ${typeInfo.bg};" title="${escapeHtml(e.title)}"><span class="calendar-event-chip-label">${escapeHtml(e.title)}</span></span>`;
+    }).join('');
+    const more = dayEvents.length > 3
+        ? `<span class="calendar-event-more" aria-hidden="true">+${dayEvents.length - 3}</span>`
+        : '';
 
     dayEl.innerHTML = `
         <span class="calendar-day-number">${dayNum}</span>
-        <div class="calendar-day-events">
-            ${dayEvents.slice(0, 3).map(e => {
-                const typeInfo = EVENT_TYPES[e.type] || EVENT_TYPES.other;
-                return `<span class="calendar-event-dot" style="background: ${typeInfo.color};" title="${escapeHtml(e.title)}"></span>`;
-            }).join('')}
-            ${dayEvents.length > 3 ? `<span class="calendar-event-dot" style="background: var(--text-tertiary);" title="${dayEvents.length - 3} more"></span>` : ''}
-        </div>
+        <span class="calendar-day-events">${chips}${more}</span>
     `;
 
-    dayEl.addEventListener('click', () => showDayEvents(dateStr, dayEvents));
+    dayEl.addEventListener('click', () => showDayEvents(dateStr, dayEvents, dayEl));
     return dayEl;
 }
 
-function showDayEvents(dateStr, events) {
+function showDayEvents(dateStr, events, sourceEl) {
     const panel = document.getElementById('day-events-panel');
     const titleEl = document.getElementById('day-events-title');
-    const listEl = document.getElementById('day-events-list');
+    if (!panel || !titleEl) return;
+
+    calendarSelectedDate = dateStr;
+    calendarReturnFocus = sourceEl || null;
+
+    document.querySelectorAll('#calendar-grid .calendar-day.selected').forEach(el => {
+        el.classList.remove('selected');
+    });
+    if (sourceEl) {
+        sourceEl.classList.add('selected');
+        setCalendarRovingFocus(dateStr);
+    }
 
     const date = new Date(dateStr + 'T00:00:00');
     titleEl.textContent = `Events for ${date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}`;
 
+    renderDayEventList(events);
+
+    panel.classList.remove('hidden');
+    const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    panel.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+    try {
+        titleEl.focus({ preventScroll: true });
+    } catch (error) {
+        titleEl.focus();
+    }
+}
+
+function renderDayEventList(events) {
+    const listEl = document.getElementById('day-events-list');
+    if (!listEl) return;
+
     listEl.innerHTML = '';
 
     if (events.length === 0) {
-        listEl.innerHTML = '<p style="text-align: center; color: var(--text-tertiary); padding: 20px;">No events on this day.</p>';
-    } else {
-        events.forEach(event => {
-            listEl.appendChild(createEventCard(event));
-        });
+        listEl.innerHTML = `
+            <div class="calendar-agenda-empty">
+                <i class="far fa-calendar" aria-hidden="true"></i>
+                <h3>No events on this day</h3>
+                <p>Choose another date or check back after the next schedule update.</p>
+            </div>
+        `;
+        return;
     }
 
-    panel.classList.remove('hidden');
-    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    events.forEach(event => {
+        listEl.appendChild(createCalendarAgendaEvent(event));
+    });
+}
+
+function createCalendarAgendaEvent(event) {
+    const typeInfo = EVENT_TYPES[event.type] || EVENT_TYPES.other;
+    const course = COURSES.find(c => c.id === event.courseId);
+    const dateObj = new Date(event.date + 'T00:00:00');
+    const dateStr = dateObj.toLocaleDateString('en-US', {
+        weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
+    });
+
+    const card = document.createElement('article');
+    card.className = 'calendar-agenda-event';
+    card.style.setProperty('--event-color', typeInfo.color);
+    card.style.setProperty('--event-bg', typeInfo.bg);
+
+    const groupsHTML = event.groups && event.groups.length > 0
+        ? `<div class="calendar-agenda-groups">${event.groups.map(g => `<span class="group-tag">${escapeHtml(g)}</span>`).join('')}</div>`
+        : '';
+    const descHTML = event.description
+        ? `<p class="calendar-agenda-desc">${escapeHtml(event.description)}</p>`
+        : '';
+
+    card.innerHTML = `
+        <span class="calendar-agenda-icon" aria-hidden="true"><i class="${typeInfo.icon}"></i></span>
+        <div class="calendar-agenda-body">
+            <div class="calendar-agenda-top">
+                <span class="calendar-agenda-type">${typeInfo.label}</span>
+                <h3 class="calendar-agenda-title">${escapeHtml(event.title)}</h3>
+            </div>
+            <div class="calendar-agenda-meta">
+                <span><i class="far fa-calendar" aria-hidden="true"></i> ${dateStr}</span>
+                ${event.time ? `<span><i class="far fa-clock" aria-hidden="true"></i> ${formatTime(event.time)}</span>` : ''}
+                ${course ? `<span><i class="fas fa-book" aria-hidden="true"></i> ${escapeHtml(course.name)}</span>` : ''}
+            </div>
+            ${descHTML}
+            ${groupsHTML}
+        </div>
+        <button class="event-delete-btn calendar-agenda-delete" type="button"
+            title="Delete event" aria-label="Delete event: ${escapeHtml(event.title)}">
+            <i class="fas fa-trash-alt" aria-hidden="true"></i>
+        </button>
+    `;
+
+    card.querySelector('.calendar-agenda-delete').addEventListener('click', () => deleteEvent(event.id));
+    return card;
+}
+
+function closeDayPanel(restoreFocus = true) {
+    const panel = document.getElementById('day-events-panel');
+    if (!panel) return;
+    panel.classList.add('hidden');
+
+    document.querySelectorAll('#calendar-grid .calendar-day.selected').forEach(el => {
+        el.classList.remove('selected');
+    });
+    calendarSelectedDate = null;
+
+    if (restoreFocus && calendarReturnFocus && document.contains(calendarReturnFocus)) {
+        calendarReturnFocus.focus();
+    }
+    calendarReturnFocus = null;
 }
 
 function formatDateStr(year, month, day) {
