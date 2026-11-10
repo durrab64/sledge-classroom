@@ -64,9 +64,13 @@ test('mobile menu button reports expanded state and is linked to its menu', () =
 test('desktop admin menu opens on hover/focus and only touch keeps click toggle', () => {
   assert.match(APP, /window\.matchMedia\('\(hover: hover\) and \(pointer: fine\)'\)/);
   assert.match(APP, /if \(!hoverMenu \|\| !hoverMenu\.matches\) \{\s*\n\s*dropdown\.classList\.toggle\('hidden'\);/);
-  assert.match(APP, /adminMenuTimer = setTimeout\(\(\) => dropdown\.classList\.add\('hidden'\), 400\);/);
-  assert.match(CSS, /body\.is-admin:has\(\.admin-btn:hover\) \.admin-dropdown/);
-  assert.match(CSS, /\.is-admin \.admin-dropdown:focus-within/);
+  // CP-14: JS is the single visibility authority with a 350ms grace delay.
+  assert.match(APP, /adminMenuTimer = setTimeout\(\(\) => dropdown\.classList\.add\('hidden'\), 350\);/);
+  assert.match(APP, /dropdown\.addEventListener\('focusin', showAdminMenu\)/);
+  assert.match(APP, /dropdown\.addEventListener\('focusout'/);
+  // CP-14 removed the competing CSS :has()/hover visibility override.
+  assert.doesNotMatch(CSS, /body\.is-admin:has\(\.admin-btn:hover\) \.admin-dropdown/);
+  assert.match(CSS, /\.admin-dropdown::before \{/);
 });
 
 test('course metadata uses a readable text token', () => {

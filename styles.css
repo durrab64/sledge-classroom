@@ -2044,6 +2044,19 @@ img {
         display: none;
     }
 
+    /* The hidden .nav-links was the bar's only auto spacer; keep the actions
+       pinned to the right edge so they never bunch beside the logo. */
+    .nav-actions {
+        margin-left: auto;
+    }
+
+    .logo-text {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
     .mobile-menu-btn {
         display: flex;
     }
@@ -2231,7 +2244,33 @@ body.is-admin .admin-only {
     z-index: 1100;
     min-width: 240px;
     animation: dropdownIn 0.2s ease;
-    overflow: hidden;
+    overflow: visible;
+}
+
+/* Invisible pointer bridge across the 8px gap between the navbar and the
+   menu, so travelling from the trigger to the panel never crosses a dead
+   zone. Visibility itself is owned solely by the admin-menu behaviour in
+   app.js (single source of truth). */
+.admin-dropdown::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -14px;
+    height: 14px;
+}
+
+/* The trigger sits 15px above the navbar edge (42px control in a 72px bar),
+   so the panel is ~23px below it. This hit-extension carries the hover from
+   the button down to the bridge above the panel — no dead strip for slow
+   pointer travel. It is invisible and only covers the gap below the button. */
+.admin-btn::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    height: 22px;
 }
 
 .admin-dropdown.hidden {
@@ -2241,19 +2280,10 @@ body.is-admin .admin-only {
     transition-delay: 0.15s;
 }
 
-/* Hover behavior for admin dropdown - desktop only. The dropdown lives at the
-   end of the body (not next to the button), so :has() links the two. */
-@media (hover: hover) {
-    .is-admin .admin-btn:hover ~ .admin-dropdown,
-    .is-admin .admin-dropdown:hover,
-    body.is-admin:has(.admin-btn:hover) .admin-dropdown,
-    body.is-admin:has(.admin-btn:focus-visible) .admin-dropdown,
-    .is-admin .admin-dropdown:focus-within {
-        opacity: 1;
-        visibility: visible;
-        pointer-events: auto;
-    }
-}
+/* Menu visibility is controlled exclusively in app.js (hover with a grace
+   delay + pointer bridge, click on touch, focus and Escape for keyboard).
+   Keeping a CSS :has()/hover override here produced two competing visibility
+   systems that made the panel close ~150ms into the pointer journey. */
 
 @keyframes dropdownIn {
     from {
@@ -9352,6 +9382,13 @@ body.is-admin #page-courses .file-action-btn.admin-action {
     --lab-accent: #10b981;
 }
 
+/* The #labs anchor is the page's deep-link target. Park it below the fixed
+   navbar so the kicker and title are never clipped on load — same treatment
+   as the Calendar anchor. */
+.page-labs #labs.anchor-target {
+    scroll-margin-top: calc(var(--nav-height, 72px) + 16px);
+}
+
 .page-labs .labs-masthead {
     position: relative;
     max-width: 1120px;
@@ -10706,5 +10743,142 @@ body.is-admin #page-courses .file-action-btn.admin-action {
 
     .page-calendar .calendar-day:hover {
         box-shadow: none;
+    }
+}
+
+/* ===================================================
+   CP-14 — NAVBAR CONSISTENCY REFRESH
+   Aligns the global navigation with the editorial design
+   language already used by the Courses/Labs/Calendar
+   mastheads and the footer: Bebas display wordmark,
+   JetBrains Mono meta labels, hairline rules and the
+   gold active accent.
+   Scoped to .navbar — structure, routes, themes, admin
+   visibility and responsive behaviour are unchanged.
+   =================================================== */
+.navbar .logo-text {
+    font-family: 'Bebas Neue', 'Oswald', 'Arial Narrow', sans-serif;
+    font-size: 1.55rem;
+    font-weight: 400;
+    letter-spacing: 0.03em;
+    line-height: 1;
+    /* The brand mark is a wordmark, not body text. */
+    text-transform: uppercase;
+}
+
+.navbar .nav-link {
+    position: relative;
+    padding: 10px 12px;
+    border-radius: 0;
+    background: transparent;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+}
+
+.navbar .nav-link i {
+    font-size: 0.72rem;
+    opacity: 0.75;
+    transition: color var(--transition-fast), opacity var(--transition-fast);
+}
+
+.navbar .nav-link::after {
+    content: '';
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 3px;
+    height: 2px;
+    background: transparent;
+    transition: background var(--transition-fast);
+}
+
+.navbar .nav-link:hover,
+[data-theme="dark"] .navbar .nav-link:hover {
+    color: var(--text-primary);
+    background: transparent;
+}
+
+.navbar .nav-link:hover::after {
+    background: var(--border-color);
+}
+
+.navbar .nav-link.active,
+[data-theme="dark"] .navbar .nav-link.active {
+    color: var(--text-primary);
+    background: transparent;
+    font-weight: 500;
+}
+
+.navbar .nav-link.active::after {
+    background: #a16207;
+}
+
+.navbar .nav-link.active i {
+    color: #a16207;
+    opacity: 1;
+}
+
+[data-theme="dark"] .navbar .nav-link.active::after {
+    background: #d8b45f;
+}
+
+[data-theme="dark"] .navbar .nav-link.active i {
+    color: #d8b45f;
+}
+
+.navbar .pkt-clock,
+.navbar .pkt-zone {
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.08em;
+}
+
+/* Mobile menu: same meta typography, and the active item echoes the
+   gold marker used in the desktop bar instead of the legacy blue pill. */
+.mobile-menu .mobile-link {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.mobile-menu .mobile-link.active,
+[data-theme="dark"] .mobile-menu .mobile-link.active {
+    background: transparent;
+    color: var(--text-primary);
+    border-left: 2px solid #a16207;
+}
+
+[data-theme="dark"] .mobile-menu .mobile-link.active {
+    border-left-color: #d8b45f;
+}
+
+.mobile-menu .mobile-link.active i {
+    color: #a16207;
+}
+
+[data-theme="dark"] .mobile-menu .mobile-link.active i {
+    color: #d8b45f;
+}
+
+/* Narrow-phone guards: the refreshed wordmark must still collapse exactly as
+   the original rules intended (no desktop size leaking onto small screens). */
+@media (max-width: 430px) {
+    .navbar .logo-text {
+        font-size: 1rem;
+    }
+
+    .navbar .logo-text .logo-accent {
+        display: none;
+    }
+}
+
+@media (max-width: 360px) {
+    .navbar .logo-text {
+        display: none;
     }
 }

@@ -240,7 +240,10 @@ function initAuth() {
         if (!isAdmin) return;
         clearTimeout(adminMenuTimer);
         // Grace period so the pointer can travel from the button to the menu.
-        adminMenuTimer = setTimeout(() => dropdown.classList.add('hidden'), 400);
+        // The menu also carries an invisible bridge over the navbar gap in
+        // styles.css (.admin-dropdown::before), so slow movement stays inside
+        // the hover area.
+        adminMenuTimer = setTimeout(() => dropdown.classList.add('hidden'), 350);
     };
     if (hoverMenu && hoverMenu.matches) {
         adminBtn.addEventListener('mouseenter', showAdminMenu);
@@ -255,6 +258,13 @@ function initAuth() {
             }
         });
     }
+    // Escape closes the owner menu and returns focus to its trigger.
+    document.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape' || dropdown.classList.contains('hidden')) return;
+        clearTimeout(adminMenuTimer);
+        dropdown.classList.add('hidden');
+        adminBtn.focus();
+    });
 
     adminBtn.addEventListener('click', () => {
         if (isAdmin) {
