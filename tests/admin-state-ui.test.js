@@ -43,7 +43,7 @@ test('public read path is not gated by admin state', () => {
 test('index.html loads scripts in dependency order', () => {
     const adminIdx = HTML.indexOf('admin-auth.js?v=1');
     const readerIdx = HTML.indexOf('reader-description.js?v=1');
-    const appIdx = HTML.indexOf('app.js?v=28');
+    const appIdx = HTML.indexOf('app.js?v=29');
     assert.ok(adminIdx > -1, 'admin-auth.js must be loaded');
     assert.ok(readerIdx > -1, 'reader-description.js must be loaded');
     assert.ok(appIdx > -1, 'app.js must be loaded');
