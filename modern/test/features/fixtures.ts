@@ -12,6 +12,7 @@ import type {
   CourseResourceReader,
   EventReader,
 } from '@/features/courses/courseData';
+import type { CalendarEventReader } from '@/features/calendar/calendarUtils';
 
 export function makeResource(
   id: string,
@@ -93,5 +94,31 @@ export function createEventReader(
       if (error) return repositoryFailure(error.code, error.message);
       return repositorySuccess(events);
     }),
+  };
+}
+
+export interface FakeRangeEventReader extends CalendarEventReader {
+  listEventsInRange: ReturnType<typeof vi.fn>;
+}
+
+/** Mirrors the Firestore inclusive `date` range query used by the calendar. */
+export function createRangeEventReader(
+  events: Event[] = [],
+  error: RepositoryError | null = null,
+): FakeRangeEventReader {
+  return {
+    listEventsInRange: vi.fn(
+      async (
+        startDate: string,
+        endDate: string,
+      ): Promise<RepositoryResult<Event[]>> => {
+        if (error) return repositoryFailure(error.code, error.message);
+        return repositorySuccess(
+          events.filter(
+            (event) => event.date >= startDate && event.date <= endDate,
+          ),
+        );
+      },
+    ),
   };
 }

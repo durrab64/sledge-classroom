@@ -1,15 +1,3 @@
-// Calendar route — migration scaffolding.
-//
-// Placeholder route, not a migrated legacy page. Preserves the route path
-// (/calendar) for the incremental migration.
+// Calendar route — migrated in CP7 from the legacy #page-calendar section.
 
-import { PlaceholderRoute } from '@/components/PlaceholderRoute';
-
-export function CalendarRoute() {
-  return (
-    <PlaceholderRoute
-      feature="Calendar"
-      note="Monthly calendar grid and day-events panel will be migrated here."
-    />
-  );
-}
+export { CalendarPage as CalendarRoute } from './CalendarPage';

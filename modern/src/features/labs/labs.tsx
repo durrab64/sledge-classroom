@@ -1,15 +1,3 @@
-// Labs route — migration scaffolding.
-//
-// Placeholder route, not a migrated legacy page. Preserves the route path
-// (/labs) for the incremental migration.
+// Labs route — migrated in CP7 from the legacy #page-labs section.
 
-import { PlaceholderRoute } from '@/components/PlaceholderRoute';
-
-export function LabsRoute() {
-  return (
-    <PlaceholderRoute
-      feature="Labs"
-      note="Bench directory and lab cards will be migrated here."
-    />
-  );
-}
+export { LabsPage as LabsRoute } from './LabsPage';

@@ -125,6 +125,9 @@ export function CourseDetail({
   const tab: CourseTab = COURSE_TAB_NAMES.includes(tabParam as CourseTab)
     ? (tabParam as CourseTab)
     : 'lectures';
+  // A bench opened from Labs keeps its Labs origin across mode/tab changes so
+  // the back action can return to the bench directory.
+  const fromLabs = searchParams.get('from') === 'labs';
 
   useEffect(() => {
     if (!course) return;
@@ -165,10 +168,11 @@ export function CourseDetail({
       const params = new URLSearchParams();
       if (nextMode === 'lab') params.set('mode', 'lab');
       if (nextTab !== 'lectures') params.set('tab', nextTab);
+      if (fromLabs) params.set('from', 'labs');
       const query = params.toString();
       navigate(`/courses/${course.id}${query ? `?${query}` : ''}`);
     },
-    [course, navigate],
+    [course, fromLabs, navigate],
   );
 
   const switchMode = useCallback(
@@ -339,10 +343,10 @@ export function CourseDetail({
           className="btn btn-ghost back-btn"
           id="course-back-btn"
           type="button"
-          onClick={() => navigate('/courses')}
+          onClick={() => navigate(fromLabs ? '/labs' : '/courses')}
         >
-          <i className="fas fa-arrow-left" aria-hidden="true" /> Back to the
-          Archive
+          <i className="fas fa-arrow-left" aria-hidden="true" />{' '}
+          {fromLabs ? 'Back to Labs' : 'Back to the Archive'}
         </button>
 
         <div

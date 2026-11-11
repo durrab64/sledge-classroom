@@ -13,6 +13,7 @@ import {
   collection,
   query,
   getDocs,
+  where,
 } from 'firebase/firestore';
 import type {
   CourseId,
@@ -32,7 +33,7 @@ export class EventRepository {
     this.firestore = dependencies.firestore;
   }
 
-  /** List all events. Returns empty array when Firebase is unconfigured. */
+  /** List all events. Returns an error when Firebase is unconfigured. */
   async listEvents(): Promise<RepositoryResult<Event[]>> {
     if (!this.firestore) {
       return repositoryFailure(
@@ -43,6 +44,41 @@ export class EventRepository {
 
     try {
       const snapshot = await getDocs(query(collection(this.firestore, 'events')));
+      const data: Event[] = snapshot.docs.map((doc) => mapEvent(doc.id, doc.data()));
+      return repositorySuccess(data);
+    } catch (error) {
+      return repositoryFailure(
+        'firestore-read-failed',
+        error instanceof Error ? error.message : String(error),
+      );
+    }
+  }
+
+  /**
+   * List events whose `date` falls inside the inclusive `YYYY-MM-DD` range.
+   *
+   * This mirrors the legacy calendar's single-field range query. No composite
+   * index is required, and no write is performed.
+   */
+  async listEventsInRange(
+    startDate: string,
+    endDate: string,
+  ): Promise<RepositoryResult<Event[]>> {
+    if (!this.firestore) {
+      return repositoryFailure(
+        'firebase-not-configured',
+        'Firebase is not configured. Set the VITE_FIREBASE_* environment variables (see .env.example).',
+      );
+    }
+
+    try {
+      const snapshot = await getDocs(
+        query(
+          collection(this.firestore, 'events'),
+          where('date', '>=', startDate),
+          where('date', '<=', endDate),
+        ),
+      );
       const data: Event[] = snapshot.docs.map((doc) => mapEvent(doc.id, doc.data()));
       return repositorySuccess(data);
     } catch (error) {
