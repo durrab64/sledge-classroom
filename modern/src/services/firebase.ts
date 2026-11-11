@@ -1,8 +1,8 @@
 // Firebase client foundation.
 //
 // Initializes the Firebase modular SDK for the existing `sledge-classroom`
-// project and exposes the read-only services (Firestore + Realtime Database)
-// that the repository layer consumes.
+// project and exposes the client-side services (Firestore, Realtime Database,
+// Auth) consumed by the repository and service layers.
 //
 // Configuration is read exclusively from Vite environment variables
 // (VITE_FIREBASE_*). No service-account credentials, Admin SDK keys, or other
@@ -13,12 +13,13 @@
 // Firebase is initialized lazily and only when every required env var is
 // present. When configuration is missing (e.g. local development without a
 // `.env`), the exported services are `null` and `firebaseConfigured` is
-// `false`. Repositories surface a clear `FirebaseNotConfiguredError` when
-// invoked without configuration — they never silently fall back to invented
-// data, which would conceal backend errors.
+// `false`. Layers surface a clear error when invoked without configuration;
+// they never silently fall back to invented data, which would conceal backend
+// errors.
 //
-// This module performs NO writes, NO authentication, and NO admin operations.
-// It is strictly a read-only client boundary.
+// Firebase Auth uses the SDK's default persistence (browser local storage),
+// matching the legacy application's behavior. This module does not override
+// persistence and does not create users.
 
 import {
   type FirebaseApp,
@@ -27,6 +28,7 @@ import {
 } from 'firebase/app';
 import { type Firestore, getFirestore } from 'firebase/firestore';
 import { type Database, getDatabase } from 'firebase/database';
+import { type Auth, getAuth } from 'firebase/auth';
 
 const REQUIRED_ENV_VARS = [
   'VITE_FIREBASE_API_KEY',
@@ -47,6 +49,7 @@ function isConfigured(): boolean {
 let app: FirebaseApp | null = null;
 let db: Firestore | null = null;
 let rtdb: Database | null = null;
+let auth: Auth | null = null;
 let initError: Error | null = null;
 
 if (isConfigured()) {
@@ -67,16 +70,17 @@ if (isConfigured()) {
     }
     db = getFirestore(app);
     rtdb = getDatabase(app);
+    auth = getAuth(app);
   } catch (error) {
-    // Record the failure so repositories can surface a clear message instead
-    // of crashing at module load time.
+    // Record the failure so layers can surface a clear message instead of
+    // crashing at module load time.
     initError =
       error instanceof Error ? error : new Error(String(error));
   }
 }
 
 /** True when Firebase was successfully initialized from env config. */
-export const firebaseConfigured = isConfigured() && initError === null && db !== null && rtdb !== null;
+export const firebaseConfigured = isConfigured() && initError === null && db !== null && rtdb !== null && auth !== null;
 
 /** The Firebase app instance, or null when not configured. */
 export { app };
@@ -87,10 +91,13 @@ export { db };
 /** Realtime Database instance (read-only usage in this checkpoint). */
 export { rtdb };
 
+/** Firebase Auth instance. */
+export { auth };
+
 /** Reason Firebase initialization failed, if any. */
 export { initError };
 
-/** Thrown by repositories when Firebase is not configured. */
+/** Thrown when Firebase is not configured. */
 export class FirebaseNotConfiguredError extends Error {
   constructor() {
     super(

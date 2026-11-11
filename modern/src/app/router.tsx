@@ -1,8 +1,8 @@
 // Application router setup.
 //
 // Uses React Router with hash-based history so the migrated application keeps
-// the legacy URL shape (e.g. #courses, #calendar). The router is rendered
-// inside DefaultLayout by main.tsx.
+// the legacy URL shape (e.g. #courses, #calendar). AuthProvider wraps the
+// router (in main.tsx) so every route can consume auth state.
 //
 // Every route renders a PlaceholderRoute until the corresponding feature is
 // migrated in later checkpoints.
@@ -17,6 +17,7 @@ import {
   ReadingRoomRoute,
   NotFoundRoute,
 } from '@/features';
+import { LoginRoute } from '@/features/auth';
 
 export const router = createHashRouter([
   {
@@ -28,6 +29,7 @@ export const router = createHashRouter([
       { path: 'labs', Component: LabsRoute },
       { path: 'calendar', Component: CalendarRoute },
       { path: 'reader', Component: ReadingRoomRoute },
+      { path: 'login', Component: LoginRoute },
       { path: 'migration/not-found', Component: NotFoundRoute },
       { path: '*', Component: NotFoundRoute },
     ],

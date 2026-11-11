@@ -9,5 +9,6 @@ export const ROUTES = {
   labs: '/labs',
   calendar: '/calendar',
   readingRoom: '/reader',
+  login: '/login',
   notFound: '/migration/not-found',
 } as const;
