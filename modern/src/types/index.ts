@@ -79,6 +79,31 @@ export interface VisualState {
   quietMode: boolean;
 }
 
+// Repository result types (shared models).
+//
+// Every repository method returns a RepositoryResult<T>. Exactly one of
+// `data` / `error` is populated: on success `data` is present and `error`
+// is null; on failure `error` is present and `data` is null. Repositories
+// never silently fall back to invented data.
+
+export interface RepositoryError {
+  readonly code: string;
+  readonly message: string;
+}
+
+export interface RepositoryResult<T> {
+  readonly data: T | null;
+  readonly error: RepositoryError | null;
+}
+
+export function repositorySuccess<T>(data: T): RepositoryResult<T> {
+  return { data, error: null };
+}
+
+export function repositoryFailure(code: string, message: string): RepositoryResult<never> {
+  return { data: null, error: { code, message } };
+}
+
 // Migration scaffolding marker: routes and features below are placeholders.
 export interface MigrationStatus {
   feature: string;
