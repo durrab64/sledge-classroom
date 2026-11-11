@@ -53,7 +53,7 @@ export interface Event {
   time: string;
   type: string;
   courseId: CourseId;
-  groups: string;
+  groups: string | string[];
   description: string;
   createdAt?: unknown;
 }

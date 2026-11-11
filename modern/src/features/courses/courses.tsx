@@ -1,15 +1,5 @@
-// Courses route — migration scaffolding.
-//
-// Placeholder route, not a migrated legacy page. Preserves the route path
-// (/courses) for the incremental migration.
+// Courses routes — migrated in CP6 from the legacy #page-courses section.
+// The directory and detail views share the same route family.
 
-import { PlaceholderRoute } from '@/components/PlaceholderRoute';
-
-export function CoursesRoute() {
-  return (
-    <PlaceholderRoute
-      feature="Courses"
-      note="Course directory, filter pills, search, sort, and per-category upload buttons will be migrated here."
-    />
-  );
-}
+export { CoursesPage as CoursesRoute } from './CoursesPage';
+export { CourseDetail as CourseDetailRoute } from './CourseDetail';

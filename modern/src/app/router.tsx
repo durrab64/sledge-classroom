@@ -8,16 +8,23 @@
 // migrated in later checkpoints.
 
 import { RouterProvider, createHashRouter } from 'react-router-dom';
+import { normalizeInitialHash } from '@/lib/legacyHash';
 import { DefaultLayout } from '@/layouts/default';
 import {
   HomeRoute,
   CoursesRoute,
+  CourseDetailRoute,
   LabsRoute,
   CalendarRoute,
   ReadingRoomRoute,
   NotFoundRoute,
 } from '@/features';
 import { LoginRoute } from '@/features/auth';
+
+// Rewrite a legacy hash (#course-os/lab, #home, ...) before the hash router
+// reads `window.location`. `createHashRouter` captures the location when it is
+// constructed, so this must run before the call below rather than in main.tsx.
+normalizeInitialHash();
 
 export const router = createHashRouter([
   {
@@ -26,6 +33,7 @@ export const router = createHashRouter([
     children: [
       { index: true, Component: HomeRoute },
       { path: 'courses', Component: CoursesRoute },
+      { path: 'courses/:courseId', Component: CourseDetailRoute },
       { path: 'labs', Component: LabsRoute },
       { path: 'calendar', Component: CalendarRoute },
       { path: 'reader', Component: ReadingRoomRoute },

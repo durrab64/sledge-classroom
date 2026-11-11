@@ -63,7 +63,12 @@ export function mapEvent(docId: string, data: Record<string, unknown>): Event {
     time: normalizeString(data.time, ''),
     type: normalizeString(data.type, ''),
     courseId: normalizeCourseId(data.courseId),
-    groups: normalizeString(data.groups, ''),
+    // Legacy events store `groups` as either a string or an array of names.
+    // Preserve both shapes so the UI can render group tags without inventing
+    // content for malformed values.
+    groups: Array.isArray(data.groups)
+      ? data.groups.filter((group): group is string => typeof group === 'string')
+      : normalizeString(data.groups, ''),
     description: normalizeString(data.description, ''),
     createdAt: data.createdAt ?? null,
   };
