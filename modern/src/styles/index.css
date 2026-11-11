@@ -1,0 +1,66 @@
+/* Global styles and design-token foundation for the Sledge Classroom 2.0
+   migration. These tokens mirror the legacy visual language (see CP2 §2.7)
+   so migrated pages can adopt them incrementally.
+
+   Fonts (Bebas Neue, Inter, JetBrains Mono) are loaded in index.html via
+   Google Fonts, matching the legacy application. */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --sledge-ink: 15 23 42; /* #0f172a */
+    --sledge-surface: 255 255 255; /* #ffffff */
+    --sledge-muted: 100 116 139; /* #64748b */
+    --sledge-accent: 14 165 233; /* #0ea5e9 */
+    --sledge-accent-hover: 2 132 199; /* #0284c7 */
+    --sledge-border: 226 232 240; /* #e2e8f0 */
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-sledge-surface text-sledge-ink antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: 'Bebas Neue', cursive;
+    letter-spacing: -0.02em;
+  }
+
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+@layer components {
+  .sledge-card {
+    @apply rounded-lg border border-sledge-border bg-sledge-surface p-4 shadow-sm;
+  }
+
+  .sledge-btn {
+    @apply inline-flex items-center justify-center rounded-md border border-sledge-border bg-sledge-surface px-4 py-2 text-sm font-medium text-sledge-ink transition-colors hover:bg-sledge-accent hover:text-white focus:outline-none focus:ring-2 focus:ring-sledge-accent focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .sledge-input {
+    @apply block w-full rounded-md border border-sledge-border bg-sledge-surface px-3 py-2 text-sm text-sledge-ink placeholder-sledge-muted focus:outline-none focus:ring-2 focus:ring-sledge-accent;
+  }
+
+  .sledge-page {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
