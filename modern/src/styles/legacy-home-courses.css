@@ -5039,3 +5039,19 @@ body.is-admin #page-courses .file-action-btn.admin-action {
     }
 }
 
+/* Smallest supported width (320px): the footer wordmark is a single
+   unbreakable word, so its 1.7rem size forces the footer grid wider than the
+   viewport. Scaling it down keeps the footer inside the 320px viewport without
+   changing the layout at larger widths. */
+@media (max-width: 360px) {
+    .footer .footer-logo {
+        font-size: 1.3rem;
+    }
+
+    /* "Knowledge" at the 15vw mobile size is wider than the 320px hero
+       content box. A fixed 3rem size fits while staying visually large. */
+    .page-home .hero-title {
+        font-size: 3rem;
+    }
+}
+

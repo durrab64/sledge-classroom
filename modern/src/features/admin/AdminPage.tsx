@@ -22,6 +22,7 @@ import type {
 import { useAuth } from '@/contexts/AuthContext';
 import { COURSES } from '@/features/courses/courseData';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { safeHttpUrl } from '@/lib/resourceUrl';
 import { adminRepository, courseRepository } from '@/services/repositories';
 import type {
   ResourceCreateInput,
@@ -206,6 +207,11 @@ export function AdminPage({
   }, [navigate, signOut]);
 
   const files = state.status === 'success' ? state.files : [];
+  // Stored links are rendered only when they are safe http(s) URLs; a
+  // legacy/malformed value must never become a clickable href.
+  const openUrls = new Map(
+    files.map((file) => [file.id, safeHttpUrl(file.previewURL || file.url)]),
+  );
 
   return (
     <section className="admin-page" id="page-admin">
@@ -427,9 +433,9 @@ export function AdminPage({
                   </span>
                 </div>
                 <div className="admin-resource-actions">
-                  {file.previewURL || file.url ? (
+                  {openUrls.get(file.id) ? (
                     <a
-                      href={file.previewURL || file.url}
+                      href={openUrls.get(file.id)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="btn btn-ghost btn-sm"

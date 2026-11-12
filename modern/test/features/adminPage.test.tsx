@@ -185,6 +185,25 @@ describe('AdminPage resource list', () => {
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Retry/i })).toBeInTheDocument();
   });
+
+  it('renders only safe http(s) stored links in the Open action', async () => {
+    const unsafe = makeResource('lec-2', 'stats', 'lectures', {
+      name: 'Unsafe link',
+      type: 'link',
+      url: 'javascript:alert(1)',
+      previewURL: 'javascript:alert(1)',
+      downloadURL: 'data:text/html,hi',
+    });
+    renderPage(createCourseReader([lecture, unsafe]));
+
+    expect(await screen.findByText('Unsafe link')).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: /Open Lecture 01 online/i }),
+    ).toHaveAttribute('href', lecture.previewURL);
+    expect(
+      screen.queryByRole('link', { name: /Open Unsafe link online/i }),
+    ).not.toBeInTheDocument();
+  });
 });
 
 describe('AdminPage resource creation', () => {

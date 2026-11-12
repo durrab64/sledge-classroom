@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { ReadingRoomPage } from '@/features/reading-room/reading-room';
 import type {
@@ -64,7 +64,7 @@ describe('ReadingRoomPage', () => {
       name: 'OS Lecture 2',
     });
     expect(heading).toBeInTheDocument();
-    expect(heading).toHaveFocus();
+    await waitFor(() => expect(heading).toHaveFocus());
     expect(screen.queryByRole('heading', { name: 'OS Lecture 1' })).toBeNull();
     expect(screen.getByText('OS Lecture 2 description')).toBeInTheDocument();
     expect(screen.getByText('Jan 2, 2026')).toBeInTheDocument();
