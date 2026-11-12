@@ -18,6 +18,20 @@ import type {
 import { useGlobalExperience } from './GlobalExperienceContext';
 import { PRESET_NAMES, ZANPAKUTO_THEMES } from './visualSettings';
 
+// Keyboard focus should hold the dock open, but a mouse click also focuses the
+// clicked button. Only visible (keyboard-originated) focus keeps it open, so
+// moving the pointer away after a click still closes the dock on schedule.
+function keyboardFocusInside(shell: HTMLElement | null): boolean {
+  const active = document.activeElement;
+  if (!shell || !(active instanceof HTMLElement) || !shell.contains(active)) return false;
+  try {
+    return active.matches(':focus-visible');
+  } catch {
+    // Older engines without :focus-visible keep the conservative behavior.
+    return true;
+  }
+}
+
 const THEME_LABELS: Record<ZanpakutoTheme, string> = {
   default: 'Sledge Default',
   'getsuga-tensho': 'Getsuga Tensho',
@@ -155,7 +169,7 @@ export function FloatingDock() {
     closeTimerRef.current = setTimeout(() => {
       closeTimerRef.current = null;
       if (pointerInsideRef.current) return;
-      if (shellRef.current?.contains(document.activeElement)) return;
+      if (keyboardFocusInside(shellRef.current)) return;
       setActivePopup(null);
       setDockOpen(false);
     }, 400);
@@ -237,7 +251,7 @@ export function FloatingDock() {
     pointerInsideRef.current = false;
     if (!dockOpen) return;
     // Keyboard focus keeps the dock open regardless of pointer position.
-    if (shellRef.current?.contains(document.activeElement)) return;
+    if (keyboardFocusInside(shellRef.current)) return;
     scheduleClose();
   };
 

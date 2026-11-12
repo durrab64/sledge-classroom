@@ -222,6 +222,16 @@ describe('floating dock hover grace period', () => {
     fireEvent.pointerOut(shell(), { relatedTarget: document.body });
     fireEvent.pointerLeave(shell());
   };
+  const setFocusVisible = (element: HTMLElement, visible: boolean) => {
+    const original = element.matches.bind(element);
+    Object.defineProperty(element, 'matches', {
+      configurable: true,
+      value: (selector: string) => (selector === ':focus-visible' ? visible : original(selector)),
+    });
+    return () => {
+      delete (element as HTMLElement & { matches?: unknown }).matches;
+    };
+  };
 
   it('keeps the dock open when the pointer crosses from the trigger into the options within 400ms', () => {
     vi.useFakeTimers();
@@ -294,8 +304,11 @@ describe('floating dock hover grace period', () => {
     act(() => {
       fireEvent.pointerOver(shell(), { relatedTarget: document.body });
     });
+    const button = screen.getByRole('button', { name: 'Change theme' });
+    const restore = setFocusVisible(button, true);
+
     act(() => {
-      screen.getByRole('button', { name: 'Change theme' }).focus();
+      button.focus();
     });
     act(() => {
       leaveShell();
@@ -303,6 +316,33 @@ describe('floating dock hover grace period', () => {
     });
 
     expect(dock()).toHaveAttribute('aria-hidden', 'false');
+    restore();
+  });
+
+  it('closes after a mouse click leaves focus inside without keyboard focus visibility', () => {
+    vi.useFakeTimers();
+    renderProvider(<FloatingDock />);
+
+    act(() => {
+      fireEvent.pointerOver(shell(), { relatedTarget: document.body });
+    });
+    const button = screen.getByRole('button', { name: 'Change theme' });
+    const restore = setFocusVisible(button, false);
+
+    act(() => {
+      button.focus();
+    });
+    act(() => {
+      leaveShell();
+      vi.advanceTimersByTime(399);
+    });
+    expect(dock()).toHaveAttribute('aria-hidden', 'false');
+
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+    expect(dock()).toHaveAttribute('aria-hidden', 'true');
+    restore();
   });
 
   it('closes on Escape, restores focus and clears the pending timer on unmount', () => {
