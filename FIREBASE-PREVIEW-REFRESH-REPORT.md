@@ -17,9 +17,12 @@ Firebase data, rules, schema or index was modified.
 | --- | --- |
 | Branch | `modernization/react-foundation` |
 | Expected refinement commit | `97f42e6c57d26062068c130e9515c1ecc47a7d97` |
-| Final HEAD / deployed commit | `850e242a4b524f8d63d0a6b7ca1aafe7ff918644` |
-| Final commit subject | `fix(global): close dock after mouse-click focus leaves` |
+| Deployed source commit | `850e242a4b524f8d63d0a6b7ca1aafe7ff918644` |
+| Deployed source commit subject | `fix(global): close dock after mouse-click focus leaves` |
 | Parent refinement commit | `97f42e6c57d26062068c130e9515c1ecc47a7d97` |
+
+This report is committed on top as a docs-only change; it does not alter the built
+bundle. The deployed assets correspond to source commit `850e242`.
 
 The first refresh deployed `97f42e6` (version `c109285060cd1ae7`). Live verification
 then exposed a real dock defect: a mouse click leaves focus on the clicked option, and
