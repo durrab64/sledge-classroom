@@ -5,7 +5,9 @@ import './styles/legacy-home-courses.css';
 import './styles/legacy-labs-calendar.css';
 import './styles/legacy-reading-room.css';
 import './styles/cp6-supplement.css';
+import './styles/cp9-global.css';
 import { AuthProvider } from '@/contexts';
+import { GlobalExperienceProvider } from '@/features/global/GlobalExperienceContext';
 import { Router } from './app/router';
 import { installLegacyHashBridge } from '@/lib/legacyHash';
 
@@ -16,7 +18,9 @@ installLegacyHashBridge();
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <AuthProvider>
-      <Router />
+      <GlobalExperienceProvider>
+        <Router />
+      </GlobalExperienceProvider>
     </AuthProvider>
   </React.StrictMode>,
 );

@@ -1,0 +1,3188 @@
+/* ===================================================
+   CP9 GLOBAL UI & EXPERIENCE
+   Verbatim port of the legacy global layers:
+   Zanpakuto theme palettes, floating dock, quiet mode,
+   ambient atmosphere, spotlight, scroll progress,
+   back-to-top, dock presets/customization, clock,
+   shortcuts dialog, sakura/cursor canvases and Now Playing.
+   =================================================== */
+
+/* ===================================================
+   BLEACH EASTER EGGS & ZANPAKUTO THEMES
+   =================================================== */
+
+/* ---------------------------------------------------
+   1. GETSUGA TENSHO (Ichigo - Black & White)
+   --------------------------------------------------- */
+html[data-zanpakuto="getsuga-tensho"] {
+    --blue-50: #f4f4f5;
+    --blue-100: #e4e4e7;
+    --blue-200: #d4d4d8;
+    --blue-300: #a1a1aa;
+    --blue-400: #71717a;
+    --blue-500: #27272a;
+    --blue-600: #18181b;
+    --blue-700: #09090b;
+    --blue-800: #000000;
+    --blue-900: #000000;
+
+    --bg-primary: #ffffff;
+    --bg-secondary: #f4f4f5;
+    --bg-tertiary: #e4e4e7;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f4f4f5;
+    --bg-hero: linear-gradient(135deg, #18181b 0%, #27272a 50%, #09090b 100%);
+    --text-primary: #09090b;
+    --text-secondary: #52525b;
+    --text-tertiary: #a1a1aa;
+    --text-link: #18181b;
+    --border-color: #e4e4e7;
+    --border-color-hover: #18181b;
+    --shadow-card-hover: 0 10px 30px rgba(0, 0, 0, 0.18);
+}
+
+html[data-theme="dark"][data-zanpakuto="getsuga-tensho"] {
+    --bg-primary: #000000;
+    --bg-secondary: #0a0a0c;
+    --bg-tertiary: #141416;
+    --bg-card: #0d0d0f;
+    --bg-card-hover: rgba(255, 255, 255, 0.08);
+    --bg-nav: rgba(0, 0, 0, 0.94);
+    --bg-modal: #0d0d0f;
+    --bg-input: #141416;
+    --bg-hero: linear-gradient(135deg, #000000 0%, #171717 50%, #0a0a0a 100%);
+    --text-primary: #fafafa;
+    --text-secondary: #a1a1aa;
+    --text-tertiary: #71717a;
+    --text-inverse: #000000;
+    --text-link: #ffffff;
+    --border-color: #27272a;
+    --border-color-hover: #ffffff;
+    --blue-500: #ffffff;
+    --blue-600: #e4e4e7;
+    --blue-700: #d4d4d8;
+    --shadow-card-hover: 0 10px 30px rgba(255, 255, 255, 0.1);
+}
+
+/* ---------------------------------------------------
+   2. NOZARASHI (Zaraki Kenpachi - Yellow & Black)
+   --------------------------------------------------- */
+html[data-zanpakuto="nozarashi"] {
+    --blue-50: #fefce8;
+    --blue-100: #fef9c3;
+    --blue-200: #fef08a;
+    --blue-300: #fde047;
+    --blue-400: #facc15;
+    --blue-500: #eab308;
+    --blue-600: #ca8a04;
+    --blue-700: #a16207;
+    --blue-800: #854d0e;
+    --blue-900: #713f12;
+
+    --bg-primary: #ffffff;
+    --bg-secondary: #fefce8;
+    --bg-tertiary: #fef9c3;
+    --bg-card: #ffffff;
+    --bg-card-hover: #fef9c3;
+    --bg-hero: linear-gradient(135deg, #18181b 0%, #27272a 50%, #854d0e 100%);
+    --text-primary: #18181b;
+    --text-secondary: #52525b;
+    --text-link: #ca8a04;
+    --border-color: #fef08a;
+    --border-color-hover: #ca8a04;
+    --shadow-card-hover: 0 10px 30px rgba(202, 138, 4, 0.22);
+}
+
+html[data-theme="dark"][data-zanpakuto="nozarashi"] {
+    --bg-primary: #09090b;
+    --bg-secondary: #141416;
+    --bg-tertiary: #1c1c1f;
+    --bg-card: #121214;
+    --bg-card-hover: rgba(234, 179, 8, 0.12);
+    --bg-nav: rgba(9, 9, 11, 0.94);
+    --bg-modal: #121214;
+    --bg-input: #1c1c1f;
+    --bg-hero: linear-gradient(135deg, #09090b 0%, #1c1917 50%, #451a03 100%);
+    --text-primary: #fef08a;
+    --text-secondary: #d4d4d8;
+    --text-tertiary: #a1a1aa;
+    --text-inverse: #09090b;
+    --text-link: #fde047;
+    --border-color: #27272a;
+    --border-color-hover: #facc15;
+    --blue-500: #facc15;
+    --blue-600: #eab308;
+    --blue-700: #ca8a04;
+    --shadow-card-hover: 0 10px 30px rgba(250, 204, 21, 0.25);
+}
+
+/* ---------------------------------------------------
+   3. SENBONZAKURA (Byakuya - Pink & Sakura Petals)
+   --------------------------------------------------- */
+html[data-zanpakuto="senbonzakura"] {
+    --blue-50: #fdf2f8;
+    --blue-100: #fce7f3;
+    --blue-200: #fbcfe8;
+    --blue-300: #f472b6;
+    --blue-400: #ec4899;
+    --blue-500: #db2777;
+    --blue-600: #be185d;
+    --blue-700: #9d174d;
+    --blue-800: #831843;
+    --blue-900: #701a75;
+
+    --bg-primary: #fffafc;
+    --bg-secondary: #fdf2f8;
+    --bg-tertiary: #fce7f3;
+    --bg-card: #ffffff;
+    --bg-card-hover: #fdf2f8;
+    --bg-hero: linear-gradient(135deg, #be185d 0%, #9d174d 50%, #831843 100%);
+    --text-primary: #4a044e;
+    --text-secondary: #701a75;
+    --text-link: #be185d;
+    --border-color: #fbcfe8;
+    --border-color-hover: #ec4899;
+    --shadow-card-hover: 0 10px 30px rgba(219, 39, 119, 0.22);
+}
+
+html[data-theme="dark"][data-zanpakuto="senbonzakura"] {
+    --bg-primary: #0d0611;
+    --bg-secondary: #160a1d;
+    --bg-tertiary: #220f2c;
+    --bg-card: #14081a;
+    --bg-card-hover: rgba(244, 114, 182, 0.12);
+    --bg-nav: rgba(13, 6, 17, 0.94);
+    --bg-modal: #160a1d;
+    --bg-input: #220f2c;
+    --bg-hero: linear-gradient(135deg, #14081a 0%, #290833 50%, #4a044e 100%);
+    --text-primary: #fdf2f8;
+    --text-secondary: #f472b6;
+    --text-tertiary: #c084fc;
+    --text-inverse: #0d0611;
+    --text-link: #f472b6;
+    --border-color: #3b144d;
+    --border-color-hover: #ec4899;
+    --blue-500: #f472b6;
+    --blue-600: #ec4899;
+    --blue-700: #db2777;
+    --shadow-card-hover: 0 10px 30px rgba(244, 114, 182, 0.3);
+}
+
+/* ---------------------------------------------------
+   4. KYOKA SUIGETSU (Aizen - Purple & Black)
+   --------------------------------------------------- */
+html[data-zanpakuto="kyoka-suigetsu"] {
+    --blue-50: #faf5ff;
+    --blue-100: #f3e8ff;
+    --blue-200: #e9d5ff;
+    --blue-300: #d8b4fe;
+    --blue-400: #c084fc;
+    --blue-500: #a855f7;
+    --blue-600: #9333ea;
+    --blue-700: #7e22ce;
+    --blue-800: #6b21a8;
+    --blue-900: #581c87;
+
+    --bg-primary: #faf8ff;
+    --bg-secondary: #f5f0ff;
+    --bg-tertiary: #ebdfff;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f5f0ff;
+    --bg-hero: linear-gradient(135deg, #3b0764 0%, #581c87 50%, #1e1b4b 100%);
+    --text-primary: #2e1065;
+    --text-secondary: #6b21a8;
+    --text-link: #9333ea;
+    --border-color: #e9d5ff;
+    --border-color-hover: #a855f7;
+    --shadow-card-hover: 0 10px 30px rgba(147, 51, 234, 0.24);
+}
+
+html[data-theme="dark"][data-zanpakuto="kyoka-suigetsu"] {
+    --bg-primary: #080312;
+    --bg-secondary: #100624;
+    --bg-tertiary: #190a36;
+    --bg-card: #0e0420;
+    --bg-card-hover: rgba(192, 132, 252, 0.12);
+    --bg-nav: rgba(8, 3, 18, 0.94);
+    --bg-modal: #100624;
+    --bg-input: #190a36;
+    --bg-hero: linear-gradient(135deg, #080312 0%, #1b0738 50%, #3b0764 100%);
+    --text-primary: #f5f3ff;
+    --text-secondary: #c084fc;
+    --text-tertiary: #a855f7;
+    --text-inverse: #080312;
+    --text-link: #c084fc;
+    --border-color: #2b1154;
+    --border-color-hover: #c084fc;
+    --blue-500: #c084fc;
+    --blue-600: #a855f7;
+    --blue-700: #9333ea;
+    --shadow-card-hover: 0 10px 30px rgba(168, 85, 247, 0.32);
+}
+
+/* ---------------------------------------------------
+   5. TENSA ZANGETSU (Ichigo Bankai - Crimson & Black/White)
+   --------------------------------------------------- */
+html[data-zanpakuto="tensa-zangetsu"] {
+    --blue-50: #fff1f2;
+    --blue-100: #ffe4e6;
+    --blue-200: #fecdd3;
+    --blue-300: #fda4af;
+    --blue-400: #fb7185;
+    --blue-500: #ef4444;
+    --blue-600: #dc2626;
+    --blue-700: #b91c1c;
+    --blue-800: #991b1b;
+    --blue-900: #7f1d1d;
+
+    --bg-primary: #ffffff;
+    --bg-secondary: #fff1f2;
+    --bg-tertiary: #ffe4e6;
+    --bg-card: #ffffff;
+    --bg-card-hover: #fff1f2;
+    --bg-hero: linear-gradient(135deg, #0f0000 0%, #1a0000 40%, #3d0000 100%);
+    --text-primary: #0a0000;
+    --text-secondary: #7f1d1d;
+    --text-link: #dc2626;
+    --border-color: #fecdd3;
+    --border-color-hover: #ef4444;
+    --shadow-card-hover: 0 10px 30px rgba(239, 68, 68, 0.25);
+}
+
+/* Tensa Zangetsu Day mode — sharp blood-red on white */
+html[data-zanpakuto="tensa-zangetsu"] .btn-primary {
+    background: linear-gradient(135deg, #dc2626, #991b1b) !important;
+    color: #ffffff !important;
+}
+
+/* Tensa Zangetsu Dark mode — sharp crimson slash on pure black */
+html[data-theme="dark"][data-zanpakuto="tensa-zangetsu"] {
+    --bg-primary: #000000;
+    --bg-secondary: #080000;
+    --bg-tertiary: #120000;
+    --bg-card: #0a0000;
+    --bg-card-hover: rgba(239, 68, 68, 0.12);
+    --bg-nav: rgba(0, 0, 0, 0.96);
+    --bg-modal: #0a0000;
+    --bg-input: #120000;
+    --bg-hero: linear-gradient(135deg, #000000 0%, #0d0000 50%, #1a0000 100%);
+    --text-primary: #f5f5f5;
+    --text-secondary: #fca5a5;
+    --text-tertiary: #f87171;
+    --text-inverse: #000000;
+    --text-link: #f87171;
+    --border-color: #2d0000;
+    --border-color-hover: #ef4444;
+    --blue-500: #ef4444;
+    --blue-600: #dc2626;
+    --blue-700: #b91c1c;
+    --shadow-card-hover: 0 10px 30px rgba(239, 68, 68, 0.38);
+}
+
+html[data-theme="dark"][data-zanpakuto="tensa-zangetsu"] .btn-primary {
+    background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+    color: #000000 !important;
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.4) !important;
+}
+
+/* ---------------------------------------------------
+   6. HŌGYOKU (Aizen's Orb - Deep Violet & Crimson)
+   Dark-first, with a light variant for the day toggle.
+   --------------------------------------------------- */
+html[data-zanpakuto="hogyoku"] {
+    --blue-50: #fdf4ff;
+    --blue-100: #fae8ff;
+    --blue-200: #f5d0fe;
+    --blue-300: #f0abfc;
+    --blue-400: #d946ef;
+    --blue-500: #a21caf;
+    --blue-600: #86198f;
+    --blue-700: #701a75;
+    --blue-800: #581c87;
+    --blue-900: #3b0764;
+
+    --bg-primary: #fbf7ff;
+    --bg-secondary: #f6ecff;
+    --bg-tertiary: #edd9ff;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f6ecff;
+    --bg-hero: linear-gradient(135deg, #14021f 0%, #3b0764 52%, #7f1d3a 100%);
+    --text-primary: #2b0a3d;
+    --text-secondary: #6b21a8;
+    --text-tertiary: #86198f;
+    --text-inverse: #fdf4ff;
+    --text-link: #a21caf;
+    --border-color: #edd9ff;
+    --border-color-hover: #a21caf;
+    --shadow-card-hover: 0 10px 30px rgba(162, 28, 175, 0.24);
+}
+
+html[data-theme="dark"][data-zanpakuto="hogyoku"] {
+    --bg-primary: #06020c;
+    --bg-secondary: #0c0418;
+    --bg-tertiary: #150727;
+    --bg-card: #0b0316;
+    --bg-card-hover: rgba(192, 132, 252, 0.12);
+    --bg-nav: rgba(6, 2, 12, 0.96);
+    --bg-modal: #0c0418;
+    --bg-input: #150727;
+    --bg-hero: linear-gradient(135deg, #06020c 0%, #1b0533 48%, #3b0620 100%);
+    --text-primary: #f8f1ff;
+    --text-secondary: #d8b4fe;
+    --text-tertiary: #c084fc;
+    --text-inverse: #06020c;
+    --text-link: #e879f9;
+    --border-color: #2b0f42;
+    --border-color-hover: #c084fc;
+    --blue-400: #d8b4fe;
+    --blue-500: #c084fc;
+    --blue-600: #a855f7;
+    --blue-700: #9333ea;
+    --shadow-card-hover: 0 10px 34px rgba(192, 132, 252, 0.34);
+}
+
+html[data-zanpakuto="hogyoku"] .btn-primary {
+    background: linear-gradient(135deg, #a21caf, #7f1d3a) !important;
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"][data-zanpakuto="hogyoku"] .btn-primary {
+    background: linear-gradient(135deg, #c084fc, #be123c) !important;
+    color: #0b0316 !important;
+    box-shadow: 0 0 22px rgba(192, 132, 252, 0.38) !important;
+}
+
+html[data-zanpakuto="hogyoku"] #dock-shell {
+    --dock-accent: #c084fc;
+    --dock-accent-rgb: 192, 132, 252;
+    --dock-glow: rgba(192, 132, 252, 0.4);
+    --dock-border: rgba(192, 132, 252, 0.36);
+    --dock-surface: rgba(12, 4, 22, 0.94);
+}
+/* ---------------------------------------------------
+   TENSA ZANGETSU BLOOD MOON MODE (Sharp Red & Black/White)
+   Triggered on Moon Click:
+   - Day: Pure white & deep black with sharp blood-red accents
+   - Dark: Pure abyss void black with razor sharp crimson slashes & glowing borders
+   --------------------------------------------------- */
+html[data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] {
+    --blue-50: #fff1f2;
+    --blue-100: #ffe4e6;
+    --blue-200: #fecdd3;
+    --blue-300: #fda4af;
+    --blue-400: #fb7185;
+    --blue-500: #dc2626;
+    --blue-600: #b91c1c;
+    --blue-700: #991b1b;
+    --blue-800: #7f1d1d;
+    --blue-900: #450a0a;
+
+    --bg-primary: #ffffff;
+    --bg-secondary: #fff5f5;
+    --bg-tertiary: #fee2e2;
+    --bg-card: #ffffff;
+    --bg-card-hover: #fef2f2;
+    --bg-hero: linear-gradient(135deg, #180003 0%, #3a0008 45%, #66000e 100%);
+    --text-primary: #0a0002;
+    --text-secondary: #5a040d;
+    --text-tertiary: #991b1b;
+    --text-link: #dc2626;
+    --border-color: #fca5a5;
+    --border-color-hover: #dc2626;
+    --shadow-card-hover: 0 10px 30px rgba(220, 38, 38, 0.32);
+}
+
+html[data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] .btn-primary {
+    background: linear-gradient(135deg, #dc2626, #991b1b) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 18px rgba(220, 38, 38, 0.45) !important;
+    border: 1px solid #ef4444 !important;
+}
+
+html[data-theme="dark"][data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] {
+    --bg-primary: #000000;
+    --bg-secondary: #050001;
+    --bg-tertiary: #0e0003;
+    --bg-card: #080002;
+    --bg-card-hover: #140104;
+    --bg-nav: rgba(0, 0, 0, 0.98);
+    --bg-modal: #080002;
+    --bg-input: #0e0003;
+    --bg-hero: linear-gradient(135deg, #000000 0%, #150004 45%, #2a0008 100%);
+    --text-primary: #ffffff;
+    --text-secondary: #fca5a5;
+    --text-tertiary: #f87171;
+    --text-inverse: #000000;
+    --text-link: #ff1e27;
+    --border-color: #3b0008;
+    --border-color-hover: #ff1e27;
+    --blue-500: #ff1e27;
+    --blue-600: #e0121b;
+    --blue-700: #b80d15;
+    --shadow-card-hover: 0 10px 35px rgba(255, 30, 39, 0.45);
+}
+
+html[data-theme="dark"][data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] .btn-primary {
+    background: #ff1e27 !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 25px rgba(255, 30, 39, 0.7), inset 0 0 10px rgba(255, 255, 255, 0.2) !important;
+    border: 1px solid #ff4d55 !important;
+}
+
+html[data-theme="dark"][data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] .card {
+    border-color: #3b0008;
+}
+
+html[data-theme="dark"][data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] .card:hover {
+    border-color: #ff1e27;
+    box-shadow: 0 0 28px rgba(255, 30, 39, 0.35);
+}
+
+/* Global Adjustments when Zanpakuto Theme is Active */
+html[data-zanpakuto] .logo-accent {
+    color: var(--blue-500) !important;
+}
+html[data-theme="dark"][data-zanpakuto] .logo-accent {
+    color: var(--blue-400) !important;
+}
+html[data-theme="dark"][data-zanpakuto="getsuga-tensho"] .btn-primary {
+    color: #000000 !important;
+}
+html[data-theme="dark"][data-zanpakuto="nozarashi"] .btn-primary {
+    color: #09090b !important;
+}
+
+/* ---------------------------------------------------
+   TENSA ZANGETSU MOON EFFECT
+   --------------------------------------------------- */
+#tensa-moon {
+    position: fixed;
+    pointer-events: auto;
+    cursor: pointer;
+    z-index: 996;
+    /* Position: lower-right, above dock area, away from zanpakuto btn */
+    bottom: 160px;
+    right: 56px;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    line-height: 1;
+    background: radial-gradient(circle at 38% 38%, #fff8e1 0%, #ffe0b2 40%, #a0522d 100%);
+    box-shadow:
+        0 0 12px 4px rgba(255, 200, 80, 0.55),
+        0 0 30px 8px rgba(255, 150, 20, 0.25),
+        inset 0 0 10px rgba(180, 100, 0, 0.2);
+    animation: moonFloat 4s ease-in-out infinite;
+    border: 2px solid rgba(255, 220, 120, 0.4);
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.35s ease;
+}
+
+html[data-zanpakuto="tensa-zangetsu"] #tensa-moon {
+    display: flex;
+}
+
+#tensa-moon:hover {
+    transform: scale(1.18);
+    box-shadow:
+        0 0 22px 8px rgba(255, 200, 80, 0.75),
+        0 0 50px 16px rgba(255, 100, 0, 0.35),
+        inset 0 0 14px rgba(180, 80, 0, 0.3);
+}
+
+#tensa-moon::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 1.5px dashed rgba(255, 200, 80, 0.3);
+    animation: moonOrbit 8s linear infinite;
+    pointer-events: none;
+}
+
+/* Blood moon activated state */
+html[data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] #tensa-moon {
+    background: radial-gradient(circle at 38% 38%, #ff1a1a 0%, #8b0000 55%, #000000 100%);
+    box-shadow:
+        0 0 20px 8px rgba(200, 0, 0, 0.7),
+        0 0 50px 18px rgba(150, 0, 0, 0.4),
+        inset 0 0 18px rgba(100, 0, 0, 0.5);
+    border-color: rgba(200, 0, 0, 0.6);
+    animation: moonPulse 1.5s ease-in-out infinite;
+}
+
+#tensa-moon .moon-crescent {
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: transparent;
+    box-shadow: 6px -4px 0 4px rgba(255, 240, 180, 0.85);
+    pointer-events: none;
+    transition: box-shadow 0.5s ease;
+}
+
+html[data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] #tensa-moon .moon-crescent {
+    box-shadow: 6px -4px 0 4px rgba(220, 0, 0, 0.8);
+}
+
+@keyframes moonFloat {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50% { transform: translateY(-8px) rotate(2deg); }
+}
+
+@keyframes moonOrbit {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes moonPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+}
+
+/* Moon tooltip */
+#tensa-moon[title]:hover::before {
+    content: attr(title);
+    position: absolute;
+    bottom: calc(100% + 10px);
+    right: 0;
+    background: rgba(10, 0, 0, 0.9);
+    color: #fca5a5;
+    font-family: var(--ui-font);
+    font-size: 0.7rem;
+    font-weight: 700;
+    white-space: nowrap;
+    padding: 4px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    pointer-events: none;
+}
+
+/* Tensa Zangetsu speed-slash overlay (decorative) */
+#tensa-slash-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    display: none;
+    overflow: hidden;
+}
+
+#tensa-slash-overlay.active {
+    display: block;
+}
+
+.tensa-slash-line {
+    position: absolute;
+    top: 0;
+    height: 100vh;
+    width: 3px;
+    background: linear-gradient(to bottom,
+        transparent 0%,
+        rgba(239, 68, 68, 0.9) 30%,
+        rgba(200, 0, 0, 1) 50%,
+        rgba(239, 68, 68, 0.9) 70%,
+        transparent 100%
+    );
+    box-shadow: 0 0 12px 4px rgba(200, 0, 0, 0.6);
+    animation: tensaSlash 0.45s cubic-bezier(0.25, 0, 0.75, 1) forwards;
+    transform-origin: top center;
+}
+
+@keyframes tensaSlash {
+    0% { opacity: 0; transform: rotate(-30deg) scaleY(0) translateX(-50%); }
+    15% { opacity: 1; }
+    50% { transform: rotate(-30deg) scaleY(1) translateX(0%); }
+    100% { opacity: 0; transform: rotate(-30deg) scaleY(1.2) translateX(60vw); }
+}
+
+/* ---------------------------------------------------
+   FLOATING QUICK-CONTROLS DOCK
+   A 52px theme-aware circle that expands into a compact
+   horizontal bar on hover, tap or keyboard activation.
+   --------------------------------------------------- */
+#dock-shell {
+    --dock-accent: #3b82f6;
+    --dock-accent-rgb: 59, 130, 246;
+    --dock-glow: rgba(59, 130, 246, 0.28);
+    --dock-border: rgba(255, 255, 255, 0.14);
+    --dock-surface: rgba(10, 12, 18, 0.88);
+
+    position: fixed;
+    right: calc(24px + env(safe-area-inset-right, 0px));
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    width: 52px;
+    height: 52px;
+    z-index: 999;
+}
+
+/* Accent surface follows the active Zanpakuto theme */
+html[data-zanpakuto="getsuga-tensho"] #dock-shell {
+    --dock-accent: #f8fafc;
+    --dock-accent-rgb: 248, 250, 252;
+    --dock-glow: rgba(255, 255, 255, 0.24);
+    --dock-border: rgba(255, 255, 255, 0.28);
+    --dock-surface: rgba(8, 8, 10, 0.9);
+}
+
+html[data-zanpakuto="nozarashi"] #dock-shell {
+    --dock-accent: #eab308;
+    --dock-accent-rgb: 234, 179, 8;
+    --dock-glow: rgba(234, 179, 8, 0.36);
+    --dock-border: rgba(234, 179, 8, 0.34);
+    --dock-surface: rgba(20, 17, 4, 0.9);
+}
+
+html[data-zanpakuto="senbonzakura"] #dock-shell {
+    --dock-accent: #ec4899;
+    --dock-accent-rgb: 236, 72, 153;
+    --dock-glow: rgba(236, 72, 153, 0.36);
+    --dock-border: rgba(236, 72, 153, 0.34);
+    --dock-surface: rgba(24, 8, 17, 0.9);
+}
+
+html[data-zanpakuto="kyoka-suigetsu"] #dock-shell {
+    --dock-accent: #a855f7;
+    --dock-accent-rgb: 168, 85, 247;
+    --dock-glow: rgba(168, 85, 247, 0.36);
+    --dock-border: rgba(168, 85, 247, 0.34);
+    --dock-surface: rgba(13, 9, 26, 0.9);
+}
+
+html[data-zanpakuto="tensa-zangetsu"] #dock-shell {
+    --dock-accent: #ef4444;
+    --dock-accent-rgb: 239, 68, 68;
+    --dock-glow: rgba(239, 68, 68, 0.4);
+    --dock-border: rgba(239, 68, 68, 0.36);
+    --dock-surface: rgba(22, 6, 8, 0.9);
+}
+
+html[data-zanpakuto="tensa-zangetsu"][data-blood-moon="true"] #dock-shell {
+    --dock-accent: #ff1e27;
+    --dock-accent-rgb: 255, 30, 39;
+    --dock-glow: rgba(255, 30, 39, 0.58);
+    --dock-border: rgba(255, 30, 39, 0.48);
+    --dock-surface: rgba(30, 2, 4, 0.92);
+}
+
+.dock-toggle-btn {
+    position: relative;
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid var(--dock-border);
+    background:
+        radial-gradient(circle at 34% 28%, rgba(var(--dock-accent-rgb), 0.2), transparent 62%),
+        var(--dock-surface);
+    color: var(--dock-accent);
+    cursor: pointer;
+    box-shadow:
+        0 8px 28px rgba(0, 0, 0, 0.45),
+        0 0 18px var(--dock-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.09);
+    transition:
+        transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+        box-shadow 0.28s ease,
+        border-color 0.28s ease,
+        background 0.35s ease;
+}
+
+.dock-toggle-btn i {
+    font-size: 1.02rem;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease;
+}
+
+.dock-toggle-btn:hover {
+    transform: translateY(-2px) scale(1.04);
+    border-color: rgba(var(--dock-accent-rgb), 0.6);
+    box-shadow:
+        0 12px 34px rgba(0, 0, 0, 0.5),
+        0 0 26px var(--dock-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.dock-toggle-btn:active {
+    transform: scale(0.96);
+}
+
+.dock-toggle-btn:focus-visible {
+    outline: 2px solid var(--dock-accent);
+    outline-offset: 4px;
+}
+
+#dock-shell.dock-open .dock-toggle-btn {
+    border-color: rgba(var(--dock-accent-rgb), 0.58);
+    background:
+        radial-gradient(circle at 34% 28%, rgba(var(--dock-accent-rgb), 0.3), transparent 64%),
+        var(--dock-surface);
+}
+
+#dock-shell.dock-open .dock-toggle-btn i {
+    transform: rotate(90deg);
+}
+
+.dock-toggle-pulse {
+    position: absolute;
+    inset: -5px;
+    border-radius: 50%;
+    border: 1px solid rgba(var(--dock-accent-rgb), 0.28);
+    pointer-events: none;
+    animation: dockPulse 3.2s ease-in-out infinite;
+}
+
+@keyframes dockPulse {
+    0%, 100% { opacity: 0.25; transform: scale(0.98); }
+    50% { opacity: 0.7; transform: scale(1.06); }
+}
+
+/* Expanded horizontal bar */
+#sledge-dock {
+    position: absolute;
+    right: calc(100% + 10px);
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    width: max-content;
+    max-width: calc(100vw - 100px);
+    padding: 6px;
+    border-radius: 9999px;
+    border: 1px solid var(--dock-border);
+    background:
+        linear-gradient(135deg, rgba(var(--dock-accent-rgb), 0.13) 0%, transparent 58%),
+        var(--dock-surface);
+    box-shadow:
+        0 10px 34px rgba(0, 0, 0, 0.48),
+        0 2px 8px rgba(0, 0, 0, 0.32),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(12px) scale(0.94);
+    transform-origin: right center;
+    transition:
+        opacity 0.2s ease,
+        transform 0.24s cubic-bezier(0.34, 1.4, 0.64, 1),
+        visibility 0s linear 0.24s;
+}
+
+#dock-shell.dock-open #sledge-dock {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(0) scale(1);
+    transition:
+        opacity 0.2s ease,
+        transform 0.24s cubic-bezier(0.34, 1.4, 0.64, 1),
+        visibility 0s;
+}
+
+.dock-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+/* Dock action buttons */
+.dock-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px 11px;
+    border-radius: 9999px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.78);
+    font-family: var(--ui-font);
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    letter-spacing: 0.01em;
+    touch-action: manipulation;
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+        box-shadow 0.2s ease;
+}
+
+.dock-btn i {
+    font-size: 0.92rem;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease;
+}
+
+.dock-btn:hover {
+    background: rgba(255, 255, 255, 0.09);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.14);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+
+.dock-btn:hover i {
+    transform: scale(1.16);
+    color: var(--dock-accent);
+}
+
+.dock-btn:active {
+    transform: translateY(0) scale(0.96);
+}
+
+.dock-btn:focus-visible {
+    outline: 2px solid var(--dock-accent);
+    outline-offset: 3px;
+}
+
+.dock-btn.dock-active {
+    background: rgba(var(--dock-accent-rgb), 0.18);
+    color: #ffffff;
+    border-color: rgba(var(--dock-accent-rgb), 0.4);
+    box-shadow: inset 0 0 12px rgba(var(--dock-accent-rgb), 0.14);
+}
+
+.dock-btn.dock-active i {
+    color: var(--dock-accent);
+}
+
+.dock-btn#dock-quiet.dock-active i {
+    animation: quietPulse 2.2s ease-in-out infinite;
+}
+
+@keyframes quietPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.45; }
+}
+
+/* Dock popovers */
+#dock-theme-popup,
+#dock-effects-popup {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 12px);
+    width: 280px;
+    min-width: 250px;
+    /* Never grow up under the fixed navbar: 84px is the dock gap below and
+       80px is the navbar plus breathing room. */
+    max-height: min(72vh, 540px);
+    max-height: min(72vh, 540px, calc(100vh - 164px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(var(--dock-accent-rgb), 0.4) transparent;
+    padding: 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(var(--dock-accent-rgb), 0.3);
+    background:
+        linear-gradient(150deg, rgba(var(--dock-accent-rgb), 0.12) 0%, transparent 55%),
+        var(--dock-surface);
+    box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.55),
+        0 4px 16px rgba(0, 0, 0, 0.3),
+        0 0 22px rgba(var(--dock-accent-rgb), 0.12);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(8px) scale(0.97);
+    transform-origin: bottom right;
+    transition:
+        opacity 0.2s ease,
+        transform 0.2s cubic-bezier(0.34, 1.4, 0.64, 1),
+        visibility 0s linear 0.2s;
+    z-index: 2;
+}
+
+#dock-effects-popup {
+    width: 310px;
+    min-width: 280px;
+    /* Fits every toggle, the intensity presets and Clear all on a normal
+       desktop window. Shorter windows still scroll inside the panel. */
+    max-height: min(84vh, 640px);
+    max-height: min(84vh, 640px, calc(100vh - 164px));
+}
+
+/* The global 8px gray scrollbar reads as a hard edge on the dark glass panel,
+   so give both popovers a thin accent thumb that sits inside the radius. */
+#dock-theme-popup::-webkit-scrollbar,
+#dock-effects-popup::-webkit-scrollbar {
+    width: 6px;
+}
+
+#dock-theme-popup::-webkit-scrollbar-track,
+#dock-effects-popup::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 14px 0;
+}
+
+#dock-theme-popup::-webkit-scrollbar-thumb,
+#dock-effects-popup::-webkit-scrollbar-thumb {
+    background: rgba(var(--dock-accent-rgb), 0.34);
+    border-radius: 999px;
+}
+
+#dock-theme-popup::-webkit-scrollbar-thumb:hover,
+#dock-effects-popup::-webkit-scrollbar-thumb:hover {
+    background: rgba(var(--dock-accent-rgb), 0.58);
+}
+
+/* The popovers take focus when opened so screen readers land inside them.
+   Chrome then draws its default ring around the whole sheet as soon as the
+   pointer moves, which reads as a stray white border; the controls inside keep
+   their own focus styles. */
+#dock-theme-popup:focus,
+#dock-effects-popup:focus {
+    outline: none;
+}
+
+/* Browsers without backdrop blur (older Android WebViews, some Firefox
+   configs) get an opaque sheet so the page never shows through the menu. */
+@supports not ((backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px))) {
+    #dock-theme-popup,
+    #dock-effects-popup {
+        background:
+            linear-gradient(150deg, rgba(var(--dock-accent-rgb), 0.12) 0%, transparent 55%),
+            #0b0b10;
+    }
+}
+
+#dock-theme-popup.open,
+#dock-effects-popup.open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+    transition:
+        opacity 0.2s ease,
+        transform 0.2s cubic-bezier(0.34, 1.4, 0.64, 1),
+        visibility 0s;
+}
+
+#dock-theme-popup h4,
+#dock-effects-popup h4 {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 10px;
+    padding: 0 4px;
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+#dock-theme-popup h4 i,
+#dock-effects-popup h4 i {
+    color: var(--dock-accent);
+    font-size: 0.72rem;
+}
+
+.dock-theme-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.dock-theme-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.76);
+    font-family: var(--ui-font);
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+
+.dock-theme-item:hover {
+    background: rgba(255, 255, 255, 0.07);
+    color: #ffffff;
+}
+
+.dock-theme-item:focus-visible {
+    outline: 2px solid var(--dock-accent);
+    outline-offset: -2px;
+}
+
+.dock-theme-item.active-theme {
+    background: rgba(var(--dock-accent-rgb), 0.16);
+    color: #ffffff;
+    border-color: rgba(var(--dock-accent-rgb), 0.42);
+}
+
+.dock-theme-item.active-theme .dock-check {
+    opacity: 1;
+}
+
+.dock-check {
+    margin-left: auto;
+    opacity: 0;
+    font-size: 0.75rem;
+    color: var(--dock-accent);
+    transition: opacity 0.15s ease;
+}
+
+.dock-theme-swatch {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.16);
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
+}
+
+/* Swatches mirror the real theme palettes */
+.swatch-default { background: linear-gradient(135deg, #3b82f6 0%, #818cf8 50%, #1d4ed8 100%); }
+.swatch-getsuga { background: linear-gradient(135deg, #09090b 0%, #f8fafc 50%, #18181b 100%); }
+.swatch-nozarashi { background: linear-gradient(135deg, #facc15 0%, #18181b 52%, #eab308 100%); }
+.swatch-senbonzakura { background: linear-gradient(135deg, #db2777 0%, #fbcfe8 52%, #ec4899 100%); }
+.swatch-kyoka { background: linear-gradient(135deg, #9333ea 0%, #312e81 52%, #1e1b4b 100%); }
+.swatch-tensa { background: linear-gradient(135deg, #ef4444 0%, #18181b 52%, #7f1d1d 100%); }
+.swatch-hogyoku { background: linear-gradient(135deg, #e879f9 0%, #7e22ce 46%, #9f1239 100%); }
+
+/* Effects popup content */
+#dock-effects-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.dock-effect-section {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.dock-effect-section:last-of-type {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+
+.dock-effect-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 1px 8px 3px;
+    color: rgba(255, 255, 255, 0.38);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.dock-effect-heading em {
+    font-style: normal;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+    opacity: 0.8;
+}
+
+.dock-effect-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 5px 10px;
+    border-radius: 11px;
+    border: 1px solid transparent;
+    transition: background 0.15s ease;
+}
+
+.dock-effect-row:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.dock-effect-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.78);
+    font-family: var(--ui-font);
+    font-size: 0.78rem;
+    font-weight: 500;
+}
+
+.dock-effect-label i {
+    width: 16px;
+    color: var(--dock-accent);
+    font-size: 0.82rem;
+    text-align: center;
+    opacity: 0.85;
+}
+
+.dock-toggle {
+    position: relative;
+    width: 36px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.dock-toggle input {
+    /* Visually hidden but still exposed to screen readers and keyboard users.
+       The wrapping label makes the whole switch clickable. */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    opacity: 0;
+}
+
+.dock-toggle-slider {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.16);
+    cursor: pointer;
+    transition: background 0.2s ease, opacity 0.2s ease;
+}
+
+.dock-toggle-slider::before {
+    content: '';
+    position: absolute;
+    left: 3px;
+    bottom: 3px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.85);
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease;
+}
+
+.dock-toggle input:checked + .dock-toggle-slider {
+    background: rgba(var(--dock-accent-rgb), 0.78);
+}
+
+.dock-toggle input:checked + .dock-toggle-slider::before {
+    transform: translateX(16px);
+    background: #ffffff;
+}
+
+.dock-toggle input:focus-visible + .dock-toggle-slider {
+    outline: 2px solid var(--dock-accent);
+    outline-offset: 2px;
+}
+
+.dock-toggle input:disabled + .dock-toggle-slider {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.dock-effect-row:has(input:disabled) .dock-effect-label {
+    opacity: 0.6;
+}
+
+/* Contextual note (quiet mode / reduced motion) */
+.dock-effects-note {
+    margin: 0 0 4px;
+    padding: 8px 11px;
+    border-radius: 10px;
+    border: 1px solid rgba(var(--dock-accent-rgb), 0.2);
+    background: rgba(var(--dock-accent-rgb), 0.1);
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 0.72rem;
+    line-height: 1.4;
+}
+
+#dock-theme-popup [hidden],
+#dock-effects-popup [hidden] {
+    display: none !important;
+}
+
+/* Intensity selector */
+.dock-intensity-block {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-top: 2px;
+}
+
+.dock-intensity {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    padding: 3px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.28);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dock-intensity button {
+    padding: 6px 4px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.55);
+    font-family: var(--ui-font);
+    font-size: 0.68rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.dock-intensity button:hover {
+    color: #ffffff;
+}
+
+.dock-intensity button[aria-checked="true"] {
+    background: rgba(var(--dock-accent-rgb), 0.24);
+    color: #ffffff;
+    box-shadow: inset 0 0 0 1px rgba(var(--dock-accent-rgb), 0.38);
+}
+
+.dock-intensity button:focus-visible {
+    outline: 2px solid var(--dock-accent);
+    outline-offset: 1px;
+}
+
+.dock-clear-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    width: 100%;
+    margin-top: 2px;
+    padding: 9px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.62);
+    font-family: var(--ui-font);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+
+.dock-clear-btn:hover {
+    border-color: rgba(239, 68, 68, 0.42);
+    background: rgba(239, 68, 68, 0.12);
+    color: #fca5a5;
+}
+
+.dock-clear-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.dock-clear-btn:focus-visible {
+    outline: 2px solid var(--dock-accent);
+    outline-offset: 2px;
+}
+
+/* ---------------------------------------------------
+   QUIET MODE / DECORATIVE LAYERS
+   Only decorative layers are hidden. Content, navigation,
+   links, downloads and the dock itself stay visible.
+   --------------------------------------------------- */
+body.quiet-mode #sakura-canvas,
+body.quiet-mode #cursor-trail-canvas {
+    display: none !important;
+}
+
+body.quiet-mode #blood-rain-aura {
+    opacity: 0 !important;
+}
+
+body.quiet-mode #bee-container,
+body.characters-off #bee-container {
+    display: none !important;
+}
+
+body.quiet-mode #tensa-moon {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+body.quiet-mode #sledge-dock,
+body.quiet-mode #dock-toggle {
+    opacity: 1 !important;
+}
+
+/* Ambient crimson light while blood rain is running */
+body.blood-rain-on #blood-rain-aura {
+    opacity: 1;
+}
+
+#blood-rain-aura {
+    position: fixed;
+    inset: 0;
+    z-index: 996;
+    pointer-events: none;
+    opacity: 0;
+    background:
+        radial-gradient(ellipse at 50% 118%, rgba(124, 0, 18, 0.34), rgba(124, 0, 18, 0.08) 42%, transparent 68%);
+    transition: opacity 0.6s ease;
+}
+
+/* Footer clearance so the circle never covers footer links */
+.footer {
+    padding-bottom: 64px;
+}
+
+/* ---------------------------------------------------
+   DOCK RESPONSIVE
+   --------------------------------------------------- */
+@media (max-width: 640px) {
+    #dock-shell {
+        right: calc(18px + env(safe-area-inset-right, 0px));
+        bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    }
+
+    #sledge-dock {
+        max-width: calc(100vw - 88px);
+        padding: 5px;
+    }
+
+    .dock-btn {
+        min-width: 44px;
+        min-height: 44px;
+        padding: 10px;
+    }
+
+    .dock-btn i {
+        font-size: 1rem;
+    }
+
+    .dock-btn .dock-label {
+        display: none;
+    }
+
+    /* Popovers stay anchored to the expanded bar. Do not use position: fixed
+       here: the dock's backdrop-filter creates a containing block for fixed
+       descendants, which would push the sheet off the left edge. */
+    #dock-theme-popup,
+    #dock-effects-popup {
+        right: -62px;
+        bottom: calc(100% + 12px);
+        width: min(300px, calc(100vw - 36px));
+        min-width: 0;
+        max-height: min(76vh, 640px);
+        max-height: min(76vh, 640px, calc(100dvh - 165px));
+        transform-origin: bottom right;
+        /* Phone browsers drop or mis-composite backdrop-filter often enough
+           that the sheet is solid here; the accent gradient and border keep
+           the theme tint. */
+        background:
+            linear-gradient(150deg, rgba(var(--dock-accent-rgb), 0.12) 0%, transparent 55%),
+            #0a0a0e;
+    }
+
+    .footer {
+        padding-bottom: 76px;
+    }
+
+    .toast-container {
+        left: 16px;
+        right: 16px;
+        top: calc(var(--nav-height) + 12px + env(safe-area-inset-top, 0px));
+        bottom: auto;
+        align-items: stretch;
+    }
+
+    .toast {
+        min-width: 0;
+        max-width: none;
+    }
+}
+
+/* ---------------------------------------------------
+   REDUCED MOTION
+   --------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+    #dock-shell,
+    .dock-toggle-btn,
+    .dock-toggle-btn i,
+    .dock-toggle-pulse,
+    #sledge-dock,
+    .dock-btn,
+    .dock-btn i,
+    .dock-theme-item,
+    .dock-toggle-slider,
+    .dock-toggle-slider::before,
+    .dock-intensity button,
+    #blood-rain-aura,
+    #dock-theme-popup,
+    #dock-effects-popup {
+        animation: none !important;
+        transition: none !important;
+    }
+
+    .dock-btn:hover,
+    .dock-btn:hover i,
+    .dock-toggle-btn:hover,
+    .dock-toggle-btn:active {
+        transform: none !important;
+    }
+
+    .dock-btn#dock-quiet.dock-active i {
+        animation: none !important;
+    }
+
+    #tensa-moon,
+    #tensa-moon .moon-crescent {
+        animation: none !important;
+    }
+}
+/* ---------------------------------------------------
+   SAKURA FALLING PETALS CANVAS (SENBONZAKURA)
+   --------------------------------------------------- */
+.sakura-canvas,
+.cursor-trail-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 997;
+}
+
+.cursor-trail-canvas {
+    z-index: 998;
+}
+
+/* ===================================================
+   PREMIUM VISUAL LAYER — ATMOSPHERE, INTERACTIONS,
+   CUSTOMIZATION AND QUALITY-OF-LIFE
+   =================================================== */
+
+/* ---------- Ambient atmosphere (CSS only) ---------- */
+.ambient-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 995;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.7s ease, visibility 0s linear 0.7s;
+}
+
+html[data-atmosphere="aurora"] #ambient-aurora {
+    opacity: var(--ambient-opacity);
+    visibility: visible;
+    transition: opacity 0.7s ease, visibility 0s;
+}
+
+html[data-atmosphere="mist"] #ambient-mist {
+    opacity: var(--ambient-opacity);
+    visibility: visible;
+    transition: opacity 0.7s ease, visibility 0s;
+}
+
+/* Hidden atmosphere layers should not keep three huge blurred gradients
+   compositing forever. Pausing the keyframes also stops repaint work. */
+html:not([data-atmosphere="aurora"]) #ambient-aurora .aurora-band,
+html:not([data-atmosphere="mist"]) #ambient-mist .mist-blob {
+    animation-play-state: paused;
+}
+
+.aurora-band {
+    position: absolute;
+    display: block;
+    width: 85vw;
+    height: 55vh;
+    border-radius: 50%;
+    opacity: 0.52;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(var(--accent-rgb), 0.54) 0%,
+        rgba(var(--accent-rgb), 0.38) 22%,
+        rgba(var(--accent-rgb), 0.18) 45%,
+        rgba(var(--accent-rgb), 0.05) 64%,
+        transparent 76%
+    );
+    animation: auroraDrift 34s ease-in-out infinite alternate;
+}
+
+.aurora-band-1 {
+    top: -18vh;
+    left: -22vw;
+}
+
+.aurora-band-2 {
+    top: 18vh;
+    right: -26vw;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(255, 255, 255, 0.28) 0%,
+        rgba(255, 255, 255, 0.16) 24%,
+        rgba(255, 255, 255, 0.05) 48%,
+        transparent 70%
+    );
+    animation-duration: 46s;
+    animation-direction: alternate-reverse;
+}
+
+/* Third band stays put: it keeps the palette and the layered depth, but two
+   animating compositor layers are cheaper than three. */
+.aurora-band-3 {
+    bottom: -28vh;
+    left: 12vw;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(var(--accent-rgb), 0.38) 0%,
+        rgba(var(--accent-rgb), 0.22) 26%,
+        rgba(var(--accent-rgb), 0.08) 50%,
+        transparent 72%
+    );
+    animation: none;
+}
+
+.mist-blob {
+    position: absolute;
+    display: block;
+    width: 62vw;
+    height: 42vh;
+    border-radius: 50%;
+    opacity: 0.46;
+    background: radial-gradient(
+        circle at center,
+        rgba(var(--accent-rgb), 0.44) 0%,
+        rgba(var(--accent-rgb), 0.28) 25%,
+        rgba(var(--accent-rgb), 0.12) 50%,
+        rgba(var(--accent-rgb), 0.03) 68%,
+        transparent 76%
+    );
+    animation: mistDrift 42s ease-in-out infinite alternate;
+    will-change: transform;
+}
+
+.mist-blob-1 {
+    top: 4vh;
+    left: -18vw;
+}
+
+.mist-blob-2 {
+    bottom: 2vh;
+    right: -20vw;
+    background: radial-gradient(
+        circle at center,
+        rgba(255, 255, 255, 0.24) 0%,
+        rgba(255, 255, 255, 0.14) 28%,
+        rgba(255, 255, 255, 0.04) 54%,
+        transparent 74%
+    );
+    animation-duration: 58s;
+    animation-direction: alternate-reverse;
+}
+
+.mist-blob-3 {
+    top: 32vh;
+    left: 28vw;
+    width: 50vw;
+    height: 36vh;
+    opacity: 0.28;
+    animation-duration: 72s;
+}
+
+@keyframes auroraDrift {
+    0% { transform: translate3d(-4vw, -2vh, 0) rotate(-8deg) scale(1); }
+    50% { transform: translate3d(4vw, 3vh, 0) rotate(5deg) scale(1.08); }
+    100% { transform: translate3d(8vw, -1vh, 0) rotate(12deg) scale(1.02); }
+}
+
+@keyframes mistDrift {
+    0% { transform: translate3d(-3vw, 1vh, 0) scale(1); }
+    50% { transform: translate3d(5vw, -2vh, 0) scale(1.1); }
+    100% { transform: translate3d(9vw, 2vh, 0) scale(1.04); }
+}
+
+body.quiet-mode .ambient-layer,
+body.effects-paused .ambient-layer,
+html[data-animation="off"] .ambient-layer {
+    opacity: 0 !important;
+}
+
+body.effects-suspended .aurora-band,
+body.effects-suspended .mist-blob {
+    animation-play-state: paused;
+}
+
+/* Hidden layers should stop compositing too, not just fade to zero. */
+body.quiet-mode #ambient-aurora .aurora-band,
+body.effects-paused #ambient-aurora .aurora-band,
+html[data-animation="off"] #ambient-aurora .aurora-band {
+    animation-play-state: paused;
+}
+
+/* ---------- Mouse-follow spotlight ---------- */
+#cursor-spotlight {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 420px;
+    height: 420px;
+    border-radius: 50%;
+    z-index: 994;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate3d(-9999px, -9999px, 0);
+    will-change: transform;
+    transition: opacity 0.35s ease;
+    background: radial-gradient(
+        circle at center,
+        rgba(var(--accent-rgb), 0.14) 0%,
+        rgba(var(--accent-rgb), 0.06) 40%,
+        transparent 72%
+    );
+}
+
+#cursor-spotlight.active {
+    opacity: 1;
+}
+
+html[data-animation="off"] #cursor-spotlight,
+body.effects-paused #cursor-spotlight,
+body.quiet-mode #cursor-spotlight {
+    opacity: 0 !important;
+}
+
+/* ---------- Scroll progress ---------- */
+#scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    z-index: 1200;
+    pointer-events: none;
+    background: transparent;
+}
+
+#scroll-progress span {
+    display: block;
+    height: 100%;
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    background: linear-gradient(90deg, var(--accent-color), #ffffff);
+    box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.7);
+    transition: transform 0.08s linear;
+}
+
+/* ---------- Back to top ---------- */
+.back-to-top {
+    position: fixed;
+    left: calc(24px + env(safe-area-inset-left, 0px));
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid rgba(var(--accent-rgb), 0.4);
+    background: rgba(10, 12, 18, 0.94);
+    color: #ffffff;
+    cursor: pointer;
+    z-index: 998;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s linear 0.25s;
+}
+
+.back-to-top.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s;
+}
+
+.back-to-top:hover {
+    border-color: rgba(var(--accent-rgb), 0.8);
+    box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.25), 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.back-to-top:focus-visible,
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+}
+
+/* ---------- Click ripple ---------- */
+.click-ripple {
+    position: fixed;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid rgba(var(--accent-rgb), 0.8);
+    pointer-events: none;
+    z-index: 1201;
+    transform: translate(-50%, -50%) scale(0.3);
+    animation: sledgeRipple 0.55s ease-out forwards;
+}
+
+@keyframes sledgeRipple {
+    from { opacity: 0.75; transform: translate(-50%, -50%) scale(0.3); }
+    to { opacity: 0; transform: translate(-50%, -50%) scale(4.6); }
+}
+
+/* ---------- Scroll reveals ---------- */
+.reveal-target {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reveal-target.reveal-in {
+    opacity: 1;
+    transform: none;
+}
+
+html[data-animation="low"] .reveal-target {
+    transform: translateY(8px);
+    transition-duration: 0.35s;
+}
+
+html[data-animation="off"] .reveal-target,
+body.quiet-mode .reveal-target {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+}
+
+/* ---------- Loading skeletons ---------- */
+.skeleton-card {
+    min-height: 220px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    background: linear-gradient(100deg, var(--bg-card) 20%, var(--bg-tertiary) 48%, var(--bg-card) 76%);
+    background-size: 220% 100%;
+    animation: skeletonShimmer 1.5s ease-in-out infinite;
+}
+
+.skeleton-row {
+    min-height: 66px;
+    border-radius: var(--radius-md, 12px);
+}
+
+#lectures-list[aria-busy="true"],
+#papers-list[aria-busy="true"],
+#related-list[aria-busy="true"] {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+@keyframes skeletonShimmer {
+    0% { background-position: 120% 0; }
+    100% { background-position: -120% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .skeleton-card { animation: none; }
+}
+
+/* ---------- Font, accent, cards, void and cursor overrides ---------- */
+html[data-custom-accent] {
+    --blue-400: color-mix(in srgb, var(--custom-accent) 62%, white);
+    --blue-500: var(--custom-accent);
+    --blue-600: color-mix(in srgb, var(--custom-accent) 84%, black);
+    --blue-700: color-mix(in srgb, var(--custom-accent) 64%, black);
+    --text-link: var(--custom-accent);
+    --border-color-hover: var(--custom-accent);
+}
+
+html[data-custom-accent] #dock-shell {
+    --dock-accent: var(--custom-accent);
+    --dock-accent-rgb: var(--custom-accent-rgb);
+}
+
+/* Glass mode is faked with layered translucency instead of backdrop-filter.
+   A real blur on every resting card forced the compositor to sample the page
+   behind ~45 elements; the look is reproduced with a tinted gradient, a top
+   highlight and an inner shadow painted straight onto the card. */
+html[data-cards="glass"] .course-card,
+html[data-cards="glass"] .about-card,
+html[data-cards="glass"] .curriculum-card,
+html[data-cards="glass"] .file-item,
+html[data-cards="glass"] .event-card {
+    position: relative;
+    isolation: isolate;
+    background-color: var(--bg-card);
+    background:
+        linear-gradient(
+            155deg,
+            rgba(255, 255, 255, 0.10) 0%,
+            rgba(255, 255, 255, 0.028) 42%,
+            rgba(255, 255, 255, 0.065) 100%
+        ),
+        color-mix(in srgb, var(--bg-card) 64%, transparent);
+    border-color: rgba(var(--accent-rgb), 0.22);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.11),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.20),
+        0 8px 26px rgba(0, 0, 0, 0.26);
+}
+
+/* Sheen lives behind the card content, so text contrast is untouched.
+   Only opacity changes on hover, which the compositor can do alone. */
+html[data-cards="glass"] .course-card::after,
+html[data-cards="glass"] .about-card::after,
+html[data-cards="glass"] .curriculum-card::after,
+html[data-cards="glass"] .file-item::after,
+html[data-cards="glass"] .event-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    background:
+        radial-gradient(
+            120% 90% at 12% 0%,
+            rgba(255, 255, 255, 0.18) 0%,
+            rgba(255, 255, 255, 0.05) 34%,
+            transparent 64%
+        ),
+        linear-gradient(115deg, transparent 58%, rgba(var(--accent-rgb), 0.11) 100%);
+    opacity: 0.75;
+    transition: opacity 0.28s ease;
+}
+
+html[data-cards="glass"] .course-card:hover,
+html[data-cards="glass"] .about-card:hover,
+html[data-cards="glass"] .curriculum-card:hover,
+html[data-cards="glass"] .file-item:hover,
+html[data-cards="glass"] .event-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(var(--accent-rgb), 0.46);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.16),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.20),
+        0 14px 34px rgba(0, 0, 0, 0.32),
+        0 0 0 1px rgba(var(--accent-rgb), 0.18);
+}
+
+html[data-cards="glass"] .course-card:hover::after,
+html[data-cards="glass"] .about-card:hover::after,
+html[data-cards="glass"] .curriculum-card:hover::after,
+html[data-cards="glass"] .file-item:hover::after,
+html[data-cards="glass"] .event-card:hover::after {
+    opacity: 1;
+}
+
+/* `transition: all` also watched padding/font/height, so hover recalculated
+   layout. Only the properties that actually change are listed now. */
+.file-item {
+    transition:
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast),
+        border-color var(--transition-fast);
+}
+
+.event-card {
+    transition:
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast),
+        border-color var(--transition-fast);
+}
+
+html[data-cards="glow"] .course-card:hover,
+html[data-cards="glow"] .about-card:hover,
+html[data-cards="glow"] .curriculum-card:hover,
+html[data-cards="glow"] .file-item:hover,
+html[data-cards="glow"] .event-card:hover {
+    border-color: rgba(var(--accent-rgb), 0.45);
+    box-shadow:
+        0 0 0 1px rgba(var(--accent-rgb), 0.22),
+        0 12px 38px rgba(var(--accent-rgb), 0.16),
+        var(--shadow-card-hover);
+}
+
+html[data-cards] .course-card img,
+html[data-cards] .about-card img,
+html[data-cards] .curriculum-card img,
+html[data-cards] .file-item img {
+    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html[data-cards] .course-card:hover img,
+html[data-cards] .about-card:hover img,
+html[data-cards] .curriculum-card:hover img,
+html[data-cards] .file-item:hover img {
+    transform: scale(1.035);
+}
+
+.bleach-orihime-img {
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bleach-orihime-img:hover {
+    transform: scale(1.025);
+}
+
+html[data-cursor="system"] body,
+html[data-cursor="system"] body * {
+    cursor: auto !important;
+}
+
+html[data-cursor="system"] body a,
+html[data-cursor="system"] body button,
+html[data-cursor="system"] body summary,
+html[data-cursor="system"] body [role="button"],
+html[data-cursor="system"] body .course-card,
+html[data-cursor="system"] body .file-action-btn {
+    cursor: pointer !important;
+}
+
+html[data-cursor="system"] body input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+html[data-cursor="system"] body textarea,
+html[data-cursor="system"] body select,
+html[data-cursor="system"] body [contenteditable="true"] {
+    cursor: text !important;
+}
+
+html[data-cursor="system"] body [disabled],
+html[data-cursor="system"] body button:disabled {
+    cursor: not-allowed !important;
+}
+
+html[data-look="void"] {
+    --bg-primary: #000000;
+    --bg-secondary: #000000;
+    --bg-tertiary: #050505;
+    --bg-card: #050505;
+    --bg-card-hover: #0b0b0b;
+    --bg-nav: rgba(0, 0, 0, 0.94);
+    --bg-modal: #050505;
+    --bg-input: #0a0a0a;
+    --bg-hero: linear-gradient(135deg, #000000 0%, #050505 55%, #0a0a0a 100%);
+    --text-primary: #f5f5f5;
+    --text-secondary: #a3a3a3;
+    --text-tertiary: #737373;
+    --border-color: #1a1a1a;
+    --border-color-hover: #333333;
+}
+
+html[data-look="void"] .hero {
+    box-shadow: inset 0 0 120px rgba(255, 255, 255, 0.015);
+}
+
+/* Keep the destructive clear action reachable in the scrollable effects sheet.
+   It reads as a footer bar: full-bleed, opaque, with the panel's own bottom
+   padding filled in so scrolled content never peeks out underneath. */
+#dock-effects-popup .dock-clear-btn {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    margin: 10px -14px 0;
+    width: calc(100% + 28px);
+    min-height: 44px;
+    padding: 11px 14px;
+    border: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0;
+    background: #0c0c10;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow:
+        0 15px 0 0 #0c0c10,
+        0 -12px 20px rgba(0, 0, 0, 0.3);
+}
+
+#dock-effects-popup .dock-clear-btn:hover {
+    background: #28131a;
+    color: #fca5a5;
+}
+
+#dock-effects-popup .dock-clear-btn:focus-visible {
+    outline-offset: -3px;
+}
+
+/* ---------- Dock presets and fine-tune ---------- */
+.dock-presets {
+    margin-bottom: 12px;
+    padding: 0 4px;
+}
+
+.dock-preset-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 7px;
+}
+
+.dock-preset-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    padding: 8px 9px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    background: rgba(255, 255, 255, 0.035);
+    color: rgba(255, 255, 255, 0.82);
+    font-family: var(--ui-font);
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.18s ease;
+}
+
+.dock-preset-btn small {
+    color: rgba(255, 255, 255, 0.42);
+    font-size: 0.6rem;
+    font-weight: 500;
+}
+
+.dock-preset-btn:hover,
+.dock-preset-btn[aria-pressed="true"] {
+    background: rgba(var(--dock-accent-rgb), 0.14);
+    border-color: rgba(var(--dock-accent-rgb), 0.42);
+    color: #ffffff;
+}
+
+.dock-preset-btn:hover {
+    transform: translateY(-1px);
+}
+
+.dock-preset-btn[aria-pressed="true"] {
+    box-shadow: inset 0 0 12px rgba(var(--dock-accent-rgb), 0.1);
+}
+
+.dock-customize {
+    margin-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 9px;
+}
+
+.dock-customize summary {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 4px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    list-style: none;
+}
+
+.dock-customize summary::-webkit-details-marker {
+    display: none;
+}
+
+.dock-customize summary::after {
+    content: '+';
+    margin-left: auto;
+    color: var(--dock-accent);
+    font-size: 0.9rem;
+}
+
+.dock-customize[open] summary::after {
+    content: '−';
+}
+
+.dock-customize summary i {
+    color: var(--dock-accent);
+}
+
+.dock-customize-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px 4px 2px;
+}
+
+.dock-custom-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 34px;
+}
+
+.dock-custom-row > label,
+.dock-custom-row > span {
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.dock-custom-row select {
+    min-width: 132px;
+    max-width: 165px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(9, 9, 13, 0.9);
+    color: #f5f5f5;
+    font-family: var(--ui-font);
+    font-size: 0.68rem;
+}
+
+.dock-custom-row select:focus-visible {
+    outline: 2px solid var(--dock-accent);
+    outline-offset: 2px;
+}
+
+.dock-accent-picker {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#custom-accent {
+    width: 34px;
+    height: 28px;
+    padding: 2px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 7px;
+    background: rgba(9, 9, 13, 0.9);
+    cursor: pointer;
+}
+
+.dock-mini-btn {
+    padding: 5px 8px;
+    border-radius: 7px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.72);
+    font-family: var(--ui-font);
+    font-size: 0.62rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.dock-mini-btn:hover {
+    color: #ffffff;
+    border-color: rgba(var(--dock-accent-rgb), 0.45);
+}
+
+.dock-custom-hint {
+    margin: 2px 0 4px;
+    color: rgba(255, 255, 255, 0.38);
+    font-size: 0.62rem;
+    line-height: 1.45;
+}
+
+.dock-reset-btn {
+    margin-top: 2px;
+}
+
+/* ---------- Pakistan clock and hero greeting ---------- */
+.pkt-clock {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 10px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-color);
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.pkt-clock i {
+    color: var(--blue-500);
+    font-size: 0.72rem;
+}
+
+.pkt-zone {
+    color: var(--text-secondary);
+    font-size: 0.6rem;
+    letter-spacing: 0.05em;
+}
+
+.hero-greeting {
+    display: block;
+    max-width: 620px;
+    margin: -10px auto 20px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    animation: slideUp 0.6s ease-out 0.05s backwards;
+}
+
+@media (max-width: 1100px) {
+    .pkt-clock {
+        display: none;
+    }
+}
+
+/* ---------- Keyboard shortcuts dialog ---------- */
+.shortcuts-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(2, 6, 23, 0.62);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.shortcuts-overlay.hidden {
+    display: none;
+}
+
+.shortcuts-card {
+    width: min(420px, 100%);
+    max-height: 86vh;
+    overflow-y: auto;
+    padding: 22px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-modal);
+    color: var(--text-primary);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.4);
+}
+
+.shortcuts-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.shortcuts-head h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1rem;
+}
+
+.shortcuts-head h3 i {
+    color: var(--blue-500);
+}
+
+.shortcuts-close {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.shortcuts-close:hover {
+    color: var(--text-primary);
+    border-color: var(--border-color-hover);
+}
+
+.shortcuts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.shortcuts-list > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.shortcuts-list dt,
+.shortcuts-list dd {
+    font-size: 0.8rem;
+}
+
+.shortcuts-list dd {
+    color: var(--text-secondary);
+    text-align: right;
+}
+
+kbd {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 5px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 500;
+}
+
+.shortcuts-note {
+    margin-top: 12px;
+    color: var(--text-tertiary);
+    font-size: 0.72rem;
+}
+
+/* ---------- Mobile polish ---------- */
+@media (max-width: 640px) {
+    .back-to-top {
+        left: calc(16px + env(safe-area-inset-left, 0px));
+        bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+        width: 44px;
+        height: 44px;
+    }
+
+    .pkt-clock {
+        display: none;
+    }
+
+    .hero-greeting {
+        margin-top: -8px;
+        font-size: 0.76rem;
+        padding: 0 12px;
+    }
+
+    .dock-preset-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dock-custom-row select {
+        min-width: 140px;
+    }
+
+    .shortcuts-card {
+        padding: 18px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    .aurora-band,
+    .mist-blob {
+        animation: none !important;
+    }
+
+    .click-ripple {
+        display: none !important;
+    }
+
+    .reveal-target {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+    }
+}
+
+/* ---------------------------------------------------
+   SMALL-PHONE FLOATING CONTROLS (<= 390px)
+   Keep the decorative moon and back-to-top out of the
+   reader action buttons and the course tab strip.
+   --------------------------------------------------- */
+@media (max-width: 390px) {
+    #tensa-moon {
+        top: calc(84px + env(safe-area-inset-top, 0px));
+        right: calc(12px + env(safe-area-inset-right, 0px));
+        bottom: auto;
+        width: 44px;
+        height: 44px;
+    }
+
+    /* Reserve the moon's corner so breadcrumb links never sit underneath it. */
+    html[data-zanpakuto="tensa-zangetsu"] #course-reader-view .rr-breadcrumb {
+        padding-right: 56px;
+    }
+
+    /* Stack the back-to-top control above the dock, clear of the tab strip
+       and the centred reader action buttons. */
+    .back-to-top {
+        left: auto;
+        right: calc(14px + env(safe-area-inset-right, 0px));
+        bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+        width: 42px;
+        height: 42px;
+    }
+}
+
+
+/* ===== NOW PLAYING WIDGET (legacy now-playing-widget.css) ===== */
+
+/* ===================================================
+   SLEDGE CLASSROOM — Now Playing CD Disk Widget
+   Circular rotating CD on the screen edge with slide-out sleeve
+   =================================================== */
+
+/* ── Host Widget Element (Docked to Screen Edge) ── */
+#now-playing-widget {
+    position: fixed;
+    bottom: 32px;
+    left: 0;
+    /* Below the floating dock so the dock controls stay reachable,
+       but above page content and the footer */
+    z-index: 910;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    pointer-events: none;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+}
+
+/* ── Hidden / Dismissed State ── */
+#now-playing-widget.np-hidden {
+    pointer-events: none;
+    opacity: 0;
+    transform: translateX(-120%);
+}
+
+/* ── Widget Container ── */
+.np-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    pointer-events: auto;
+    user-select: none;
+}
+
+/* ── Screen Edge Dock Bracket ── */
+.np-edge-dock {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 52px;
+    background: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.3),
+        rgba(239, 68, 68, 0.7),
+        rgba(255, 255, 255, 0.3)
+    );
+    border-radius: 0 3px 3px 0;
+    box-shadow:
+        0 0 10px rgba(239, 68, 68, 0.5),
+        1px 0 4px rgba(0, 0, 0, 0.6);
+    z-index: 20;
+    pointer-events: none;
+    transition: height 0.3s ease, opacity 0.3s ease;
+}
+
+.np-card:hover .np-edge-dock,
+.np-card.np-expanded .np-edge-dock {
+    height: 64px;
+}
+
+/* ── CD Disc Wrapper (Docked flush against left screen edge) ── */
+.np-cd-wrapper {
+    position: relative;
+    width: 86px;
+    height: 86px;
+    margin-left: 2px;
+    cursor: pointer;
+    z-index: 15;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.35s cubic-bezier(0.34, 1.4, 0.64, 1);
+    outline: none;
+}
+
+.np-cd-wrapper:hover,
+.np-card.np-expanded .np-cd-wrapper {
+    transform: scale(1.06) translateX(4px);
+}
+
+.np-cd-wrapper:focus-visible {
+    outline: 2px solid #ef4444;
+    outline-offset: 4px;
+    border-radius: 50%;
+}
+
+/* ── Ambient Glow Ring Behind CD When Playing ── */
+.np-cd-glow {
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: conic-gradient(
+        from 0deg,
+        #ef4444,
+        #f59e0b,
+        #8b5cf6,
+        #ec4899,
+        #ef4444
+    );
+    filter: blur(10px);
+    opacity: 0;
+    z-index: -1;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+}
+
+.np-playing .np-cd-glow {
+    opacity: 0.7;
+}
+
+/* ── The Circular CD Disc ── */
+.np-cd-disc {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: #0c0c12;
+    box-shadow:
+        0 8px 26px rgba(0, 0, 0, 0.75),
+        0 2px 8px rgba(0, 0, 0, 0.5),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.28),
+        inset 0 0 0 2px rgba(0, 0, 0, 0.9);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: np-cd-spin 7s linear infinite;
+    animation-play-state: paused;
+}
+
+.np-playing .np-cd-disc {
+    animation-play-state: running;
+}
+
+/* ── Vinyl / CD Concentric Sound Grooves ── */
+.np-cd-grooves {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at 50% 50%,
+            transparent 0%,
+            transparent 27%,
+            rgba(255, 255, 255, 0.05) 28%,
+            rgba(0, 0, 0, 0.6) 29%,
+            transparent 30%,
+            rgba(255, 255, 255, 0.06) 39%,
+            rgba(0, 0, 0, 0.5) 40%,
+            transparent 41%,
+            rgba(255, 255, 255, 0.05) 51%,
+            rgba(0, 0, 0, 0.6) 52%,
+            transparent 53%,
+            rgba(255, 255, 255, 0.06) 64%,
+            rgba(0, 0, 0, 0.5) 65%,
+            transparent 66%,
+            rgba(255, 255, 255, 0.05) 76%,
+            rgba(0, 0, 0, 0.6) 77%,
+            transparent 78%,
+            rgba(255, 255, 255, 0.07) 88%,
+            rgba(0, 0, 0, 0.5) 89%,
+            transparent 90%
+        ),
+        radial-gradient(circle at 50% 50%, #1e1e2c 0%, #101018 70%, #07070c 100%);
+    pointer-events: none;
+}
+
+/* ── Holographic Rainbow Diffraction Sheen ── */
+.np-cd-sheen {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(
+        from 0deg,
+        rgba(255, 255, 255, 0) 0deg,
+        rgba(255, 255, 255, 0.18) 20deg,
+        rgba(0, 240, 255, 0.24) 38deg,
+        rgba(255, 0, 180, 0.25) 55deg,
+        rgba(255, 235, 59, 0.2) 72deg,
+        rgba(255, 255, 255, 0) 90deg,
+        rgba(255, 255, 255, 0) 180deg,
+        rgba(255, 255, 255, 0.18) 200deg,
+        rgba(0, 240, 255, 0.24) 218deg,
+        rgba(255, 0, 180, 0.25) 235deg,
+        rgba(255, 235, 59, 0.2) 252deg,
+        rgba(255, 255, 255, 0) 270deg,
+        rgba(255, 255, 255, 0) 360deg
+    );
+    mix-blend-mode: screen;
+    pointer-events: none;
+}
+
+/* ── Specular Curved Glass Highlight ── */
+.np-cd-gloss {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.35) 0%,
+        rgba(255, 255, 255, 0.08) 32%,
+        transparent 50%
+    );
+    pointer-events: none;
+}
+
+/* ── Center Label (Album Artwork) ── */
+.np-cd-label {
+    position: absolute;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #181824;
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    box-shadow:
+        0 0 10px rgba(0, 0, 0, 0.9),
+        inset 0 0 4px rgba(0, 0, 0, 0.8);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+.np-artwork {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    transition: opacity 0.3s ease;
+}
+
+.np-artwork-placeholder {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1f1f2e, #2d2d42);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 16px;
+}
+
+/* ── Center Spindle Hole ── */
+.np-cd-spindle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.09);
+    border: 1.5px solid rgba(255, 255, 255, 0.38);
+    box-shadow:
+        inset 0 0 3px rgba(0, 0, 0, 0.8),
+        0 0 0 1px rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 4;
+    pointer-events: none;
+}
+
+.np-cd-center-hole {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #08080c;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+/* ── Floating YouTube Badge on Disc Edge ── */
+.np-cd-badge {
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #ff0000;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    box-shadow:
+        0 2px 8px rgba(255, 0, 0, 0.55),
+        0 0 0 2.5px rgba(10, 10, 16, 0.95);
+    z-index: 18;
+    pointer-events: none;
+    transition: transform 0.2s ease;
+}
+
+.np-playing .np-cd-badge {
+    animation: np-badge-pulse 2s ease-in-out infinite;
+}
+
+@keyframes np-badge-pulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 2px 8px rgba(255, 0, 0, 0.55), 0 0 0 2.5px rgba(10, 10, 16, 0.95);
+    }
+    50% {
+        transform: scale(1.12);
+        box-shadow: 0 0 14px rgba(255, 0, 0, 0.85), 0 0 0 2.5px rgba(10, 10, 16, 0.95);
+    }
+}
+
+/* ── Slide-Out Info Sleeve / Jewel Case ── */
+.np-info-sleeve {
+    position: absolute;
+    left: 50px;
+    top: 50%;
+    transform: translateY(-50%) translateX(-25px) scale(0.92);
+    transform-origin: left center;
+    width: 290px;
+    max-width: calc(100vw - 110px);
+    background: rgba(10, 10, 16, 0.97);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 20px;
+    padding: 12px 14px 12px 48px;
+    box-shadow:
+        0 16px 42px rgba(0, 0, 0, 0.7),
+        0 4px 12px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    z-index: 8;
+    transition:
+        transform 0.38s cubic-bezier(0.16, 1, 0.3, 1),
+        opacity 0.28s ease,
+        visibility 0.38s ease;
+}
+
+/* Expand sleeve on card hover, auto-peek, or manual expand */
+.np-card:hover .np-info-sleeve,
+.np-card.np-expanded .np-info-sleeve,
+.np-card.np-auto-peek .np-info-sleeve {
+    transform: translateY(-50%) translateX(0) scale(1);
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+}
+
+/* ── Dismiss Button ── */
+.np-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 22px;
+    height: 22px;
+    border: none;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, color 0.2s, transform 0.2s;
+    z-index: 2;
+}
+
+.np-close-btn:hover {
+    background: rgba(239, 68, 68, 0.25);
+    color: #ef4444;
+    transform: scale(1.1);
+}
+
+/* ── Content Inside Sleeve ── */
+.np-content {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+/* ── Source & Status Row ── */
+.np-source-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 2px;
+    padding-right: 22px; /* room for close btn */
+}
+
+.np-source-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255, 0, 0, 0.12);
+    border: 1px solid rgba(255, 0, 0, 0.3);
+    border-radius: 20px;
+    padding: 2px 7px;
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #ff5555;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.np-source-badge.np-source-ytm {
+    color: #ff4444;
+    border-color: rgba(255, 68, 68, 0.35);
+    background: rgba(255, 68, 68, 0.14);
+}
+
+.np-source-icon {
+    font-size: 10px;
+}
+
+/* ── Status Row (Equalizer + state text) ── */
+.np-status-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* ── Equalizer Bars ── */
+.np-equalizer {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 12px;
+    flex-shrink: 0;
+}
+
+.np-eq-bar {
+    width: 2.5px;
+    border-radius: 2px;
+    background: linear-gradient(to top, #ef4444, #f59e0b);
+    transform-origin: bottom;
+    transition: height 0.1s ease;
+}
+
+.np-playing .np-eq-bar:nth-child(1) {
+    animation: np-eq1 0.7s ease-in-out infinite alternate;
+}
+.np-playing .np-eq-bar:nth-child(2) {
+    animation: np-eq2 0.9s ease-in-out infinite alternate;
+}
+.np-playing .np-eq-bar:nth-child(3) {
+    animation: np-eq3 0.6s ease-in-out infinite alternate;
+}
+.np-playing .np-eq-bar:nth-child(4) {
+    animation: np-eq4 0.8s ease-in-out infinite alternate;
+}
+
+.np-eq-bar:nth-child(1) { height: 3px; }
+.np-eq-bar:nth-child(2) { height: 3px; }
+.np-eq-bar:nth-child(3) { height: 3px; }
+.np-eq-bar:nth-child(4) { height: 3px; }
+
+@keyframes np-eq1 { from { height: 3px; } to { height: 12px; } }
+@keyframes np-eq2 { from { height: 5px; } to { height: 11px; } }
+@keyframes np-eq3 { from { height: 4px; } to { height: 13px; } }
+@keyframes np-eq4 { from { height: 6px; } to { height: 9px; } }
+
+.np-status-text {
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.np-status-text.np-text-playing {
+    color: #f87171;
+}
+.np-status-text.np-text-paused {
+    color: rgba(255, 255, 255, 0.4);
+}
+.np-status-text.np-text-offline {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+/* ── Track Title Link ── */
+.np-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.95);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    text-decoration: none;
+    display: block;
+    transition: color 0.2s ease;
+}
+
+.np-title:hover {
+    color: #ff6b6b;
+    text-decoration: underline;
+    text-decoration-color: rgba(255, 107, 107, 0.4);
+}
+
+/* ── Artist ── */
+.np-artist {
+    font-size: 11px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.5);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+}
+
+/* ── Footer Link (Listen on YouTube) ── */
+.np-footer-row {
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+}
+
+.np-yt-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.55);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.np-yt-link:hover {
+    color: #ffffff;
+}
+
+.np-yt-link i {
+    font-size: 9px;
+}
+
+/* ── Spinning CD Keyframes ── */
+@keyframes np-cd-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ── Reduced Motion Preference ── */
+@media (prefers-reduced-motion: reduce) {
+    .np-cd-disc {
+        animation: none !important;
+    }
+    .np-cd-glow {
+        animation: none !important;
+    }
+    .np-eq-bar {
+        animation: none !important;
+    }
+    .np-info-sleeve {
+        transition: none !important;
+    }
+}
+
+/* ── Transitions for Content Changes ── */
+.np-content.np-fade-out {
+    opacity: 0;
+    transform: translateY(3px);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.np-content.np-fade-in {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.np-artwork.np-art-fade-out {
+    opacity: 0;
+    transition: opacity 0.18s ease;
+}
+
+.np-artwork.np-art-fade-in {
+    opacity: 1;
+    transition: opacity 0.22s ease;
+}
+
+/* ── Offline State ── */
+.np-state-offline .np-cd-disc {
+    filter: grayscale(0.5) brightness(0.8);
+}
+.np-state-offline .np-title {
+    color: rgba(255, 255, 255, 0.4);
+    font-style: italic;
+}
+
+/* ── Mobile Layout ── */
+@media (max-width: 540px) {
+    #now-playing-widget {
+        bottom: 20px;
+    }
+
+    .np-cd-wrapper {
+        width: 72px;
+        height: 72px;
+        margin-left: 2px;
+    }
+
+    .np-cd-label {
+        width: 34px;
+        height: 34px;
+    }
+
+    .np-cd-spindle {
+        width: 15px;
+        height: 15px;
+    }
+
+    .np-cd-center-hole {
+        width: 6px;
+        height: 6px;
+    }
+
+    .np-cd-badge {
+        width: 21px;
+        height: 21px;
+        font-size: 10px;
+    }
+
+    .np-info-sleeve {
+        left: 42px;
+        width: calc(100vw - 80px);
+        padding: 10px 12px 10px 42px;
+        border-radius: 16px;
+    }
+
+    .np-title {
+        font-size: 12px;
+    }
+}
+
+/* ── Light Theme Adjustments ── */
+[data-theme="light"] .np-info-sleeve {
+    background: rgba(18, 18, 28, 0.94);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+
+/* ===== TOAST (legacy styles.css) ===== */
+.toast-container {
+    position: fixed;
+    /* Top-left keeps notifications clear of the bottom-right dock and its
+       popovers, which are interactive. */
+    top: calc(var(--nav-height) + 16px + env(safe-area-inset-top, 0px));
+    left: 24px;
+    right: auto;
+    bottom: auto;
+    z-index: 3000;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.toast {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    min-width: 300px;
+    max-width: 420px;
+    animation: toastIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+.toast.toast-out {
+    animation: toastOut 0.3s ease forwards;
+}
+
+@keyframes toastIn {
+    from {
+        opacity: 0;
+        transform: translateX(100px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes toastOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateX(100px);
+    }
+}
+
+.toast-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.toast.success .toast-icon {
+    color: #10b981;
+}
+
+.toast.error .toast-icon {
+    color: #ef4444;
+}
+
+.toast.info .toast-icon {
+    color: var(--blue-500);
+}
+
+/* ===== FOOTER ===== */
+.footer {
+    background: var(--gray-900);
+    color: var(--gray-400);
+    margin-top: 60px;
+}
+
+/* ===== ANIME CHARACTER COMPANIONS (legacy bleach-easter-egg.js styles) ===== */
+#bee-container{position:fixed;inset:0;pointer-events:none;z-index:1500;overflow:hidden}
+.bee-wrap{position:fixed;pointer-events:auto;cursor:pointer;transition:transform .42s cubic-bezier(.34,1.35,.64,1),opacity .3s ease;will-change:transform,opacity}
+.bee-wrap:focus-visible{outline:2px solid var(--accent-color,#3b82f6);outline-offset:4px;border-radius:14px}
+.bee-left{transform:translateX(-110%);opacity:0}
+.bee-left.bee-active{transform:translateX(0);opacity:1}
+.bee-right{transform:translateX(110%);opacity:0}
+.bee-right.bee-active{transform:translateX(0);opacity:1}
+.bee-img{display:block;object-fit:contain;object-position:center;pointer-events:none;user-select:none;-webkit-user-drag:none;background:transparent;filter:drop-shadow(0 6px 10px rgba(0,0,0,.28))}
+.bee-bubble{position:absolute;bottom:calc(100% + 8px);padding:6px 12px;border-radius:12px;border:2px solid;font-family:var(--ui-font,Inter,system-ui,sans-serif);font-size:11px;font-weight:700;line-height:1.25;max-width:210px;box-shadow:0 6px 18px rgba(0,0,0,.18);opacity:0;transform:scale(.6) translateY(6px);transition:opacity .25s ease,transform .25s cubic-bezier(.34,1.56,.64,1);pointer-events:none}
+.bee-bubble-left{left:2px}
+.bee-bubble-right{right:2px}
+.bee-bubble.bee-show{opacity:1;transform:scale(1) translateY(0)}
+@media (prefers-reduced-motion:reduce){.bee-wrap{transition:none}.bee-bubble{transition:none}}

@@ -22,6 +22,35 @@
     />
   </head>
   <body>
+    <script>
+      // Prevent a light/dark flash before React mounts. Reads the same legacy
+      // storage keys as the global experience provider; the provider remains
+      // the single state authority after hydration.
+      (function () {
+        try {
+          var root = document.documentElement;
+          var mode = localStorage.getItem('theme');
+          if (mode === 'dark' || mode === 'light') root.setAttribute('data-theme', mode);
+          var theme = localStorage.getItem('zanpakuto_theme');
+          if (theme) root.setAttribute('data-zanpakuto', theme);
+          var accent = localStorage.getItem('sledge_accent');
+          if (accent && /^#[0-9a-f]{6}$/i.test(accent)) {
+            root.setAttribute('data-custom-accent', 'true');
+            root.style.setProperty('--custom-accent', accent);
+            var n = parseInt(accent.slice(1), 16);
+            root.style.setProperty(
+              '--custom-accent-rgb',
+              ((n >> 16) & 255) + ', ' + ((n >> 8) & 255) + ', ' + (n & 255),
+            );
+          }
+          if (localStorage.getItem('quiet_mode') === 'true') {
+            document.body.classList.add('quiet-mode');
+          }
+        } catch (error) {
+          /* storage unavailable: render with the default theme */
+        }
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

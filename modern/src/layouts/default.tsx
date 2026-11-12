@@ -5,6 +5,7 @@
 import { Outlet } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
+import { GlobalExperience } from '@/features/global/GlobalExperience';
 
 export function DefaultLayout() {
   return (
@@ -14,6 +15,7 @@ export function DefaultLayout() {
         <Outlet />
       </main>
       <Footer />
+      <GlobalExperience />
     </div>
   );
 }

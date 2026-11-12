@@ -63,21 +63,43 @@ export interface NowPlaying {
   artist: string;
   artwork?: string;
   ytLink?: string;
+  songUrl?: string;
+  source?: string;
+  isPlaying?: boolean;
   updatedAt: number;
 }
 
-export interface VisualState {
-  accent: string;
-  font: 'bebas' | 'inter' | 'jetbrains';
-  cursor: string;
-  cards: string;
-  animation: 'off' | 'reduced' | 'full';
-  characterFrequency: 'off' | 'rare' | 'normal' | 'frequent';
-  spotlight: boolean;
-  cursorTrail: boolean;
-  bloodMoon: boolean;
-  quietMode: boolean;
-}
+// ---- Global visual experience (CP9) ----
+// Values mirror the legacy attributes and preferences exactly.
+
+export type ColorMode = 'light' | 'dark';
+
+export type ZanpakutoTheme =
+  | 'default'
+  | 'getsuga-tensho'
+  | 'nozarashi'
+  | 'senbonzakura'
+  | 'kyoka-suigetsu'
+  | 'tensa-zangetsu'
+  | 'hogyoku';
+
+export type ParticleMode =
+  | 'rain'
+  | 'gold'
+  | 'sakura'
+  | 'nozarashi'
+  | 'reiatsu'
+  | 'starfield';
+
+export type AtmosphereMode = 'aurora' | 'mist';
+export type EffectIntensity = 'subtle' | 'medium' | 'intense';
+export type AnimationLevel = 'off' | 'low' | 'medium' | 'high';
+export type CharacterFrequency = 'off' | 'rare' | 'normal' | 'frequent';
+export type FontSetting = 'site' | 'inter' | 'poppins' | 'outfit';
+export type CardSetting = 'original' | 'glass' | 'glow';
+export type CursorSetting = 'theme' | 'system';
+export type LookMode = 'void';
+export type DockPopup = 'themes' | 'effects' | null;
 
 // Repository result types (shared models).
 //

@@ -54,6 +54,7 @@ export class NowPlayingRepository {
   /** Subscribe to real-time now-playing updates. Returns an unsubscribe function. */
   subscribeNowPlaying(
     onChange: (data: NowPlaying | null) => void,
+    onError?: (error: Error) => void,
   ): () => void {
     if (!this.database) {
       onChange(null);
@@ -67,6 +68,9 @@ export class NowPlayingRepository {
       nowPlayingRef,
       (snapshot: DataSnapshot) => {
         onChange(mapNowPlaying(snapshot));
+      },
+      (error: Error) => {
+        onError?.(error);
       },
     );
     return unsubscribe;
@@ -92,6 +96,9 @@ export function mapNowPlaying(snapshot: DataSnapshot): NowPlaying | null {
     artist,
     artwork: typeof data.artwork === 'string' ? data.artwork : undefined,
     ytLink: typeof data.ytLink === 'string' ? data.ytLink : undefined,
+    songUrl: typeof data.songUrl === 'string' ? data.songUrl : undefined,
+    source: typeof data.source === 'string' ? data.source : undefined,
+    isPlaying: typeof data.isPlaying === 'boolean' ? data.isPlaying : undefined,
     updatedAt: typeof data.updatedAt === 'number' ? data.updatedAt : 0,
   };
 }
