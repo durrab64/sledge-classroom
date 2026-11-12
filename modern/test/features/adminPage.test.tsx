@@ -11,6 +11,7 @@ import {
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import type {
   AuthContextValue,
+  Event,
   RepositoryResult,
   ResourceFile,
 } from '@/types';
@@ -20,10 +21,13 @@ import {
 } from '@/types';
 import { AdminPage, AdminRoute } from '@/features/admin';
 import type {
+  AdminEventReader,
+  AdminEventWriter,
   AdminResourceReader,
   AdminResourceWriter,
 } from '@/features/admin';
 import type {
+  EventCreateInput,
   ResourceCreateInput,
   ResourceMetadataOriginal,
   ResourceMetadataPatch,
@@ -70,13 +74,41 @@ function createWriter(
   };
 }
 
+function createEventWriter(
+  overrides: Partial<AdminEventWriter> = {},
+): AdminEventWriter {
+  return {
+    createEvent: vi.fn(
+      async (): Promise<RepositoryResult<{ id: string }>> =>
+        repositorySuccess({ id: 'created-event' }),
+    ),
+    deleteEvent: vi.fn(
+      async (): Promise<RepositoryResult<null>> => repositorySuccess(null),
+    ),
+    ...overrides,
+  };
+}
+
+function createEventReader(events: Event[] = []): AdminEventReader {
+  return {
+    listEventsForCourse: vi.fn(async () => repositorySuccess(events)),
+  };
+}
+
 function renderPage(
   reader: AdminResourceReader,
   writer: AdminResourceWriter = createWriter(),
+  eventReader: AdminEventReader = createEventReader(),
+  eventWriter: AdminEventWriter = createEventWriter(),
 ) {
   return render(
     <MemoryRouter initialEntries={['/admin']}>
-      <AdminPage reader={reader} writer={writer} />
+      <AdminPage
+        reader={reader}
+        writer={writer}
+        eventReader={eventReader}
+        eventWriter={eventWriter}
+      />
     </MemoryRouter>,
   );
 }
@@ -537,6 +569,147 @@ describe('AdminPage dialogs', () => {
     fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     await waitFor(() => expect(addButton).toHaveFocus());
+  });
+});
+
+describe('AdminPage calendar events', () => {
+  const quiz: Event = {
+    id: 'evt-1',
+    title: 'Quiz 02',
+    date: '2026-11-20',
+    time: '10:30',
+    type: 'quiz',
+    courseId: 'stats',
+    groups: ['Group A'],
+    description: 'Chapters 3-4',
+  };
+
+  it('loads and displays events for the selected course', async () => {
+    const eventReader = createEventReader([quiz]);
+    renderPage(createCourseReader([]), createWriter(), eventReader);
+
+    expect(await screen.findByText('Quiz 02')).toBeInTheDocument();
+    expect(eventReader.listEventsForCourse).toHaveBeenCalledWith('stats');
+    expect(screen.getByText('1 event')).toBeInTheDocument();
+  });
+
+  it('validates the event form and never persists before it is complete', async () => {
+    const eventWriter = createEventWriter();
+    renderPage(
+      createCourseReader([]),
+      createWriter(),
+      createEventReader([]),
+      eventWriter,
+    );
+
+    await screen.findByText('No events scheduled');
+    fireEvent.click(screen.getByRole('button', { name: /Add event/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Save event/i }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Please fill in the title and date.',
+    );
+    expect(eventWriter.createEvent).not.toHaveBeenCalled();
+  });
+
+  it('creates an event with the legacy payload and refreshes the list', async () => {
+    const eventWriter = createEventWriter();
+    renderPage(
+      createCourseReader([]),
+      createWriter(),
+      createEventReader([]),
+      eventWriter,
+    );
+
+    await screen.findByText('No events scheduled');
+    fireEvent.click(screen.getByRole('button', { name: /Add event/i }));
+
+    fireEvent.change(screen.getByLabelText('Event title *'), {
+      target: { value: 'Quiz 02' },
+    });
+    fireEvent.change(screen.getByLabelText('Date *'), {
+      target: { value: '2026-11-20' },
+    });
+    fireEvent.change(screen.getByLabelText('Time'), {
+      target: { value: '10:30' },
+    });
+    fireEvent.change(screen.getByLabelText('Event type *'), {
+      target: { value: 'exam' },
+    });
+    fireEvent.change(screen.getByLabelText('Description (optional)'), {
+      target: { value: 'Chapters 3-4' },
+    });
+    fireEvent.change(
+      screen.getByLabelText('Groups / names (comma separated)'),
+      { target: { value: 'Group A, Group B' } },
+    );
+
+    expect(eventWriter.createEvent).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: /Save event/i }));
+
+    await waitFor(() =>
+      expect(eventWriter.createEvent).toHaveBeenCalledTimes(1),
+    );
+    expect(eventWriter.createEvent).toHaveBeenCalledWith({
+      title: 'Quiz 02',
+      date: '2026-11-20',
+      time: '10:30',
+      type: 'exam',
+      courseId: 'stats',
+      description: 'Chapters 3-4',
+      groups: ['Group A', 'Group B'],
+    } satisfies EventCreateInput);
+    expect(
+      await screen.findByText(/Event added successfully/),
+    ).toBeInTheDocument();
+  });
+
+  it('requires confirmation before deleting an event', async () => {
+    const eventWriter = createEventWriter();
+    renderPage(
+      createCourseReader([]),
+      createWriter(),
+      createEventReader([quiz]),
+      eventWriter,
+    );
+
+    await screen.findByText('Quiz 02');
+    fireEvent.click(
+      screen.getByRole('button', { name: /Delete event Quiz 02/i }),
+    );
+
+    const dialog = screen.getByRole('alertdialog');
+    expect(eventWriter.deleteEvent).not.toHaveBeenCalled();
+
+    fireEvent.click(
+      within(dialog).getByRole('button', { name: /Delete event/i }),
+    );
+
+    await waitFor(() =>
+      expect(eventWriter.deleteEvent).toHaveBeenCalledWith('evt-1'),
+    );
+    expect(
+      await screen.findByText(/Event deleted successfully/),
+    ).toBeInTheDocument();
+  });
+
+  it('surfaces event load failures with a retry action', async () => {
+    const eventReader: AdminEventReader = {
+      listEventsForCourse: vi.fn(async () =>
+        repositoryFailure('firestore-read-failed', 'unavailable'),
+      ),
+    };
+    renderPage(
+      createCourseReader([]),
+      createWriter(),
+      eventReader,
+      createEventWriter(),
+    );
+
+    expect(
+      await screen.findByText('Events could not be loaded'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Retry/i })).toBeInTheDocument();
   });
 });
 

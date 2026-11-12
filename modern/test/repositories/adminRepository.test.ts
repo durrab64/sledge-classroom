@@ -25,6 +25,7 @@ import {
 
 import {
   AdminRepository,
+  type EventCreateInput,
   type ResourceCreateInput,
   type ResourceMetadataOriginal,
 } from '@/services/repositories/adminRepository';
@@ -314,6 +315,85 @@ describe('AdminRepository.deleteResource', () => {
     expect(result.error).toEqual({
       code: 'resource-delete-failed',
       message: 'permission-denied',
+    });
+  });
+});
+
+describe('AdminRepository event management', () => {
+  const eventInput: EventCreateInput = {
+    title: 'Quiz 02',
+    date: '2026-11-20',
+    time: '10:30',
+    type: 'quiz',
+    courseId: 'os',
+    description: 'Chapters 3-4',
+    groups: ['Group A', 'Group B'],
+  };
+
+  it('fails closed for event writes when Firestore is not configured', async () => {
+    const repo = new AdminRepository({ firestore: null });
+    expect((await repo.createEvent(eventInput)).error?.code).toBe(
+      'firebase-not-configured',
+    );
+    expect((await repo.deleteEvent('evt-1')).error?.code).toBe(
+      'firebase-not-configured',
+    );
+    expect(addDoc).not.toHaveBeenCalled();
+    expect(deleteDoc).not.toHaveBeenCalled();
+  });
+
+  it('writes the exact legacy event payload to events/', async () => {
+    (addDoc as any).mockResolvedValue({ id: 'evt-9' });
+
+    const result = await makeRepo().createEvent(eventInput);
+
+    expect(collection).toHaveBeenCalledWith(firestore, 'events');
+    expect(serverTimestamp).toHaveBeenCalledTimes(1);
+    expect(addDoc).toHaveBeenCalledWith(
+      { path: 'collection-ref' },
+      {
+        title: 'Quiz 02',
+        date: '2026-11-20',
+        time: '10:30',
+        type: 'quiz',
+        courseId: 'os',
+        description: 'Chapters 3-4',
+        groups: ['Group A', 'Group B'],
+        createdAt: { __serverTimestamp: true },
+      },
+    );
+    expect(result).toEqual({ data: { id: 'evt-9' }, error: null });
+  });
+
+  it('reports event creation failures', async () => {
+    (addDoc as any).mockRejectedValue(new Error('permission-denied'));
+
+    const result = await makeRepo().createEvent(eventInput);
+
+    expect(result.error).toEqual({
+      code: 'event-create-failed',
+      message: 'permission-denied',
+    });
+  });
+
+  it('deletes the event document by id', async () => {
+    (deleteDoc as any).mockResolvedValue(undefined);
+
+    const result = await makeRepo().deleteEvent('evt-9');
+
+    expect(doc).toHaveBeenCalledWith(firestore, 'events', 'evt-9');
+    expect(deleteDoc).toHaveBeenCalledWith({ path: 'doc-ref' });
+    expect(result).toEqual({ data: null, error: null });
+  });
+
+  it('reports event deletion failures', async () => {
+    (deleteDoc as any).mockRejectedValue(new Error('not-found'));
+
+    const result = await makeRepo().deleteEvent('evt-9');
+
+    expect(result.error).toEqual({
+      code: 'event-delete-failed',
+      message: 'not-found',
     });
   });
 });

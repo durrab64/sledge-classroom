@@ -55,6 +55,37 @@ export class EventRepository {
   }
 
   /**
+   * List events for a single course. Mirrors the legacy renderCourseEvents()
+   * equality-only query so no composite index is needed. Read-only.
+   */
+  async listEventsForCourse(
+    courseId: CourseId,
+  ): Promise<RepositoryResult<Event[]>> {
+    if (!this.firestore) {
+      return repositoryFailure(
+        'firebase-not-configured',
+        'Firebase is not configured. Set the VITE_FIREBASE_* environment variables (see .env.example).',
+      );
+    }
+
+    try {
+      const snapshot = await getDocs(
+        query(
+          collection(this.firestore, 'events'),
+          where('courseId', '==', courseId),
+        ),
+      );
+      const data: Event[] = snapshot.docs.map((doc) => mapEvent(doc.id, doc.data()));
+      return repositorySuccess(data);
+    } catch (error) {
+      return repositoryFailure(
+        'firestore-read-failed',
+        error instanceof Error ? error.message : String(error),
+      );
+    }
+  }
+
+  /**
    * List events whose `date` falls inside the inclusive `YYYY-MM-DD` range.
    *
    * This mirrors the legacy calendar's single-field range query. No composite

@@ -4,9 +4,12 @@
 //   - confirmUpload()            -> createResource()
 //   - updateResourceMetadata()   -> updateResourceMetadata()
 //   - deleteFileFromDB()         -> deleteResource()
+//   - saveEvent()                -> createEvent()
+//   - deleteEvent()              -> deleteEvent()
 //
 // Document contract (unchanged):
 //   courses/{courseId}/{category}/{fileId}
+//   events/{eventId}
 //   name, url, previewURL, downloadURL, type, description, date, createdAt
 //
 // Deletion semantics are metadata-only: the legacy application deletes the
@@ -51,6 +54,20 @@ export type ResourceMetadataPatch = Partial<
   Pick<{ name: string; description: string; type: ResourceType },
     'name' | 'description' | 'type'>
 >;
+
+/**
+ * The exact new-event payload built by the admin event dialog. Mirrors the
+ * legacy saveEvent() write to `events/{eventId}`.
+ */
+export interface EventCreateInput {
+  title: string;
+  date: string;
+  time: string;
+  type: string;
+  courseId: CourseId;
+  description: string;
+  groups: string[];
+}
 
 /** Snapshot used for legacy stale-document detection and read-back checks. */
 export interface ResourceMetadataOriginal {
@@ -249,6 +266,45 @@ export class AdminRepository {
       return repositorySuccess(null);
     } catch (error) {
       return repositoryFailure('resource-delete-failed', messageOf(error));
+    }
+  }
+
+  /**
+   * Persist a new calendar event under `events/{eventId}`. This mirrors the
+   * legacy saveEvent() payload exactly, including the server timestamp and
+   * the comma-separated groups array.
+   */
+  async createEvent(
+    input: EventCreateInput,
+  ): Promise<RepositoryResult<{ id: string }>> {
+    if (!this.firestore) return notConfigured();
+
+    try {
+      const ref = await addDoc(collection(this.firestore, 'events'), {
+        title: input.title,
+        date: input.date,
+        time: input.time,
+        type: input.type,
+        courseId: input.courseId,
+        description: input.description,
+        groups: input.groups,
+        createdAt: serverTimestamp(),
+      });
+      return repositorySuccess({ id: ref.id });
+    } catch (error) {
+      return repositoryFailure('event-create-failed', messageOf(error));
+    }
+  }
+
+  /** Delete a calendar event document by id. Mirrors the legacy deleteEvent(). */
+  async deleteEvent(eventId: string): Promise<RepositoryResult<null>> {
+    if (!this.firestore) return notConfigured();
+
+    try {
+      await deleteDoc(doc(this.firestore, 'events', eventId));
+      return repositorySuccess(null);
+    } catch (error) {
+      return repositoryFailure('event-delete-failed', messageOf(error));
     }
   }
 }
