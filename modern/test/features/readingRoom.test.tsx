@@ -104,14 +104,18 @@ describe('ReadingRoomPage', () => {
       await screen.findByRole('heading', { name: 'Resource not found' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(
+      await screen.findByText(
         'This resource may have been removed, or the link is incomplete.',
       ),
     ).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'OS Lecture 1' })).toBeNull();
-    expect(document.title).toBe('Resource not found | Sledge Classroom');
+    // Title updates in an effect; wait for it so a loaded CI machine cannot
+    // race the assertion (this test was observed flaking under full-suite load).
+    await waitFor(() =>
+      expect(document.title).toBe('Resource not found | Sledge Classroom'),
+    );
     expect(
-      screen.getByRole('button', { name: 'Back to Lecture Slides' }),
+      await screen.findByRole('button', { name: 'Back to Lecture Slides' }),
     ).toBeInTheDocument();
   });
 
