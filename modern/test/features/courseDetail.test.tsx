@@ -51,6 +51,11 @@ describe('CourseDetail', () => {
       screen.getByRole('tab', { name: /Lecture Slides/ }),
     ).toBeInTheDocument();
     expect(await screen.findByText('OS Lecture 1')).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', {
+        name: 'Read OS Lecture 1 in the Reading Room',
+      }),
+    ).toHaveAttribute('href', '/courses/os/lectures/lec1');
   });
 
   it('switches to the lab section and reloads the lab categories', async () => {

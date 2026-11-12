@@ -17,6 +17,7 @@ import {
   LabsRoute,
   CalendarRoute,
   ReadingRoomRoute,
+  ReadingRoomIndexRoute,
   NotFoundRoute,
 } from '@/features';
 import { LoginRoute } from '@/features/auth';
@@ -33,10 +34,11 @@ export const router = createHashRouter([
     children: [
       { index: true, Component: HomeRoute },
       { path: 'courses', Component: CoursesRoute },
+      { path: 'courses/:courseId/:category/*', Component: ReadingRoomRoute },
       { path: 'courses/:courseId', Component: CourseDetailRoute },
       { path: 'labs', Component: LabsRoute },
       { path: 'calendar', Component: CalendarRoute },
-      { path: 'reader', Component: ReadingRoomRoute },
+      { path: 'reader', Component: ReadingRoomIndexRoute },
       { path: 'login', Component: LoginRoute },
       { path: 'migration/not-found', Component: NotFoundRoute },
       { path: '*', Component: NotFoundRoute },

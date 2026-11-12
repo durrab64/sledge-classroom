@@ -5,11 +5,12 @@ import type { Firestore } from 'firebase/firestore';
 
 vi.mock('firebase/firestore', () => ({
   collection: vi.fn(),
+  orderBy: vi.fn(),
   query: vi.fn(),
   getDocs: vi.fn(),
 }));
 
-import { collection, query, getDocs } from 'firebase/firestore';
+import { collection, orderBy, query, getDocs } from 'firebase/firestore';
 
 import {
   CourseRepository,
@@ -22,6 +23,7 @@ const CATEGORY = 'lectures' as const;
 beforeEach(() => {
   vi.clearAllMocks();
   (collection as any).mockReturnValue({} as never);
+  (orderBy as any).mockReturnValue({} as never);
   (query as any).mockReturnValue({} as never);
 });
 
@@ -132,6 +134,7 @@ describe('CourseRepository.listResources (mocked firestore)', () => {
     const result = await repo.listResources(COURSE_ID, CATEGORY);
 
     expect(collection).toHaveBeenCalledTimes(1);
+    expect(orderBy).toHaveBeenCalledWith('createdAt', 'desc');
     expect(query).toHaveBeenCalledTimes(1);
     expect(getDocs).toHaveBeenCalledTimes(1);
     expect(result.error).toBeNull();

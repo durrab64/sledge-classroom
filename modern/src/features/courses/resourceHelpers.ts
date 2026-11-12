@@ -3,6 +3,9 @@
 // "Link unavailable" rather than invented.
 
 import type { ResourceFile } from '@/types';
+import { isDirectDownloadUrl, safeHttpUrl } from '@/lib/resourceUrl';
+
+export { isDirectDownloadUrl, safeHttpUrl };
 
 export interface ResourceIconInfo {
   type: 'pdf' | 'ppt' | 'doc' | 'xls' | 'img' | 'zip' | 'default';
@@ -45,49 +48,6 @@ export function getResourceIconInfo(typeOrName: string): ResourceIconInfo {
     return { type: 'zip', icon: 'fas fa-file-archive', label: 'Archive' };
   }
   return { type: 'default', icon: 'fas fa-link', label: 'Resource' };
-}
-
-/** Return a safe absolute http(s) URL, or an empty string. */
-export function safeHttpUrl(value: string): string {
-  if (!value) return '';
-  try {
-    const url = new URL(value, window.location.href);
-    return url.protocol === 'http:' || url.protocol === 'https:'
-      ? url.href
-      : '';
-  } catch {
-    return '';
-  }
-}
-
-/** Download is only shown for an actual file-download URL. */
-export function isDirectDownloadUrl(value: string): boolean {
-  const safe = safeHttpUrl(value);
-  if (!safe) return false;
-  let parsed: URL;
-  try {
-    parsed = new URL(safe);
-  } catch {
-    return false;
-  }
-  const search = parsed.searchParams;
-  if (parsed.hostname === 'drive.google.com') {
-    return (
-      /\/uc\/?$/.test(parsed.pathname) || search.get('export') === 'download'
-    );
-  }
-  if (parsed.hostname === 'docs.google.com') {
-    return (
-      /\/export\/?$/.test(parsed.pathname) ||
-      search.get('export') === 'download'
-    );
-  }
-  if (
-    /\.(pdf|pptx?|docx?|xlsx?|zip|rar|7z|csv|txt)$/i.test(parsed.pathname)
-  ) {
-    return true;
-  }
-  return search.get('download') === '1' || search.get('dl') === '1';
 }
 
 export function describeResourceDescription(value: string): string {

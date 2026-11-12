@@ -8,7 +8,7 @@ describe('legacyHashToRoute', () => {
     expect(legacyHashToRoute('#courses')).toBe('#/courses');
     expect(legacyHashToRoute('#labs')).toBe('#/labs');
     expect(legacyHashToRoute('#calendar')).toBe('#/calendar');
-    expect(legacyHashToRoute('#reader')).toBe('#/reader');
+    expect(legacyHashToRoute('#reader')).toBe('#/courses');
   });
 
   it('maps course hashes and categories to the migrated detail route', () => {
@@ -29,12 +29,26 @@ describe('legacyHashToRoute', () => {
     );
   });
 
-  it('maps legacy reading-room resource hashes to the category tab', () => {
+  it('maps legacy reading-room resource hashes to the true reader route', () => {
     expect(legacyHashToRoute('#course-os/lab/doc-123')).toBe(
-      '#/courses/os?mode=lab',
+      '#/courses/os/lab/doc-123',
     );
     expect(legacyHashToRoute('#course-stats/papers/doc-123')).toBe(
-      '#/courses/stats?tab=past-papers',
+      '#/courses/stats/papers/doc-123',
+    );
+  });
+
+  it('preserves encoded and multi-segment resource IDs', () => {
+    expect(legacyHashToRoute('#course-os/lectures/week%201%2Fnotes.pdf')).toBe(
+      '#/courses/os/lectures/week%201/notes.pdf',
+    );
+    // Unknown IDs still resolve to the reader, which renders not-found.
+    expect(legacyHashToRoute('#course-stats/papers/unknown-id')).toBe(
+      '#/courses/stats/papers/unknown-id',
+    );
+    // Unknown courses also reach the reader's course-not-found state.
+    expect(legacyHashToRoute('#course-unknown/lab/doc-1')).toBe(
+      '#/courses/unknown/lab/doc-1',
     );
   });
 

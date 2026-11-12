@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './styles/index.css';
 import './styles/legacy-home-courses.css';
 import './styles/legacy-labs-calendar.css';
+import './styles/legacy-reading-room.css';
 import './styles/cp6-supplement.css';
 import { AuthProvider } from '@/contexts';
 import { Router } from './app/router';

@@ -9,6 +9,14 @@
 import { RESOURCE_CATEGORY_META, getCourse } from '@/features/courses/courseData';
 import type { FileCategory } from '@/types';
 
+function safeDecode(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
 /**
  * Translate a legacy hash into a modern hash-router path.
  * Returns null when the hash is already modern or cannot be mapped.
@@ -27,11 +35,31 @@ export function legacyHashToRoute(hash: string): string | null {
   if (first === 'courses' || first === 'labs' || first === 'calendar') {
     return `#/${first}`;
   }
-  if (first === 'reader') return '#/reader';
+  // `#reader` was not a route in the legacy application; the reader was
+  // always opened for a specific resource. Send the modern alias back to the
+  // course catalogue rather than showing an empty placeholder.
+  if (first === 'reader') return '#/courses';
 
   if (!first.startsWith('course-')) return null;
 
   const courseId = first.slice('course-'.length);
+
+  // `#course-<id>/<category>/<docId>` was the legacy Reading Room deep link.
+  // Keep every segment (doc IDs are stable) so the viewer can resolve the
+  // exact selected resource. Unknown IDs are handled by the reader's
+  // not-found state instead of silently falling back to a category tab.
+  if (parts.length >= 3) {
+    const category = safeDecode(parts[1]).toLowerCase();
+    const docId = parts.slice(2).map(safeDecode).join('/');
+    const encodedDoc = docId
+      .split('/')
+      .map((part) => encodeURIComponent(part))
+      .join('/');
+    return `#/courses/${encodeURIComponent(
+      courseId,
+    )}/${encodeURIComponent(category)}/${encodedDoc}`;
+  }
+
   const course = getCourse(courseId);
   if (!course) return '#/courses';
 
@@ -42,8 +70,6 @@ export function legacyHashToRoute(hash: string): string | null {
     if (meta.mode === 'lab') params.set('mode', 'lab');
     if (meta.tab !== 'lectures') params.set('tab', meta.tab);
   }
-  // `#course-<id>/<category>/<docId>` was the Reading Room route. The reader
-  // is deferred, so the link resolves to the matching category tab instead.
   const query = params.toString();
   return `#/courses/${course.id}${query ? `?${query}` : ''}`;
 }

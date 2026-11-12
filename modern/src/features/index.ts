@@ -5,5 +5,5 @@ export { HomeRoute } from './home/home';
 export { CoursesRoute, CourseDetailRoute } from './courses/courses';
 export { LabsRoute } from './labs/labs';
 export { CalendarRoute } from './calendar/calendar';
-export { ReadingRoomRoute } from './reading-room/reading-room';
+export { ReadingRoomRoute, ReadingRoomIndexRoute } from './reading-room/reading-room';
 export { NotFoundRoute } from './not-found/not-found';

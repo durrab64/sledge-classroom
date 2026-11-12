@@ -19,6 +19,7 @@ import {
 } from './courseData';
 import { EventCard } from '@/components/events/EventCard';
 import { ResourceRow } from './ResourceRow';
+import { takeReaderFocus } from '@/features/reading-room/readerData';
 import { courseRepository, eventRepository } from '@/services/repositories';
 
 type LoadState<T> =
@@ -234,6 +235,36 @@ export function CourseDetail({
     [data],
   );
 
+  // Returning from the Reading Room restores focus to the row that opened it
+  // (or the active tab if the row no longer exists), mirroring the legacy
+  // reader focus bookkeeping.
+  useEffect(() => {
+    if (!course || state.status !== 'success') return;
+    const target = takeReaderFocus(course.id);
+    if (!target) return;
+    const frame = window.requestAnimationFrame(() => {
+      const escape = (value: string) =>
+        window.CSS && typeof window.CSS.escape === 'function'
+          ? window.CSS.escape(value)
+          : value.replace(/["\\]/g, '\\$&');
+      const row = document.querySelector<HTMLElement>(
+        `.file-item[data-resource-id="${escape(
+          target.docId,
+        )}"][data-category="${escape(target.category)}"] .file-main`,
+      );
+      if (row) {
+        row.focus({ preventScroll: true });
+        return;
+      }
+      document
+        .querySelector<HTMLElement>(
+          '#course-tabs .tab[aria-selected="true"]',
+        )
+        ?.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [course, state.status, category]);
+
   if (!course) {
     return <Navigate to="/courses" replace />;
   }
@@ -328,7 +359,12 @@ export function CourseDetail({
     return (
       <div className="files-list">
         {files.map((file) => (
-          <ResourceRow file={file} key={file.id} />
+          <ResourceRow
+            file={file}
+            courseId={course.id}
+            category={category}
+            key={file.id}
+          />
         ))}
       </div>
     );

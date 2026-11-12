@@ -12,6 +12,7 @@
 import {
   type Firestore,
   collection,
+  orderBy,
   query,
   getDocs,
 } from 'firebase/firestore';
@@ -51,7 +52,11 @@ export class CourseRepository {
         this.firestore,
         `courses/${courseId}/${category}`,
       );
-      const snapshot = await getDocs(query(categoryRef));
+      // Match the legacy `orderBy('createdAt', 'desc')` read so the catalogue
+      // and reader previous/next order stay identical.
+      const snapshot = await getDocs(
+        query(categoryRef, orderBy('createdAt', 'desc')),
+      );
       const data: ResourceFile[] = snapshot.docs.map((doc) =>
         mapResourceFile(doc.id, doc.data()),
       );
