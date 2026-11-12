@@ -132,10 +132,40 @@ export function FloatingDock() {
       : false,
   );
 
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pointerInsideRef = useRef(false);
+
   const setInert = (element: HTMLElement | null, inert: boolean) => {
     if (!element) return;
     (element as HTMLElement & { inert: boolean }).inert = inert;
   };
+
+  const cancelScheduledClose = useCallback(() => {
+    if (closeTimerRef.current !== null) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+  }, []);
+
+  // One timer owns the close grace period. Re-entering the trigger, the
+  // expanded bar or a popover cancels it, so crossing the 10px gap between
+  // them can never close the dock mid-move.
+  const scheduleClose = useCallback(() => {
+    cancelScheduledClose();
+    closeTimerRef.current = setTimeout(() => {
+      closeTimerRef.current = null;
+      if (pointerInsideRef.current) return;
+      if (shellRef.current?.contains(document.activeElement)) return;
+      setActivePopup(null);
+      setDockOpen(false);
+    }, 400);
+  }, [cancelScheduledClose, setActivePopup, setDockOpen]);
+
+  useEffect(() => () => cancelScheduledClose(), [cancelScheduledClose]);
+
+  useEffect(() => {
+    if (!dockOpen) cancelScheduledClose();
+  }, [dockOpen, cancelScheduledClose]);
 
   useEffect(() => {
     setInert(dockRef.current, !dockOpen);
@@ -156,11 +186,12 @@ export function FloatingDock() {
 
   const closeAll = useCallback(
     (returnFocus = false) => {
+      cancelScheduledClose();
       setActivePopup(null);
       setDockOpen(false);
       if (returnFocus) document.getElementById('dock-toggle')?.focus({ preventScroll: true });
     },
-    [setActivePopup, setDockOpen],
+    [cancelScheduledClose, setActivePopup, setDockOpen],
   );
 
   useEffect(() => {
@@ -196,14 +227,22 @@ export function FloatingDock() {
 
   const onShellPointerEnter = () => {
     if (!hoverRef.current) return;
+    pointerInsideRef.current = true;
+    cancelScheduledClose();
     if (!dockOpen) setDockOpen(true);
   };
 
   const onShellPointerLeave = () => {
-    if (!hoverRef.current || !dockOpen) return;
-    if (activePopup) return;
+    if (!hoverRef.current) return;
+    pointerInsideRef.current = false;
+    if (!dockOpen) return;
+    // Keyboard focus keeps the dock open regardless of pointer position.
     if (shellRef.current?.contains(document.activeElement)) return;
-    setDockOpen(false);
+    scheduleClose();
+  };
+
+  const onShellFocusCapture = () => {
+    cancelScheduledClose();
   };
 
   const toggleDock = () => {
@@ -274,6 +313,7 @@ export function FloatingDock() {
       className={dockOpen ? 'dock-open' : undefined}
       onPointerEnter={onShellPointerEnter}
       onPointerLeave={onShellPointerLeave}
+      onFocusCapture={onShellFocusCapture}
     >
       <button
         className="dock-toggle-btn"

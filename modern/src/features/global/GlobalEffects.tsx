@@ -2,7 +2,7 @@
 // progress, back-to-top and click ripples. Every loop and listener is scoped
 // to the effect that owns it and cleaned up on unmount or preference change.
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useGlobalExperience } from './GlobalExperienceContext';
 import { startCursorTrail, startParticleEngine } from './particleEngine';
 
@@ -116,32 +116,68 @@ export function GlobalEffects() {
 export function ScrollExperience() {
   const { decorativeAllowed } = useGlobalExperience();
   const bar = useRef<HTMLSpanElement | null>(null);
-  const [visible, setVisible] = useState(false);
+  const topButton = useRef<HTMLButtonElement | null>(null);
   const ticking = useRef(false);
+  const rafId = useRef<number | null>(null);
+  const maxScroll = useRef(1);
+  const visible = useRef(false);
 
-  const update = useCallback(() => {
-    ticking.current = false;
-    const doc = document.documentElement;
-    const max = Math.max(1, doc.scrollHeight - window.innerHeight);
-    const ratio = Math.min(1, Math.max(0, window.scrollY / max));
-    if (bar.current) bar.current.style.transform = `scaleX(${ratio})`;
-    setVisible(window.scrollY > 480);
+  const measure = useCallback(() => {
+    maxScroll.current = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
   }, []);
 
+  // The scroll frame only reads the cached page height and writes a transform.
+  // Measuring scrollHeight here would force a synchronous layout on every
+  // scroll frame; ResizeObserver keeps the cache fresh instead.
+  const update = useCallback(() => {
+    ticking.current = false;
+    rafId.current = null;
+    const max = maxScroll.current || 1;
+    const ratio = Math.min(1, Math.max(0, window.scrollY / max));
+    if (bar.current) bar.current.style.transform = `scaleX(${ratio})`;
+    const nextVisible = window.scrollY > 480;
+    if (nextVisible !== visible.current) {
+      visible.current = nextVisible;
+      topButton.current?.classList.toggle('visible', nextVisible);
+    }
+  }, []);
+
+  const schedule = useCallback(() => {
+    if (ticking.current) return;
+    ticking.current = true;
+    rafId.current = requestAnimationFrame(update);
+  }, [update]);
+
   useEffect(() => {
-    const onScroll = () => {
-      if (ticking.current) return;
-      ticking.current = true;
-      requestAnimationFrame(update);
+    measure();
+
+    const onScroll = () => schedule();
+    const onResize = () => {
+      measure();
+      schedule();
     };
+
     window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll, { passive: true });
+    window.addEventListener('resize', onResize, { passive: true });
+
+    let observer: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      observer = new ResizeObserver(() => {
+        measure();
+        schedule();
+      });
+      observer.observe(document.documentElement);
+    }
+
     update();
     return () => {
       window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
+      window.removeEventListener('resize', onResize);
+      if (rafId.current !== null) cancelAnimationFrame(rafId.current);
+      rafId.current = null;
+      observer?.disconnect();
     };
-  }, [update]);
+  }, [measure, schedule, update]);
 
   return (
     <>
@@ -151,7 +187,8 @@ export function ScrollExperience() {
       <button
         type="button"
         id="back-to-top"
-        className={`back-to-top${visible ? ' visible' : ''}`}
+        ref={topButton}
+        className="back-to-top"
         aria-label="Back to top"
         title="Back to top"
         onClick={() =>

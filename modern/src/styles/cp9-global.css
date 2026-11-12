@@ -1464,6 +1464,9 @@ body.blood-rain-on #blood-rain-aura {
     height: 100vh;
     pointer-events: none;
     z-index: 997;
+    /* Keep the full-viewport canvas on its own compositor layer so page
+       scrolling never repaints the document underneath it. */
+    will-change: transform;
 }
 
 .cursor-trail-canvas {

@@ -191,6 +191,34 @@ const SAKURA_PETAL_PATH =
       })()
     : null;
 
+// Nozarashi draws a soft radial flame for every particle on every frame.
+// Building that gradient (four colour stops) per particle was the single most
+// expensive scroll path, so bake it into one reusable sprite instead. The
+// sprite keeps the exact same colours; per-particle alpha comes from
+// globalAlpha, which composites identically under 'lighter'.
+const FLAME_SPRITE_SIZE = 128;
+let flameSprite: HTMLCanvasElement | null = null;
+
+function getFlameSprite(): HTMLCanvasElement | null {
+  if (flameSprite) return flameSprite;
+  if (typeof document === 'undefined') return null;
+  const sprite = document.createElement('canvas');
+  sprite.width = FLAME_SPRITE_SIZE;
+  sprite.height = FLAME_SPRITE_SIZE;
+  const spriteContext = sprite.getContext('2d');
+  if (!spriteContext) return null;
+  const center = FLAME_SPRITE_SIZE / 2;
+  const gradient = spriteContext.createRadialGradient(center, center, 0, center, center, center);
+  gradient.addColorStop(0, 'rgba(254, 240, 138, 1)');
+  gradient.addColorStop(0.35, 'rgba(250, 204, 21, 0.85)');
+  gradient.addColorStop(0.7, 'rgba(234, 88, 12, 0.5)');
+  gradient.addColorStop(1, 'rgba(120, 30, 0, 0)');
+  spriteContext.fillStyle = gradient;
+  spriteContext.fillRect(0, 0, FLAME_SPRITE_SIZE, FLAME_SPRITE_SIZE);
+  flameSprite = sprite;
+  return sprite;
+}
+
 export interface ParticleEngineOptions {
   readonly canvas: HTMLCanvasElement;
   readonly mode: ParticleMode;
@@ -213,6 +241,7 @@ export function startParticleEngine(options: ParticleEngineOptions): () => void 
   let rafId: number | null = null;
   let lastTime = 0;
   let disposed = false;
+  let resizeTimer: ReturnType<typeof setTimeout> | null = null;
 
   const scale = animationScale(animation) || 1;
 
@@ -229,10 +258,43 @@ export function startParticleEngine(options: ParticleEngineOptions): () => void 
     return list;
   }
 
-  function resize(): void {
-    width = canvas.width = window.innerWidth;
-    height = canvas.height = window.innerHeight;
-    particles = build();
+  /**
+   * Update the backing store without re-randomising the scene. Mobile browsers
+   * fire `resize` continuously while the URL bar collapses during a scroll; a
+   * full rebuild there teleported every particle and flashed the canvas. Keep
+   * the existing particles and scale them into the new viewport instead.
+   */
+  function resize(rebuild = true): void {
+    const nextWidth = Math.max(1, Math.floor(window.innerWidth));
+    const nextHeight = Math.max(1, Math.floor(window.innerHeight));
+    if (!rebuild && nextWidth === width && nextHeight === height) return;
+
+    const previousWidth = width;
+    const previousHeight = height;
+    width = canvas.width = nextWidth;
+    height = canvas.height = nextHeight;
+
+    if (rebuild || particles.length === 0) {
+      particles = build();
+      return;
+    }
+
+    const scaleX = previousWidth > 0 ? nextWidth / previousWidth : 1;
+    const scaleY = previousHeight > 0 ? nextHeight / previousHeight : 1;
+    for (const particle of particles) {
+      particle.x *= scaleX;
+      particle.y *= scaleY;
+    }
+  }
+
+  function onResize(): void {
+    if (resizeTimer !== null) clearTimeout(resizeTimer);
+    // Coalesce URL-bar/viewport churn into one resize.
+    resizeTimer = setTimeout(() => {
+      resizeTimer = null;
+      if (disposed) return;
+      resize(false);
+    }, 150);
   }
 
   function drawRain(dt: number): void {
@@ -246,19 +308,20 @@ export function startParticleEngine(options: ParticleEngineOptions): () => void 
       }
       if (p.x < -40) p.x = width + 40;
       if (p.x > width + 40) p.x = -40;
-      ctx.strokeStyle = p.bright
-        ? `rgba(255, 82, 92, ${Math.min(0.75, p.alpha * 1.6)})`
-        : `rgba(176, 16, 34, ${p.alpha})`;
+      ctx.strokeStyle = p.bright ? 'rgb(255, 82, 92)' : 'rgb(176, 16, 34)';
+      ctx.globalAlpha = p.bright ? Math.min(0.75, p.alpha * 1.6) : p.alpha;
       ctx.lineWidth = p.width;
       ctx.beginPath();
       ctx.moveTo(p.x, p.y);
       ctx.lineTo(p.x - p.drift * 1.6, p.y + p.length);
       ctx.stroke();
     }
+    ctx.globalAlpha = 1;
   }
 
   function drawGold(dt: number): void {
     ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = 'rgb(250, 204, 21)';
     for (const p of particles) {
       p.phase += p.twinkle * dt;
       p.y += p.speedY * dt;
@@ -270,11 +333,12 @@ export function startParticleEngine(options: ParticleEngineOptions): () => void 
       if (p.x < -12) p.x = width + 12;
       if (p.x > width + 12) p.x = -12;
       const alpha = p.alpha * (0.65 + Math.sin(p.phase) * 0.35);
-      ctx.fillStyle = `rgba(250, 204, 21, ${Math.max(0.1, alpha)})`;
+      ctx.globalAlpha = Math.max(0.1, alpha);
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
       ctx.fill();
     }
+    ctx.globalAlpha = 1;
   }
 
   function drawSakura(dt: number): void {
@@ -308,6 +372,7 @@ export function startParticleEngine(options: ParticleEngineOptions): () => void 
 
   function drawFlames(dt: number): void {
     ctx.globalCompositeOperation = 'lighter';
+    const sprite = getFlameSprite();
     for (const p of particles) {
       if (p.kind === 'spark') {
         p.life += 0.012 * dt;
@@ -317,7 +382,8 @@ export function startParticleEngine(options: ParticleEngineOptions): () => void 
           Object.assign(p, spawnParticle('nozarashi', width, height, false));
           continue;
         }
-        ctx.fillStyle = `rgba(253, 224, 71, ${(1 - p.life) * 0.9})`;
+        ctx.fillStyle = 'rgb(253, 224, 71)';
+        ctx.globalAlpha = (1 - p.life) * 0.9;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fill();
@@ -334,6 +400,19 @@ export function startParticleEngine(options: ParticleEngineOptions): () => void 
       const fade = Math.sin(p.life * Math.PI);
       const alpha = Math.max(0.08, fade * (dark ? 0.8 : 0.5));
       const radius = p.size * (0.5 + p.life * 0.9);
+      if (sprite) {
+        const widthScale = radius * 1.44;
+        const heightScale = radius * 2.3;
+        ctx.globalAlpha = alpha;
+        ctx.drawImage(
+          sprite,
+          p.x - widthScale / 2,
+          p.y - heightScale / 2,
+          widthScale,
+          heightScale,
+        );
+        continue;
+      }
       const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, radius);
       gradient.addColorStop(0, `rgba(254, 240, 138, ${alpha})`);
       gradient.addColorStop(0.35, `rgba(250, 204, 21, ${alpha * 0.85})`);
@@ -344,6 +423,7 @@ export function startParticleEngine(options: ParticleEngineOptions): () => void 
       ctx.ellipse(p.x, p.y, radius * 0.72, radius * 1.15, 0, 0, Math.PI * 2);
       ctx.fill();
     }
+    ctx.globalAlpha = 1;
   }
 
   function drawReiatsu(dt: number): void {
@@ -364,34 +444,31 @@ export function startParticleEngine(options: ParticleEngineOptions): () => void 
         const cos = 0.7071;
         const sin = -0.7071;
         ctx.setTransform(cos, sin, -sin, cos, p.x, p.y);
-        ctx.fillStyle = bloodMoon
-          ? `rgba(255, 30, 45, ${alpha * 0.35})`
-          : `rgba(${accentRgb}, ${alpha * 0.3})`;
+        ctx.fillStyle = bloodMoon ? 'rgb(255, 30, 45)' : `rgb(${accentRgb})`;
+        ctx.globalAlpha = bloodMoon ? alpha * 0.35 : alpha * 0.3;
         ctx.beginPath();
         ctx.ellipse(0, 0, p.size * 2.5, p.size * 1.1, 0, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = bloodMoon
-          ? `rgba(255, 120, 130, ${alpha})`
-          : `rgba(255, 255, 255, ${alpha * 0.9})`;
+        ctx.fillStyle = bloodMoon ? 'rgb(255, 120, 130)' : 'rgb(255, 255, 255)';
+        ctx.globalAlpha = bloodMoon ? alpha : alpha * 0.9;
         ctx.beginPath();
         ctx.ellipse(0, 0, p.size * 1.8, p.size * 0.6, 0, 0, Math.PI * 2);
         ctx.fill();
       } else {
         ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.fillStyle = bloodMoon
-          ? `rgba(255, 30, 45, ${alpha * 0.28})`
-          : `rgba(${accentRgb}, ${alpha * 0.22})`;
+        ctx.fillStyle = bloodMoon ? 'rgb(255, 30, 45)' : `rgb(${accentRgb})`;
+        ctx.globalAlpha = bloodMoon ? alpha * 0.28 : alpha * 0.22;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size * 2.2, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = bloodMoon
-          ? `rgba(255, 220, 220, ${alpha * 0.95})`
-          : `rgba(255, 255, 255, ${alpha * 0.9})`;
+        ctx.fillStyle = bloodMoon ? 'rgb(255, 220, 220)' : 'rgb(255, 255, 255)';
+        ctx.globalAlpha = bloodMoon ? alpha * 0.95 : alpha * 0.9;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size * 0.85, 0, Math.PI * 2);
         ctx.fill();
       }
     }
+    ctx.globalAlpha = 1;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
   }
 
@@ -404,24 +481,31 @@ export function startParticleEngine(options: ParticleEngineOptions): () => void 
       const alpha = Math.max(0.12, p.alpha * twinkle);
       if (p.x < -4) p.x = width + 4;
       if (p.x > width + 4) p.x = -4;
-      ctx.fillStyle = p.bright
-        ? `rgba(${accentRgb}, ${alpha})`
-        : `rgba(255, 255, 255, ${alpha * 0.8})`;
+      if (p.bright) {
+        ctx.fillStyle = `rgb(${accentRgb})`;
+        ctx.globalAlpha = alpha;
+      } else {
+        ctx.fillStyle = 'rgb(255, 255, 255)';
+        ctx.globalAlpha = alpha * 0.8;
+      }
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
       ctx.fill();
       if (p.bright) {
-        ctx.fillStyle = `rgba(${accentRgb}, ${alpha * 0.22})`;
+        ctx.fillStyle = `rgb(${accentRgb})`;
+        ctx.globalAlpha = alpha * 0.22;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size * 2.6, 0, Math.PI * 2);
         ctx.fill();
       }
     }
+    ctx.globalAlpha = 1;
   }
 
   function draw(dt: number): void {
     ctx.clearRect(0, 0, width, height);
     ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 1;
     if (mode === 'rain') drawRain(dt);
     else if (mode === 'gold') drawGold(dt);
     else if (mode === 'sakura') drawSakura(dt);
@@ -444,10 +528,10 @@ export function startParticleEngine(options: ParticleEngineOptions): () => void 
     rafId = requestAnimationFrame(animate);
   }
 
-  resize();
+  resize(true);
   canvas.classList.remove('hidden');
   document.body.classList.toggle('blood-rain-on', mode === 'rain');
-  window.addEventListener('resize', resize);
+  window.addEventListener('resize', onResize, { passive: true });
 
   const onVisibility = () => {
     if (document.hidden) {
@@ -464,9 +548,13 @@ export function startParticleEngine(options: ParticleEngineOptions): () => void 
 
   return () => {
     disposed = true;
+    if (resizeTimer !== null) {
+      clearTimeout(resizeTimer);
+      resizeTimer = null;
+    }
     if (rafId) cancelAnimationFrame(rafId);
     rafId = null;
-    window.removeEventListener('resize', resize);
+    window.removeEventListener('resize', onResize);
     document.removeEventListener('visibilitychange', onVisibility);
     document.body.classList.remove('blood-rain-on');
     ctx.globalCompositeOperation = 'source-over';
