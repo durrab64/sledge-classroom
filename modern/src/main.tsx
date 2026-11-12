@@ -6,6 +6,7 @@ import './styles/legacy-labs-calendar.css';
 import './styles/legacy-reading-room.css';
 import './styles/cp6-supplement.css';
 import './styles/cp9-global.css';
+import './styles/cp10-admin.css';
 import { AuthProvider } from '@/contexts';
 import { GlobalExperienceProvider } from '@/features/global/GlobalExperienceContext';
 import { Router } from './app/router';

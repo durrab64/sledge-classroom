@@ -9,6 +9,7 @@
 // importing this barrel, so no Firebase SDK or network is involved in tests.
 
 import { db, rtdb, firebaseConfigured } from '../firebase';
+import { AdminRepository } from './adminRepository';
 import { CourseRepository } from './courseRepository';
 import { EventRepository } from './eventRepository';
 import { NowPlayingRepository } from './nowPlayingRepository';
@@ -16,11 +17,13 @@ import { NowPlayingRepository } from './nowPlayingRepository';
 // `db` / `rtdb` are `Firestore | null` / `Database | null` when Firebase is
 // not configured, which matches the repository dependency types.
 export const courseRepository = new CourseRepository({ firestore: db });
+export const adminRepository = new AdminRepository({ firestore: db });
 export const eventRepository = new EventRepository({ firestore: db });
 export const nowPlayingRepository = new NowPlayingRepository({ database: rtdb });
 
 export { firebaseConfigured };
 export type { RepositoryResult, RepositoryError } from '@/types';
+export type { AdminRepository } from './adminRepository';
 export type { CourseRepository } from './courseRepository';
 export type { EventRepository } from './eventRepository';
 export type { NowPlayingRepository } from './nowPlayingRepository';

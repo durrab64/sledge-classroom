@@ -113,6 +113,16 @@ export function Navbar() {
                 <i className={link.icon} /> {link.label}
               </NavLink>
             ))}
+            {isOwner ? (
+              <NavLink
+                to="/admin"
+                end={false}
+                className={linkClass}
+                data-page="admin"
+              >
+                <i className="fas fa-user-shield" /> Admin
+              </NavLink>
+            ) : null}
           </div>
 
           <div className="nav-actions">
@@ -182,6 +192,16 @@ export function Navbar() {
             <i className={link.icon} /> {link.label}
           </NavLink>
         ))}
+        {isOwner ? (
+          <NavLink
+            to="/admin"
+            end={false}
+            className={mobileLinkClass}
+            data-page="admin"
+          >
+            <i className="fas fa-user-shield" /> Admin
+          </NavLink>
+        ) : null}
       </div>
     </>
   );
