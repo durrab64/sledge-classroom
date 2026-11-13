@@ -701,3 +701,220 @@ html[data-theme="dark"][data-zanpakuto] #page-admin {
     animation: none;
   }
 }
+
+/* ===================================================
+   Admin authentication screen (login entry point).
+   Shares the editorial Admin tokens so the auth screen
+   belongs to the same family as the Admin page.
+   =================================================== */
+
+/* Editorial tokens for the login screen (same as Admin). */
+html:not([data-zanpakuto]) .admin-login-page {
+  --c-bg: #f6f0e3;
+  --c-surface: #fdfaf3;
+  --c-surface-2: #efe7d6;
+  --c-ink: #17140f;
+  --c-muted: #5f5647;
+  --c-line: rgba(23, 20, 15, 0.16);
+  --c-gold: #8b6a24;
+  --c-gold-rgb: 139, 106, 36;
+}
+html[data-theme="dark"]:not([data-zanpakuto]) .admin-login-page {
+  --c-bg: #070708;
+  --c-surface: #0d0d10;
+  --c-surface-2: #121216;
+  --c-ink: #f2ede1;
+  --c-muted: #a89f8c;
+  --c-line: rgba(242, 237, 225, 0.16);
+  --c-gold: #d7b35f;
+  --c-gold-rgb: 215, 179, 95;
+}
+html[data-zanpakuto] .admin-login-page {
+  --c-bg: var(--bg-primary);
+  --c-surface: var(--bg-card);
+  --c-surface-2: var(--bg-secondary);
+  --c-ink: var(--text-primary);
+  --c-muted: var(--text-secondary);
+  --c-line: var(--border-color);
+  --c-gold: var(--accent-color);
+}
+html[data-theme="dark"][data-zanpakuto] .admin-login-page {
+  --c-gold: color-mix(in srgb, var(--accent-color) 82%, #ffffff);
+}
+
+.admin-login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - var(--nav-height, 72px));
+  padding: 40px 24px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--c-gold) 6%, var(--c-bg)) 0%, var(--c-bg) 380px);
+  color: var(--c-ink);
+}
+
+.admin-login-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 28px 26px 24px;
+  border: 1px solid var(--c-line);
+  border-top: 2px solid var(--c-gold);
+  border-radius: 4px;
+  background: var(--c-surface);
+  box-shadow: none;
+}
+
+.admin-login-card h2 {
+  margin: 0 0 8px;
+  font-family: 'Bebas Neue', 'Oswald', 'Arial Narrow', sans-serif;
+  font-size: 2rem;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--c-ink);
+}
+
+.admin-login-card .login-info {
+  margin: 0 0 20px;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--c-muted);
+}
+
+.admin-login-page .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.admin-login-page .form-group label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--c-muted);
+}
+
+.admin-login-page .form-input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--c-line);
+  border-radius: 4px;
+  background: var(--c-surface);
+  color: var(--c-ink);
+  font-family: inherit;
+  font-size: 0.88rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.admin-login-page .form-input:focus-visible {
+  outline: none;
+  border-color: var(--c-gold);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-gold) 22%, transparent);
+}
+
+.admin-login-page .form-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.admin-login-page .password-wrapper {
+  position: relative;
+}
+
+.admin-login-page .password-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  background: transparent;
+  color: var(--c-muted);
+  cursor: pointer;
+}
+
+.admin-login-page .password-toggle:hover {
+  color: var(--c-gold);
+}
+
+.admin-login-page .login-error {
+  margin: 4px 0 12px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, #b91c1c 40%, var(--c-line));
+  background: color-mix(in srgb, #b91c1c 6%, var(--c-surface));
+  color: #b91c1c;
+  font-size: 0.8rem;
+}
+
+[data-theme="dark"] .admin-login-page .login-error {
+  color: #fca5a5;
+  border-color: color-mix(in srgb, #fca5a5 40%, var(--c-line));
+  background: color-mix(in srgb, #fca5a5 8%, var(--c-surface));
+}
+
+.admin-login-page .modal-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--c-line);
+}
+
+.admin-login-page .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.82rem;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+  white-space: nowrap;
+  box-shadow: none;
+  transform: none;
+  border: 1px solid var(--c-line);
+  background: transparent;
+  color: var(--c-ink);
+}
+
+.admin-login-page .btn-primary {
+  background: var(--c-gold);
+  color: var(--c-bg);
+  border-color: var(--c-gold);
+}
+
+.admin-login-page .btn-primary:hover {
+  background: color-mix(in srgb, var(--c-gold) 82%, #000);
+  border-color: color-mix(in srgb, var(--c-gold) 82%, #000);
+}
+
+.admin-login-page .btn-ghost {
+  color: var(--c-muted);
+  border-color: transparent;
+}
+
+.admin-login-page .btn-ghost:hover {
+  color: var(--c-ink);
+  background: color-mix(in srgb, var(--c-gold) 6%, transparent);
+}
+
+@media (max-width: 480px) {
+  .admin-login-card {
+    padding: 22px 18px 18px;
+  }
+  .admin-login-page .modal-footer .btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+}

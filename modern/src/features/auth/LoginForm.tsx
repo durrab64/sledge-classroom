@@ -74,7 +74,8 @@ export function LoginForm({ onAuthenticated }: LoginFormProps) {
     }, [authError]);
 
     return (
-        <form className="sledge-card" onSubmit={handleSubmit} noValidate>
+        <div className="admin-login-page">
+        <form className="admin-login-card" onSubmit={handleSubmit} noValidate>
             <h2>Admin Login</h2>
             <p className="login-info">
                 Only the admin can upload, update, and delete content. Students
@@ -157,5 +158,6 @@ export function LoginForm({ onAuthenticated }: LoginFormProps) {
                 </button>
             </div>
         </form>
+        </div>
     );
 }
