@@ -6,16 +6,16 @@
 // empty/error behaviour. No resource, count, or course data is invented.
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import type { RepositoryError } from '@/types';
 import {
   loadCatalogue,
-  pad2,
   type CatalogueData,
   type CourseEntry,
   type CourseResourceReader,
   type EventReader,
 } from '@/features/courses/courseData';
+import { ArchiveCourseCard } from '@/features/courses/ArchiveCourseCard';
+import type { CourseCardItem } from '@/features/courses/courseData';
 import { courseRepository, eventRepository } from '@/services/repositories';
 
 type LoadState =
@@ -43,17 +43,7 @@ function benchMetrics(entry: CourseEntry): LabBench | null {
   };
 }
 
-function metric(icon: string, value: number, label: string) {
-  return (
-    <span
-      className={`lab-metric${value ? '' : ' lab-metric--zero'}`}
-      key={label}
-    >
-      <i className={`fas ${icon}`} aria-hidden="true" />
-      <strong>{value}</strong> {label}
-    </span>
-  );
-}
+// (Labs cards now reuse the editorial archive card from Courses.)
 
 export function LabsPage({
   courseReader = courseRepository,
@@ -233,48 +223,19 @@ export function LabsPage({
 
             {state.status === 'success'
               ? benches.map(({ entry, counts, eventCount }, index) => {
-                  const { course } = entry;
+                  const item: CourseCardItem = {
+                    course: entry.course,
+                    counts,
+                    eventCount,
+                    kind: 'lab',
+                  };
                   return (
-                    <Link
-                      className="lab-entry"
-                      to={`/courses/${course.id}?mode=lab&from=labs`}
-                      key={course.id}
-                      aria-label={`${course.name} lab bench, ${course.code}. ${counts.primary} manuals, ${counts.papers} papers, ${counts.tertiary} tasks, ${eventCount} events.`}
-                      style={{ ['--lab-accent' as string]: course.color }}
-                    >
-                      <span className="lab-entry__rail" aria-hidden="true">
-                        <span className="lab-entry__index">
-                          LAB {pad2(index + 1)}
-                        </span>
-                        <span
-                          className="lab-entry__mark"
-                          style={{ background: course.gradient }}
-                        >
-                          <i className={course.icon} />
-                        </span>
-                      </span>
-                      <span className="lab-entry__body">
-                        <span className="lab-entry__code">{course.code}</span>
-                        <span className="lab-entry__title">{course.name}</span>
-                        <span className="lab-entry__desc">
-                          {course.description}
-                        </span>
-                        <span className="lab-entry__metrics">
-                          {metric('fa-book', counts.primary, 'Manuals')}
-                          {metric('fa-scroll', counts.papers, 'Papers')}
-                          {metric('fa-laptop-code', counts.tertiary, 'Tasks')}
-                          {metric(
-                            'fa-calendar-day',
-                            eventCount,
-                            'Events',
-                          )}
-                        </span>
-                      </span>
-                      <span className="lab-entry__action">
-                        Open bench{' '}
-                        <i className="fas fa-arrow-right" aria-hidden="true" />
-                      </span>
-                    </Link>
+                    <ArchiveCourseCard
+                      item={item}
+                      index={index}
+                      key={entry.course.id}
+                      to={`/courses/${entry.course.id}?mode=lab&from=labs`}
+                    />
                   );
                 })
               : null}

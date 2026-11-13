@@ -17,6 +17,12 @@
     --sledge-accent: 14 165 233; /* #0ea5e9 */
     --sledge-accent-hover: 2 132 199; /* #0284c7 */
     --sledge-border: 226 232 240; /* #e2e8f0 */
+    --course-stats: #6366f1;
+    --course-automata: #8b5cf6;
+    --course-calculus: #ec4899;
+    --course-os: #f97316;
+    --course-web: #14b8a6;
+    --course-arch: #3b82f6;
   }
 
   html {

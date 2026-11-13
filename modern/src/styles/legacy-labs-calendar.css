@@ -355,12 +355,12 @@
 
 .page-labs .labs-directory .labs-grid {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 14px;
-    max-width: none;
-    margin: 0;
-    padding: 0;
-    justify-content: stretch;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+    gap: 18px;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 24px 0 44px;
+    justify-content: center;
 }
 
 .page-labs .lab-entry {

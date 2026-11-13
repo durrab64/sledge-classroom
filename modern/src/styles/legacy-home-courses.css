@@ -3760,7 +3760,7 @@ html[data-animation="off"] .event-card--transmission {
    shared nav/footer and the theme palettes stay intact.
    =================================================== */
 
-html:not([data-zanpakuto]) #page-courses {
+html:not([data-zanpakuto]) :is(#page-courses, #page-labs) {
     --c-bg: #f6f0e3;
     --c-surface: #fdfaf3;
     --c-surface-2: #efe7d6;
@@ -3772,7 +3772,7 @@ html:not([data-zanpakuto]) #page-courses {
     --c-accent: #8b6a24;
 }
 
-html[data-theme="dark"]:not([data-zanpakuto]) #page-courses {
+html[data-theme="dark"]:not([data-zanpakuto]) :is(#page-courses, #page-labs) {
     --c-bg: #070708;
     --c-surface: #0d0d10;
     --c-surface-2: #121216;
@@ -3784,7 +3784,7 @@ html[data-theme="dark"]:not([data-zanpakuto]) #page-courses {
     --c-accent: #d7b35f;
 }
 
-html[data-zanpakuto] #page-courses {
+html[data-zanpakuto] :is(#page-courses, #page-labs) {
     --c-bg: var(--bg-primary);
     --c-surface: var(--bg-card);
     --c-surface-2: var(--bg-secondary);
@@ -3796,12 +3796,13 @@ html[data-zanpakuto] #page-courses {
     --c-accent: var(--accent-color);
 }
 
-html[data-theme="dark"][data-zanpakuto] #page-courses {
+html[data-theme="dark"][data-zanpakuto] :is(#page-courses, #page-labs) {
     --c-gold: var(--accent-color);
     --c-gold: color-mix(in srgb, var(--accent-color) 82%, #ffffff);
 }
 
-#page-courses {
+#page-courses,
+#page-labs {
     position: relative;
     min-height: 100vh;
     color: var(--c-ink);
@@ -4058,7 +4059,7 @@ html[data-theme="dark"][data-zanpakuto] #page-courses {
 #page-courses .mode-toggle-btn:focus-visible,
 #page-courses #course-tabs .tab:focus-visible,
 #page-courses .file-action-btn:focus-visible,
-#page-courses .course-card--archive:focus-visible,
+:is(#page-courses, #page-labs) .course-card--archive:focus-visible,
 #page-courses .courses-empty button:focus-visible {
     outline: 2px solid var(--c-gold);
     outline-offset: 3px;
@@ -4123,7 +4124,7 @@ html[data-theme="dark"][data-zanpakuto] #page-courses {
 }
 
 /* ---------- Archive cards ---------- */
-#page-courses .course-card--archive {
+:is(#page-courses, #page-labs) .course-card--archive {
     display: flex;
     flex-direction: column;
     min-width: 0;
@@ -4141,7 +4142,7 @@ html[data-theme="dark"][data-zanpakuto] #page-courses {
     transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-#page-courses .course-card--archive::before {
+:is(#page-courses, #page-labs) .course-card--archive::before {
     content: '';
     position: absolute;
     top: 0;
@@ -4153,17 +4154,17 @@ html[data-theme="dark"][data-zanpakuto] #page-courses {
     transform: none;
 }
 
-#page-courses .course-card--archive:hover {
+:is(#page-courses, #page-labs) .course-card--archive:hover {
     border-color: color-mix(in srgb, var(--c-gold) 55%, var(--c-line));
     transform: translateY(-2px);
     box-shadow: 0 10px 26px rgba(0, 0, 0, 0.12);
 }
 
-#page-courses .course-card--archive:hover::before {
+:is(#page-courses, #page-labs) .course-card--archive:hover::before {
     transform: none;
 }
 
-#page-courses .archive-card-top {
+:is(#page-courses, #page-labs) .archive-card-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -4171,7 +4172,7 @@ html[data-theme="dark"][data-zanpakuto] #page-courses {
     margin-bottom: 22px;
 }
 
-#page-courses .archive-card-index {
+:is(#page-courses, #page-labs) .archive-card-index {
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.64rem;
     letter-spacing: 0.18em;
@@ -4179,7 +4180,7 @@ html[data-theme="dark"][data-zanpakuto] #page-courses {
     color: var(--c-gold);
 }
 
-#page-courses .archive-card-type {
+:is(#page-courses, #page-labs) .archive-card-type {
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.56rem;
     letter-spacing: 0.16em;
@@ -4194,7 +4195,7 @@ html[data-theme="dark"][data-zanpakuto] #page-courses {
     color: var(--c-muted);
 }
 
-#page-courses .archive-card-code {
+:is(#page-courses, #page-labs) .archive-card-code {
     display: block;
     margin-bottom: 6px;
     font-family: 'JetBrains Mono', monospace;
@@ -4204,7 +4205,7 @@ html[data-theme="dark"][data-zanpakuto] #page-courses {
     color: var(--c-muted);
 }
 
-#page-courses .archive-card-title {
+:is(#page-courses, #page-labs) .archive-card-title {
     display: block;
     margin-bottom: 10px;
     font-family: 'Bebas Neue', 'Oswald', 'Arial Narrow', sans-serif;
@@ -4215,7 +4216,7 @@ html[data-theme="dark"][data-zanpakuto] #page-courses {
     color: var(--c-ink);
 }
 
-#page-courses .archive-card-desc {
+:is(#page-courses, #page-labs) .archive-card-desc {
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -4226,7 +4227,7 @@ html[data-theme="dark"][data-zanpakuto] #page-courses {
     line-height: 1.5;
 }
 
-#page-courses .archive-card-metrics {
+:is(#page-courses, #page-labs) .archive-card-metrics {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1px;
@@ -4237,7 +4238,7 @@ html[data-theme="dark"][data-zanpakuto] #page-courses {
     overflow: hidden;
 }
 
-#page-courses .archive-metric {
+:is(#page-courses, #page-labs) .archive-metric {
     display: flex;
     align-items: baseline;
     gap: 8px;
@@ -4245,7 +4246,7 @@ html[data-theme="dark"][data-zanpakuto] #page-courses {
     background: var(--c-surface);
 }
 
-#page-courses .archive-metric-value {
+:is(#page-courses, #page-labs) .archive-metric-value {
     font-family: 'Bebas Neue', 'Oswald', 'Arial Narrow', sans-serif;
     font-size: 1.2rem;
     line-height: 1;
@@ -4253,7 +4254,7 @@ html[data-theme="dark"][data-zanpakuto] #page-courses {
     color: var(--c-ink);
 }
 
-#page-courses .archive-metric-label {
+:is(#page-courses, #page-labs) .archive-metric-label {
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.55rem;
     letter-spacing: 0.1em;
@@ -4261,7 +4262,7 @@ html[data-theme="dark"][data-zanpakuto] #page-courses {
     color: var(--c-muted);
 }
 
-#page-courses .archive-card-open {
+:is(#page-courses, #page-labs) .archive-card-open {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -4276,11 +4277,11 @@ html[data-theme="dark"][data-zanpakuto] #page-courses {
     color: var(--c-ink);
 }
 
-#page-courses .archive-card-open > span {
+:is(#page-courses, #page-labs) .archive-card-open > span {
     transition: transform 0.18s ease;
 }
 
-#page-courses .course-card--archive:hover .archive-card-open > span {
+:is(#page-courses, #page-labs) .course-card--archive:hover .archive-card-open > span {
     transform: translateX(3px);
 }
 
@@ -4825,7 +4826,7 @@ body.is-admin #page-courses .file-action-btn.admin-action {
         display: none;
     }
 
-    #page-courses .course-card--archive {
+    :is(#page-courses, #page-labs) .course-card--archive {
         padding: 20px;
     }
 
@@ -4887,14 +4888,14 @@ body.is-admin #page-courses .file-action-btn.admin-action {
         font-size: 1.85rem;
     }
 
-    #page-courses .archive-card-title {
+    :is(#page-courses, #page-labs) .archive-card-title {
         font-size: 1.7rem;
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
     #page-courses .course-card--archive,
-    #page-courses .archive-card-open > span,
+    :is(#page-courses, #page-labs) .archive-card-open > span,
     #page-courses .filter-pill::after {
         transition: none !important;
     }

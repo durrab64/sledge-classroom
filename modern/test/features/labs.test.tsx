@@ -64,26 +64,26 @@ describe('LabsPage', () => {
     ).toBeInTheDocument();
 
     const osBench = await screen.findByRole('link', {
-      name: /Operating Systems lab bench/,
+      name: /Operating Systems.*lab section/,
     });
     expect(osBench).toHaveAttribute(
       'href',
       '/courses/os?mode=lab&from=labs',
     );
-    expect(osBench).toHaveTextContent('LAB 01');
+    expect(osBench).toHaveTextContent('LB 01');
     expect(osBench).toHaveTextContent('CS 321');
-    expect(osBench).toHaveTextContent('1 Manuals');
-    expect(osBench).toHaveTextContent('1 Papers');
-    expect(osBench).toHaveTextContent('1 Tasks');
-    expect(osBench).toHaveTextContent('1 Events');
-    expect(osBench).toHaveTextContent('Open bench');
+    expect(osBench).toHaveTextContent('01Manual');
+    expect(osBench).toHaveTextContent('01Paper');
+    expect(osBench).toHaveTextContent('01Task');
+    expect(osBench).toHaveTextContent('01Event');
+    expect(osBench).toHaveTextContent('Open course');
 
     expect(
-      screen.getByRole('link', { name: /Web Engineering lab bench/ }),
+      screen.getByRole('link', { name: /Web Engineering.*lab section/ }),
     ).toHaveAttribute('href', '/courses/web?mode=lab&from=labs');
     expect(
       screen.getByRole('link', {
-        name: /Computer Architecture lab bench/,
+        name: /Computer Architecture.*lab section/,
       }),
     ).toHaveAttribute('href', '/courses/arch?mode=lab&from=labs');
 
@@ -124,11 +124,11 @@ describe('LabsPage', () => {
     renderLabs();
 
     const osBench = await screen.findByRole('link', {
-      name: /Operating Systems lab bench/,
+      name: /Operating Systems.*lab section/,
     });
-    expect(osBench).toHaveTextContent('0 Manuals');
-    expect(osBench).toHaveTextContent('0 Papers');
-    expect(osBench).toHaveTextContent('0 Tasks');
+    expect(osBench).toHaveTextContent('00Manuals');
+    expect(osBench).toHaveTextContent('00Papers');
+    expect(osBench).toHaveTextContent('00Tasks');
     expect(screen.getByText('3 benches · 0 resources')).toBeInTheDocument();
   });
 

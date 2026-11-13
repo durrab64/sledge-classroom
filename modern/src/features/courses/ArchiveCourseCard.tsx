@@ -8,9 +8,10 @@ import { pad2, pluralize } from './courseData';
 export interface ArchiveCourseCardProps {
   item: CourseCardItem;
   index: number;
+  to?: string;
 }
 
-export function ArchiveCourseCard({ item, index }: ArchiveCourseCardProps) {
+export function ArchiveCourseCard({ item, index, to }: ArchiveCourseCardProps) {
   const { course, counts, eventCount, kind } = item;
   const isLab = kind === 'lab';
   const accent = isLab ? '#10b981' : course.color;
@@ -26,12 +27,13 @@ export function ArchiveCourseCard({ item, index }: ArchiveCourseCardProps) {
     { value: eventCount, label: pluralize(eventCount, 'Event') },
   ];
 
-  const to = `/courses/${course.id}${isLab ? '?mode=lab' : ''}`;
+  const resolvedTo =
+    to ?? `/courses/${course.id}${isLab ? '?mode=lab' : ''}`;
 
   return (
     <Link
       className={`course-card course-card--archive course-card--${kind}`}
-      to={to}
+      to={resolvedTo}
       data-course-id={course.id}
       data-course-mode={kind}
       style={{ ['--card-accent' as string]: accent }}
