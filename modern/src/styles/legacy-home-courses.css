@@ -2866,19 +2866,38 @@ html[data-theme="light"][data-zanpakuto="hogyoku"] .about-card {
 
 /* ---------- Home archive cards (home-only variant) ---------- */
 #archive-section .course-card--home {
-    padding: 24px;
+    padding: 22px;
     border-radius: 4px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-card);
+    box-shadow: none;
+    color: var(--text-primary);
+    transform: none;
+    transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 #archive-section .course-card--home::before {
     height: 2px;
+    background: var(--card-accent, var(--accent-color));
+    opacity: 0.85;
+}
+
+#archive-section .course-card--home:hover {
+    border-color: color-mix(in srgb, var(--accent-color) 55%, var(--border-color));
+    transform: translateY(-2px);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.12);
+}
+
+#archive-section .course-card--home:hover::before {
+    transform: none;
 }
 
 #archive-section .course-card--home .card-index {
     margin-bottom: 12px;
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.64rem;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
     color: var(--accent-color);
 }
 
@@ -2886,11 +2905,75 @@ html[data-theme="light"][data-zanpakuto="hogyoku"] .about-card {
     width: 46px;
     height: 46px;
     margin-bottom: 16px;
-    border-radius: 3px;
+    border-radius: 4px;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-#archive-section .course-card--home:hover {
-    transform: translateY(-2px);
+#archive-section .course-card--home .card-title {
+    display: block;
+    margin-bottom: 6px;
+    font-family: 'Bebas Neue', 'Oswald', 'Arial Narrow', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    color: var(--text-primary);
+}
+
+#archive-section .course-card--home .card-subtitle {
+    margin-bottom: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+}
+
+#archive-section .course-card--home .card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+}
+
+#archive-section .course-card--home .card-meta-item {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+}
+
+#archive-section .course-card--home .card-meta-item i {
+    font-size: 0.62rem;
+    color: var(--accent-color);
+}
+
+#archive-section .course-card--home .course-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+    padding: 3px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 2px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    background: transparent;
+}
+
+#archive-section .course-card--home .course-type-badge i {
+    color: var(--accent-color);
+    font-size: 0.6rem;
 }
 
 /* ===================================================
