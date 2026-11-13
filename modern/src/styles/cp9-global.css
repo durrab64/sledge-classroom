@@ -1735,6 +1735,70 @@ textarea:focus-visible {
     outline-offset: 2px;
 }
 
+/* ===== THEME ZANPAKUTO CURSORS (restored) ===== */
+html {
+    --zan-cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj48cGF0aCBkPSJNMyAzIEw4IDUgTDI5IDI2IEwyNiAyOSBMNSA4IFoiIGZpbGw9IiMxZDRlZDgiIHN0cm9rZT0iI2JmZGJmZSIgc3Ryb2tlLXdpZHRoPSIxLjYiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48cGF0aCBkPSJNNyAxMCBMNCAxMyIgc3Ryb2tlPSIjZTBmMmZlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxjaXJjbGUgY3g9IjI2IiBjeT0iMjYiIHI9IjIuMiIgZmlsbD0iIzYwYTVmYSIvPjwvc3ZnPg==") 3 3, auto;
+}
+
+html[data-zanpakuto="getsuga-tensho"] {
+    --zan-cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj48cGF0aCBkPSJNMyAzIEwxMyA1IEwyOSAyNCBMMjUgMjkgTDUgNiBaIiBmaWxsPSIjMDkwOTBiIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PHBhdGggZD0iTTEwIDQgUTIwIDggMjcgMjAiIHN0cm9rZT0iI2Y4ZmFmYyIgc3Ryb2tlLXdpZHRoPSIxLjQiIGZpbGw9Im5vbmUiLz48L3N2Zz4=") 3 3, auto;
+}
+
+html[data-zanpakuto="nozarashi"] {
+    --zan-cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj48cGF0aCBkPSJNMyAzIEwxNSA2IEwyOCAxOSBMMjMgMjQgTDggMTEgWiIgZmlsbD0iI2VhYjMwOCIgc3Ryb2tlPSIjMTgxODFiIiBzdHJva2Utd2lkdGg9IjEuOCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxwYXRoIGQ9Ik0xNCA3IEwxOCAxMSIgc3Ryb2tlPSIjMTgxODFiIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxjaXJjbGUgY3g9IjI2IiBjeT0iMjYiIHI9IjEuOCIgZmlsbD0iI2ZkZTA0NyIvPjwvc3ZnPg==") 3 3, auto;
+}
+
+html[data-zanpakuto="senbonzakura"] {
+    --zan-cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj48cGF0aCBkPSJNMyAzIEw3IDQuNSBMMjkgMjUgTDI2IDI5IEw1IDcgWiIgZmlsbD0iI2VjNDg5OSIgc3Ryb2tlPSIjZmJjZmU4IiBzdHJva2Utd2lkdGg9IjEuNiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxjaXJjbGUgY3g9IjI0IiBjeT0iOCIgcj0iMi41IiBmaWxsPSIjZjlhOGQ0Ii8+PGNpcmNsZSBjeD0iMjciIGN5PSIxMyIgcj0iMS41IiBmaWxsPSIjZmJjZmU4Ii8+PC9zdmc+") 3 3, auto;
+}
+
+html[data-zanpakuto="kyoka-suigetsu"] {
+    --zan-cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj48cGF0aCBkPSJNMyAzIEwxMSA2IEwyOCAyMyBMMjQgMjggTDUgMTAgWiIgZmlsbD0iIzdjM2FlZCIgc3Ryb2tlPSIjZTlkNWZmIiBzdHJva2Utd2lkdGg9IjEuNiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxjaXJjbGUgY3g9IjI1IiBjeT0iMjUiIHI9IjMuNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYzA4NGZjIiBzdHJva2Utd2lkdGg9IjEuOCIvPjwvc3ZnPg==") 3 3, auto;
+}
+
+html[data-zanpakuto="tensa-zangetsu"] {
+    --zan-cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj48cGF0aCBkPSJNMyAzIEw2LjUgNC41IEwyOSAyNiBMMjYgMjkgTDQuNSA3IFoiIGZpbGw9IiMwOTA5MGIiIHN0cm9rZT0iI2VmNDQ0NCIgc3Ryb2tlLXdpZHRoPSIxLjciIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48cGF0aCBkPSJNNiA5IEw5IDYiIHN0cm9rZT0iI2ZlY2FjYSIgc3Ryb2tlLXdpZHRoPSIxLjYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxjaXJjbGUgY3g9IjI2IiBjeT0iMjYiIHI9IjEuOCIgZmlsbD0iI2VmNDQ0NCIvPjwvc3ZnPg==") 3 3, auto;
+}
+
+html[data-zanpakuto="hogyoku"] {
+    --zan-cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj48cGF0aCBkPSJNMyAzIEw5IDUgTDI5IDI1IEwyNSAyOSBMNSA5IFoiIGZpbGw9IiM3ZTIyY2UiIHN0cm9rZT0iI2Y1ZDBmZSIgc3Ryb2tlLXdpZHRoPSIxLjYiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48cGF0aCBkPSJNNyAxMSBMNCAxNCIgc3Ryb2tlPSIjZmJjZmU4IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxjaXJjbGUgY3g9IjI1IiBjeT0iMjUiIHI9IjMiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2U4NzlmOSIgc3Ryb2tlLXdpZHRoPSIxLjgiLz48L3N2Zz4=") 3 3, auto;
+}
+
+html body,
+html body * {
+    cursor: var(--zan-cursor) !important;
+}
+
+html body input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+html body textarea,
+html body select,
+html body [contenteditable="true"] {
+    cursor: text !important;
+}
+
+html body [disabled],
+html body button:disabled {
+    cursor: not-allowed !important;
+}
+
+/* Touch devices: fall back to native cursor behavior */
+@media (pointer: coarse) {
+    html body,
+    html body * {
+        cursor: auto !important;
+    }
+    html body input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+    html body textarea,
+    html body select,
+    html body [contenteditable="true"] {
+        cursor: text !important;
+    }
+    html body [disabled],
+    html body button:disabled {
+        cursor: not-allowed !important;
+    }
+}
+
 /* ---------- Click ripple ---------- */
 .click-ripple {
     position: fixed;
