@@ -1,0 +1,5 @@
+# Root-level reports and generated audit files (keep local, do not commit)
+*REPORT*.md
+*BLUEPRINT*.md
+*RECONCILIATION*.md
+CHOTA_DON*.md
