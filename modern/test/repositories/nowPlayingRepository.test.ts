@@ -106,12 +106,17 @@ describe('NowPlayingRepository.getNowPlaying', () => {
 });
 
 describe('NowPlayingRepository.subscribeNowPlaying', () => {
-  it('subscribes and returns an unsubscribe function', () => {
+  // The Realtime Database SDK is dynamically imported now, so subscription
+  // attaches after a microtask/async resolution. Same behavior, awaited.
+  const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+  it('subscribes and returns an unsubscribe function', async () => {
     const onChange = vi.fn();
     (onValue as any).mockReturnValue(vi.fn() as never);
 
     const repo = new NowPlayingRepository({ database: {} as Database });
     const unsubscribe = repo.subscribeNowPlaying(onChange);
+    await flush();
 
     expect(ref).toHaveBeenCalled();
     expect(onValue).toHaveBeenCalledTimes(1);
@@ -119,14 +124,134 @@ describe('NowPlayingRepository.subscribeNowPlaying', () => {
     unsubscribe();
   });
 
-  it('invokes onChange with null when database is unconfigured', () => {
+  it('invokes onChange with null when database is unconfigured', async () => {
     const onChange = vi.fn();
     const repo = new NowPlayingRepository({ database: null });
     const unsubscribe = repo.subscribeNowPlaying(onChange);
+    await flush();
 
     expect(onChange).toHaveBeenCalledWith(null);
     expect(onValue).not.toHaveBeenCalled();
     expect(typeof unsubscribe).toBe('function');
+    unsubscribe();
+  });
+
+  it('does not attach the subscription after an early unsubscribe', async () => {
+    const onChange = vi.fn();
+    (onValue as any).mockReturnValue(vi.fn() as never);
+
+    const repo = new NowPlayingRepository({ database: {} as Database });
+    const unsubscribe = repo.subscribeNowPlaying(onChange);
+    unsubscribe();
+    await flush();
+
+    expect(onValue).not.toHaveBeenCalled();
+    expect(onChange).not.toHaveBeenCalled();
+  });
+});
+
+describe('NowPlayingRepository with lazy promise database', () => {
+  // The production composition (`getRtdb()`) passes a promise resolving to
+  // the RTDB instance, so these tests exercise the deferred-resolution path.
+  const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+  it('getNowPlaying resolves the lazy promise and maps the read', async () => {
+    (get as any).mockResolvedValue({
+      val: () => ({ title: 'T', artist: 'A', updatedAt: 7 }),
+    } as any);
+
+    const database = {} as Database;
+    const repo = new NowPlayingRepository({
+      database: Promise.resolve(database),
+    });
+    const result = await repo.getNowPlaying();
+
+    expect(result.data).toEqual({ title: 'T', artist: 'A', updatedAt: 7 });
+    expect(result.error).toBeNull();
+    expect(ref).toHaveBeenCalledWith(database, 'nowPlaying/current');
+  });
+
+  it('getNowPlaying returns firebase-not-configured when the promise resolves to null', async () => {
+    const repo = new NowPlayingRepository({ database: Promise.resolve(null) });
+    const result = await repo.getNowPlaying();
+
+    expect(result.data).toBeNull();
+    expect(result.error!.code).toBe('firebase-not-configured');
+    expect(get).not.toHaveBeenCalled();
+  });
+
+  it('attaches the listener and delivers updates after the promise resolves', async () => {
+    const onChange = vi.fn();
+    let listener: (snapshot: unknown) => void = () => {
+      /* replaced by the mock */
+    };
+    (onValue as any).mockImplementation((_ref: unknown, cb: typeof listener) => {
+      listener = cb;
+      return vi.fn() as never;
+    });
+
+    const repo = new NowPlayingRepository({
+      database: Promise.resolve({} as Database),
+    });
+    repo.subscribeNowPlaying(onChange);
+    await flush();
+
+    expect(onValue).toHaveBeenCalledTimes(1);
+    expect(ref).toHaveBeenCalled();
+    listener({ val: () => ({ title: 'Song', artist: 'A', updatedAt: 1 }) });
+    expect(onChange).toHaveBeenCalledWith({
+      title: 'Song',
+      artist: 'A',
+      updatedAt: 1,
+    });
+  });
+
+  it('does not attach the listener when unsubscribed before promise resolution', async () => {
+    const onChange = vi.fn();
+    (onValue as any).mockReturnValue(vi.fn() as never);
+
+    let resolveDb!: (database: Database | null) => void;
+    const deferred = new Promise<Database | null>((resolve) => {
+      resolveDb = resolve;
+    });
+    const repo = new NowPlayingRepository({ database: deferred });
+    const unsubscribe = repo.subscribeNowPlaying(onChange);
+    unsubscribe();
+    resolveDb({} as Database);
+    await flush();
+
+    expect(onValue).not.toHaveBeenCalled();
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('follows the unconfigured behavior when the promise resolves to null', async () => {
+    const onChange = vi.fn();
+    const repo = new NowPlayingRepository({
+      database: Promise.resolve(null),
+    });
+    const unsubscribe = repo.subscribeNowPlaying(onChange);
+    await flush();
+
+    expect(onChange).toHaveBeenCalledWith(null);
+    expect(onValue).not.toHaveBeenCalled();
+    expect(typeof unsubscribe).toBe('function');
+    unsubscribe();
+  });
+
+  it('invokes onError when the database promise rejects', async () => {
+    const onChange = vi.fn();
+    const onError = vi.fn();
+
+    const repo = new NowPlayingRepository({
+      database: Promise.reject(new Error('offline')),
+    });
+    const unsubscribe = repo.subscribeNowPlaying(onChange, onError);
+    await flush();
+
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(onError.mock.calls[0][0].message).toBe('offline');
+    expect(onValue).not.toHaveBeenCalled();
+    expect(onChange).not.toHaveBeenCalled();
     unsubscribe();
   });
 });

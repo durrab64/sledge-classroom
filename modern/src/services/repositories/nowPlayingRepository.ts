@@ -10,30 +10,40 @@
 // This repository performs reads only. Writes to RTDB are deferred to later
 // checkpoints and are never invoked here.
 
-import {
-  type Database,
-  get,
-  onValue,
-  ref,
-  type DataSnapshot,
-} from 'firebase/database';
+import type { Database, DataSnapshot } from 'firebase/database';
 import type { NowPlaying, RepositoryResult } from '@/types';
 import { repositoryFailure, repositorySuccess } from '@/types';
 
 export interface NowPlayingRepositoryDependencies {
-  readonly database: Database | null;
+  /**
+   * The RTDB instance, or a promise resolving to it (lazy SDK load), or null
+   * when Firebase is unconfigured.
+   */
+  readonly database: Database | null | Promise<Database | null>;
 }
 
 export class NowPlayingRepository {
-  private readonly database: Database | null;
+  private readonly database: Database | null | Promise<Database | null>;
 
   constructor(dependencies: NowPlayingRepositoryDependencies) {
     this.database = dependencies.database;
   }
 
+  /** Resolve the (possibly lazy) database handle. */
+  private async resolveDatabase(): Promise<Database | null> {
+    if (this.database === null) {
+      return null;
+    }
+    if (typeof (this.database as Promise<unknown>).then === 'function') {
+      return this.database as Promise<Database | null>;
+    }
+    return this.database;
+  }
+
   /** One-time read of the current now-playing record. */
   async getNowPlaying(): Promise<RepositoryResult<NowPlaying | null>> {
-    if (!this.database) {
+    const database = await this.resolveDatabase();
+    if (!database) {
       return repositoryFailure(
         'firebase-not-configured',
         'Firebase is not configured. Set the VITE_FIREBASE_* environment variables (see .env.example).',
@@ -41,7 +51,10 @@ export class NowPlayingRepository {
     }
 
     try {
-      const snapshot = await get(ref(this.database, 'nowPlaying/current'));
+      // The Realtime Database SDK is dynamically imported so it stays out of
+      // the critical bundle; it is only needed for this decorative widget.
+      const { get, ref } = await import('firebase/database');
+      const snapshot = await get(ref(database, 'nowPlaying/current'));
       return repositorySuccess(mapNowPlaying(snapshot));
     } catch (error) {
       return repositoryFailure(
@@ -56,24 +69,42 @@ export class NowPlayingRepository {
     onChange: (data: NowPlaying | null) => void,
     onError?: (error: Error) => void,
   ): () => void {
-    if (!this.database) {
-      onChange(null);
-      return () => {
-        /* no-op when unconfigured */
-      };
-    }
+    let unsubscribe: (() => void) | null = null;
+    let cancelled = false;
 
-    const nowPlayingRef = ref(this.database, 'nowPlaying/current');
-    const unsubscribe = onValue(
-      nowPlayingRef,
-      (snapshot: DataSnapshot) => {
-        onChange(mapNowPlaying(snapshot));
-      },
-      (error: Error) => {
+    (async () => {
+      const database = await this.resolveDatabase();
+      if (cancelled) {
+        return;
+      }
+      if (!database) {
+        onChange(null);
+        return;
+      }
+      // Dynamic SDK import (see getNowPlaying) keeps the bundle lazy.
+      const { ref, onValue } = await import('firebase/database');
+      if (cancelled) {
+        return;
+      }
+      unsubscribe = onValue(
+        ref(database, 'nowPlaying/current'),
+        (snapshot: DataSnapshot) => {
+          onChange(mapNowPlaying(snapshot));
+        },
+        (error: Error) => {
+          onError?.(error);
+        },
+      );
+    })().catch((error: Error) => {
+      if (!cancelled) {
         onError?.(error);
-      },
-    );
-    return unsubscribe;
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      unsubscribe?.();
+    };
   }
 }
 

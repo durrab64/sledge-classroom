@@ -8,18 +8,21 @@
 // Tests construct repositories directly with mock dependencies instead of
 // importing this barrel, so no Firebase SDK or network is involved in tests.
 
-import { db, rtdb, firebaseConfigured } from '../firebase';
+import { db, getRtdb, firebaseConfigured } from '../firebase';
 import { AdminRepository } from './adminRepository';
 import { CourseRepository } from './courseRepository';
 import { EventRepository } from './eventRepository';
 import { NowPlayingRepository } from './nowPlayingRepository';
 
-// `db` / `rtdb` are `Firestore | null` / `Database | null` when Firebase is
-// not configured, which matches the repository dependency types.
+// `db` is `Firestore | null` when Firebase is not configured, which matches
+// the repository dependency types. The RTDB handle is resolved lazily so the
+// Realtime Database SDK never loads into the critical bundle.
 export const courseRepository = new CourseRepository({ firestore: db });
 export const adminRepository = new AdminRepository({ firestore: db });
 export const eventRepository = new EventRepository({ firestore: db });
-export const nowPlayingRepository = new NowPlayingRepository({ database: rtdb });
+export const nowPlayingRepository = new NowPlayingRepository({
+  database: getRtdb(),
+});
 
 export { firebaseConfigured };
 export type { RepositoryResult, RepositoryError } from '@/types';
