@@ -8,8 +8,11 @@
    JetBrains Mono metadata, ~4px radii, flat surfaces.
    =================================================== */
 
-/* ---- Editorial tokens for the admin page ---- */
-html:not([data-zanpakuto]) #page-admin {
+/* ---- Editorial tokens for the admin page ----
+   The AdminDialog renders through a portal on document.body, so the
+   portaled overlay is included wherever the tokens or form rules are
+   scoped to #page-admin. */
+html:not([data-zanpakuto]) :is(#page-admin, .admin-dialog-overlay) {
   --c-bg: #f6f0e3;
   --c-surface: #fdfaf3;
   --c-surface-2: #efe7d6;
@@ -21,7 +24,7 @@ html:not([data-zanpakuto]) #page-admin {
   --c-accent: #8b6a24;
 }
 
-html[data-theme="dark"]:not([data-zanpakuto]) #page-admin {
+html[data-theme="dark"]:not([data-zanpakuto]) :is(#page-admin, .admin-dialog-overlay) {
   --c-bg: #070708;
   --c-surface: #0d0d10;
   --c-surface-2: #121216;
@@ -33,7 +36,7 @@ html[data-theme="dark"]:not([data-zanpakuto]) #page-admin {
   --c-accent: #d7b35f;
 }
 
-html[data-zanpakuto] #page-admin {
+html[data-zanpakuto] :is(#page-admin, .admin-dialog-overlay) {
   --c-bg: var(--bg-primary);
   --c-surface: var(--bg-card);
   --c-surface-2: var(--bg-secondary);
@@ -45,7 +48,7 @@ html[data-zanpakuto] #page-admin {
   --c-accent: var(--accent-color);
 }
 
-html[data-theme="dark"][data-zanpakuto] #page-admin {
+html[data-theme="dark"][data-zanpakuto] :is(#page-admin, .admin-dialog-overlay) {
   --c-gold: var(--accent-color);
   --c-gold: color-mix(in srgb, var(--accent-color) 82%, #ffffff);
 }
@@ -139,7 +142,7 @@ html[data-theme="dark"][data-zanpakuto] #page-admin {
 }
 
 /* Buttons: flat editorial */
-#page-admin .btn {
+:is(#page-admin, .admin-dialog-overlay) .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -154,62 +157,62 @@ html[data-theme="dark"][data-zanpakuto] #page-admin {
   transform: none;
 }
 
-#page-admin .btn-sm {
+:is(#page-admin, .admin-dialog-overlay) .btn-sm {
   padding: 7px 12px;
   font-size: 0.76rem;
 }
 
-#page-admin .btn-primary {
+:is(#page-admin, .admin-dialog-overlay) .btn-primary {
   background: var(--c-gold);
   color: var(--c-bg);
   border: 1px solid var(--c-gold);
 }
 
-#page-admin .btn-primary:hover {
+:is(#page-admin, .admin-dialog-overlay) .btn-primary:hover {
   background: color-mix(in srgb, var(--c-gold) 82%, #000);
   border-color: color-mix(in srgb, var(--c-gold) 82%, #000);
   transform: none;
   box-shadow: none;
 }
 
-#page-admin .btn-outline {
+:is(#page-admin, .admin-dialog-overlay) .btn-outline {
   border: 1px solid var(--c-line);
   color: var(--c-ink);
   background: transparent;
   backdrop-filter: none;
 }
 
-#page-admin .btn-outline:hover {
+:is(#page-admin, .admin-dialog-overlay) .btn-outline:hover {
   border-color: var(--c-gold);
   color: var(--c-gold);
   background: color-mix(in srgb, var(--c-gold) 8%, transparent);
   transform: none;
 }
 
-#page-admin .btn-ghost {
+:is(#page-admin, .admin-dialog-overlay) .btn-ghost {
   color: var(--c-muted);
   border: 1px solid transparent;
   background: transparent;
 }
 
-#page-admin .btn-ghost:hover {
+:is(#page-admin, .admin-dialog-overlay) .btn-ghost:hover {
   color: var(--c-ink);
   background: color-mix(in srgb, var(--c-gold) 6%, transparent);
 }
 
-#page-admin .btn-danger {
+:is(#page-admin, .admin-dialog-overlay) .btn-danger {
   background: transparent;
   color: #b91c1c;
   border: 1px solid color-mix(in srgb, #b91c1c 40%, var(--c-line));
 }
 
-#page-admin .btn-danger:hover {
+:is(#page-admin, .admin-dialog-overlay) .btn-danger:hover {
   background: color-mix(in srgb, #b91c1c 10%, transparent);
   color: #b91c1c;
   border-color: #b91c1c;
 }
 
-[data-theme="dark"] #page-admin .btn-danger {
+[data-theme="dark"] :is(#page-admin, .admin-dialog-overlay) .btn-danger {
   color: #fca5a5;
   border-color: color-mix(in srgb, #fca5a5 40%, var(--c-line));
 }
@@ -439,14 +442,14 @@ html[data-theme="dark"][data-zanpakuto] #page-admin {
 }
 
 /* ---- Forms ---- */
-#page-admin .form-group {
+:is(#page-admin, .admin-dialog-overlay) .form-group {
   display: flex;
   flex-direction: column;
   gap: 6px;
   margin-bottom: 14px;
 }
 
-#page-admin .form-group label {
+:is(#page-admin, .admin-dialog-overlay) .form-group label {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.62rem;
   letter-spacing: 0.14em;
@@ -455,7 +458,7 @@ html[data-theme="dark"][data-zanpakuto] #page-admin {
   color: var(--c-muted);
 }
 
-#page-admin .form-input {
+:is(#page-admin, .admin-dialog-overlay) .form-input {
   width: 100%;
   padding: 9px 12px;
   border: 1px solid var(--c-line);
@@ -467,31 +470,31 @@ html[data-theme="dark"][data-zanpakuto] #page-admin {
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-#page-admin .form-input:focus-visible {
+:is(#page-admin, .admin-dialog-overlay) .form-input:focus-visible {
   outline: none;
   border-color: var(--c-gold);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-gold) 22%, transparent);
 }
 
-#page-admin .form-input:disabled {
+:is(#page-admin, .admin-dialog-overlay) .form-input:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
 
-#page-admin .form-row {
+:is(#page-admin, .admin-dialog-overlay) .form-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 14px;
 }
 
-#page-admin .form-hint {
+:is(#page-admin, .admin-dialog-overlay) .form-hint {
   margin: 0;
   font-size: 0.74rem;
   line-height: 1.5;
   color: var(--c-muted);
 }
 
-#page-admin .form-error {
+:is(#page-admin, .admin-dialog-overlay) .form-error {
   margin: 4px 0 0;
   padding: 8px 12px;
   border-radius: 4px;
@@ -501,13 +504,13 @@ html[data-theme="dark"][data-zanpakuto] #page-admin {
   font-size: 0.8rem;
 }
 
-[data-theme="dark"] #page-admin .form-error {
+[data-theme="dark"] :is(#page-admin, .admin-dialog-overlay) .form-error {
   color: #fca5a5;
   border-color: color-mix(in srgb, #fca5a5 40%, var(--c-line));
   background: color-mix(in srgb, #fca5a5 8%, var(--c-surface));
 }
 
-#page-admin textarea.form-input {
+:is(#page-admin, .admin-dialog-overlay) textarea.form-input {
   min-height: 80px;
   resize: vertical;
 }
@@ -632,6 +635,18 @@ html[data-theme="dark"][data-zanpakuto] #page-admin {
   margin-top: 6px;
   padding-top: 14px;
   border-top: 1px solid var(--c-line);
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 /* ---- Responsive ---- */
